@@ -1,0 +1,186 @@
+{{ form_start(form, {'attr': {'class': 'form-body'}}) }}
+    {% for field in form %}
+        {% if field.isRendered %}
+            {# field already rendered #}
+        {% elseif field.vars.name != '_token' %}
+            {% if field.vars.name == 'role' %}
+                <div class="form-group-role">
+                    {{ form_label(field, null, {'label_attr': {'class': 'role-label'}}) }}
+                    <div class="role-select-wrapper">
+                        {{ form_widget(field, {'attr': {'class': 'professional-select'}}) }}
+                        <i class="fas fa-chevron-down role-select-icon"></i>
+                    </div>
+                    {{ form_errors(field) }}
+                </div>
+            {% else %}
+                <div class="form-group">
+                    {{ form_label(field) }}
+                    {{ form_widget(field, {'attr': {'placeholder': field.vars.label}}) }}
+                    {{ form_errors(field) }}
+                </div>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+
+    <div class="form-actions">
+        <button type="submit" class="btn-gradient" style="border: none; cursor: pointer;">
+            <i class="fas fa-save"></i> {{ button_label|default('Save') }}
+        </button>
+    </div>
+{{ form_end(form) }}
+
+<style>
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #aaa;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        color: white;
+        font-family: 'Poppins', sans-serif;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #9d4edd;
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 0 3px rgba(157, 78, 221, 0.1);
+    }
+
+    .form-group input::placeholder {
+        color: #777;
+    }
+
+    .form-group select {
+        cursor: pointer;
+    }
+
+    .form-group select option {
+        background: #1b1e2e;
+        color: white;
+    }
+
+    /* Professional Role Select Styling */
+    .form-group-role {
+        margin-bottom: 2rem;
+        margin-top: 1rem;
+    }
+
+    .role-label {
+        display: block;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 0.75rem;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        letter-spacing: 1.5px;
+    }
+
+    .role-select-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .professional-select {
+        width: 100%;
+        padding: 14px 16px;
+        background: linear-gradient(135deg, rgba(157, 78, 221, 0.15) 0%, rgba(76, 201, 240, 0.08) 100%);
+        border: 2px solid rgba(157, 78, 221, 0.4);
+        border-radius: 10px;
+        color: white;
+        font-family: 'Poppins', sans-serif;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        appearance: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        padding-right: 40px;
+    }
+
+    .professional-select:hover {
+        border-color: #9d4edd;
+        background: linear-gradient(135deg, rgba(157, 78, 221, 0.25) 0%, rgba(76, 201, 240, 0.15) 100%);
+        box-shadow: 0 4px 12px rgba(157, 78, 221, 0.2);
+    }
+
+    .professional-select:focus {
+        outline: none;
+        border-color: #9d4edd;
+        background: linear-gradient(135deg, rgba(157, 78, 221, 0.25) 0%, rgba(76, 201, 240, 0.15) 100%);
+        box-shadow: 0 0 0 4px rgba(157, 78, 221, 0.2), 0 4px 12px rgba(157, 78, 221, 0.2);
+    }
+
+    .professional-select option {
+        background: #2a2e42;
+        color: white;
+        padding: 10px;
+        margin: 4px 0;
+    }
+
+    .professional-select option:checked {
+        background: linear-gradient(#9d4edd, #9d4edd);
+        background-color: #9d4edd;
+    }
+
+    .role-select-icon {
+        position: absolute;
+        right: 14px;
+        color: #9d4edd;
+        pointer-events: none;
+        font-size: 0.9rem;
+    }
+
+    .form-group-errors {
+        color: #ff4757;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2.5rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-gradient {
+        padding: 12px 32px;
+        background: linear-gradient(135deg, #9d4edd 0%, #4cc9f0 100%);
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-gradient:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 32px rgba(157, 78, 221, 0.4);
+    }
+</style>
