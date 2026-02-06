@@ -1,0 +1,72 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Gestion Équipes - Admin{% endblock %}
+{% block page_title %}Gestion des Équipes{% endblock %}
+
+{% block body %}
+    <!-- Actions Banner -->
+    <div style="margin-bottom: 30px; display: flex; justify-content: flex-end;">
+        <a href="{{ path('app_equipes_new') }}" class="btn-gradient" style="padding: 12px 25px; text-decoration: none; display: inline-block;">
+            <i class="fas fa-plus"></i> Ajouter une Équipe
+        </a>
+    </div>
+
+    <div class="admin-table-container">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Tag</th>
+                    <th>Region</th>
+                    <th>Classement</th>
+                    <th>Membres</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for equipe in equipes %}
+                    <tr>
+                        <td>#{{ equipe.id }}</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                {% if equipe.logo %}
+                                    <img src="{{ asset('uploads/equipes/' ~ equipe.logo) }}" alt="Logo" style="width: 30px; height: 30px; border-radius: 6px; object-fit: cover;">
+                                {% else %}
+                                    <div style="width: 30px; height: 30px; border-radius: 6px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-users" style="font-size: 12px;"></i>
+                                    </div>
+                                {% endif %}
+                                <span style="font-weight: 600;">{{ equipe.nomEquipe }}</span>
+                            </div>
+                        </td>
+                        <td><span class="badge badge-primary">{{ equipe.tag }}</span></td>
+                        <td>{{ equipe.region|default('N/A') }}</td>
+                        <td>{{ equipe.classement }}</td>
+                        <td>{{ equipe.recrutements|length }}</td>
+                        <td>
+                            <div style="display: flex; gap: 8px;">
+                                <a href="{{ path('app_equipes_show', {'id': equipe.id}) }}" class="btn-icon" target="_blank" title="Voir">
+                                    <i class="fas fa-eye" style="color: var(--primary-blue);"></i>
+                                </a>
+                                <a href="{{ path('app_equipes_edit', {'id': equipe.id}) }}" class="btn-icon" title="Modifier">
+                                    <i class="fas fa-edit" style="color: var(--text-secondary);"></i>
+                                </a>
+                                <form method="post" action="{{ path('app_equipes_delete', {'id': equipe.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette équipe ?');" style="display: inline-block;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ equipe.id) }}">
+                                    <button class="btn-icon" title="Supprimer" style="background: none; border: none; cursor: pointer;">
+                                        <i class="fas fa-trash-alt" style="color: var(--primary-pink);"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 30px;">Aucune équipe trouvée</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

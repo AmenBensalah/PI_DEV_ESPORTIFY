@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Home - Esportify</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        nav {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        nav h1 {
+            color: white;
+            font-size: 24px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 15px;
+        }
+        .nav-links a, .nav-links button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .nav-links a:hover, .nav-links button:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+        .nav-links button {
+            background: #dc3545;
+        }
+        .nav-links button:hover {
+            background: #c82333;
+        }
+        .container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+        .content {
+            background: white;
+            padding: 50px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 600px;
+        }
+        .content h1 {
+            color: #333;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        .content p {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .user-info {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .user-info p {
+            color: #555;
+            margin: 10px 0;
+        }
+        .user-info strong {
+            color: #333;
+        }
+        .btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <h1>🎮 Esportify</h1>
+        <div class="nav-links">
+            <span style="color: white;">Welcome, {{ app.user.nom }}!</span>
+            <a href="{{ path('app_home') }}">Home</a>
+            <a href="{{ path('app_profile') }}">My Profile</a>
+            <form method="post" action="{{ path('app_logout') }}" style="display: inline;">
+                <button type="submit">Logout</button>
+            </form>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="content">
+            <h1>Welcome to Esportify!</h1>
+            <p>You're successfully logged in as a player. Explore the amazing world of esports and connect with other gamers.</p>
+            
+            <div class="user-info">
+                <p><strong>Name:</strong> {{ app.user.nom }}</p>
+                <p><strong>Email:</strong> {{ app.user.email }}</p>
+                <p><strong>Status:</strong> Active Player</p>
+            </div>
+
+            <p>Coming soon: Tournaments, Teams, Leaderboards, and more!</p>
+        </div>
+    </div>
+</body>
+</html>
