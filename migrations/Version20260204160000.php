@@ -19,11 +19,21 @@ final class Version20260204160000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE user DROP COLUMN roles');
+        if ($schema->hasTable('user')) {
+            $table = $schema->getTable('user');
+            if ($table->hasColumn('roles')) {
+                $this->addSql('ALTER TABLE user DROP COLUMN roles');
+            }
+        }
     }
 
     public function down(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE user ADD COLUMN roles JSON NOT NULL');
+        if ($schema->hasTable('user')) {
+            $table = $schema->getTable('user');
+            if (!$table->hasColumn('roles')) {
+                $this->addSql('ALTER TABLE user ADD COLUMN roles JSON NOT NULL');
+            }
+        }
     }
 }

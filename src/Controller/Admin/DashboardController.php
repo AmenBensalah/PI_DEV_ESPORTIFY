@@ -4,13 +4,15 @@ namespace App\Controller\Admin;
 
 use App\Form\User1Type;
 use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Doctrine\ORM\EntityManagerInterface;
 
 #[IsGranted('ROLE_ADMIN')]
 class DashboardController extends AbstractController
@@ -20,7 +22,7 @@ class DashboardController extends AbstractController
     {
         $users = $userRepository->findAll();
         $userCount = count($users);
-        
+
         return $this->render('admin/dashboard/index.html.twig', [
             'userCount' => $userCount,
             'equipeCount' => 12, // Replace with actual data from DB
@@ -52,23 +54,83 @@ class DashboardController extends AbstractController
         $form = $this->createForm(User1Type::class, $user);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $plainPassword = $form->get('plainPassword')->getData();
-            
-            if ($plainPassword) {
-                $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
-                $user->setPassword($hashedPassword);
+        if ($form->isSubmitted()) {
+            $this->validateAdminProfileForm($form, $user);
+
+            if ($form->isValid()) {
+                $plainPassword = $form->get('plainPassword')->getData();
+
+                if ($plainPassword) {
+                    $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
+                    $user->setPassword($hashedPassword);
+                }
+
+                $entityManager->flush();
+
+                $this->addFlash('success', 'Profil mis a jour avec succes!');
+                return $this->redirectToRoute('admin_profile');
             }
-
-            $entityManager->flush();
-
-            $this->addFlash('success', 'Profil mis à jour avec succès!');
-            return $this->redirectToRoute('admin_profile');
         }
 
         return $this->render('admin/profile/profile.html.twig', [
             'user' => $user,
             'form' => $form,
         ]);
+    }
+
+    private function validateAdminProfileForm(FormInterface $form, $user): void
+    {
+        $email = trim((string) $form->get('email')->getData());
+        if ($email === '') {
+            $form->get('email')->addError(new FormError("L'email est obligatoire."));
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $form->get('email')->addError(new FormError("Le format de l'email est invalide."));
+        }
+
+        $nom = trim((string) $form->get('nom')->getData());
+        if ($nom === '') {
+            $form->get('nom')->addError(new FormError('Le nom est obligatoire.'));
+        } else {
+            $nomLength = strlen($nom);
+            if ($nomLength < 2 || $nomLength > 100) {
+                $form->get('nom')->addError(new FormError('Le nom doit contenir entre 2 et 100 caracteres.'));
+            }
+            if (!preg_match('/^[\p{L}\p{M}\s\'-]+$/u', $nom)) {
+                $form->get('nom')->addError(new FormError('Le nom contient des caracteres invalides.'));
+            }
+        }
+
+        if ($form->has('pseudo')) {
+            $pseudo = trim((string) $form->get('pseudo')->getData());
+            if ($pseudo !== '') {
+                $pseudoLength = strlen($pseudo);
+                if ($pseudoLength < 3 || $pseudoLength > 30) {
+                    $form->get('pseudo')->addError(new FormError('Le pseudo doit contenir entre 3 et 30 caracteres.'));
+                }
+                if (!preg_match('/^[A-Za-z0-9_.-]+$/', $pseudo)) {
+                    $form->get('pseudo')->addError(new FormError('Le pseudo contient des caracteres invalides.'));
+                }
+            }
+        }
+
+        $plainPassword = (string) $form->get('plainPassword')->getData();
+        if (trim($plainPassword) !== '') {
+            if (strlen($plainPassword) < 6) {
+                $form->get('plainPassword')->addError(new FormError('Le mot de passe doit contenir au moins 6 caracteres.'));
+            }
+            if (!preg_match('/[A-Za-z]/', $plainPassword) || !preg_match('/\d/', $plainPassword)) {
+                $form->get('plainPassword')->addError(new FormError('Le mot de passe doit contenir au moins une lettre et un chiffre.'));
+            }
+        }
+
+        if ($email !== '') {
+            $user->setEmail($email);
+        }
+        if ($nom !== '') {
+            $user->setNom($nom);
+        }
+        if ($form->has('pseudo') && $pseudo !== '') {
+            $user->setPseudo($pseudo);
+        }
     }
 }

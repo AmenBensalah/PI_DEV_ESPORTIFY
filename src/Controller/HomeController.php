@@ -2,9 +2,15 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Form\UserProfileFormType;
+use Doctrine\DBAL\Exception\LockWaitTimeoutException;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Exception\EntityManagerClosed;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -34,17 +40,21 @@ class HomeController extends AbstractController
         $form = $this->createForm(UserProfileFormType::class, $user);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            // Hash password if it was changed
-            $plainPassword = $form->get('plainPassword')->getData();
-            if ($plainPassword) {
-                $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
-                $user->setPassword($hashedPassword);
+        if ($form->isSubmitted()) {
+            $this->validateProfileForm($form, $user);
+
+            if ($form->isValid()) {
+                // Hash password if it was changed
+                $plainPassword = $form->get('plainPassword')->getData();
+                if ($plainPassword) {
+                    $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
+                    $user->setPassword($hashedPassword);
+                }
+
+                $entityManager->flush();
+
+                return $this->redirectToRoute('app_profile');
             }
-
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_profile');
         }
 
         return $this->render('home/edit_profile.html.twig', [
@@ -52,20 +62,67 @@ class HomeController extends AbstractController
         ]);
     }
 
+    private function validateProfileForm(FormInterface $form, $user): void
+    {
+        $nom = trim((string) $form->get('nom')->getData());
+        if ($nom === '') {
+            $form->get('nom')->addError(new FormError('Le nom est obligatoire.'));
+        } else {
+            $nomLength = strlen($nom);
+            if ($nomLength < 2 || $nomLength > 100) {
+                $form->get('nom')->addError(new FormError('Le nom doit contenir entre 2 et 100 caracteres.'));
+            }
+            if (!preg_match('/^[\p{L}\p{M}\s\'-]+$/u', $nom)) {
+                $form->get('nom')->addError(new FormError('Le nom contient des caracteres invalides.'));
+            }
+        }
+
+        if ($form->has('pseudo')) {
+            $pseudo = trim((string) $form->get('pseudo')->getData());
+            if ($pseudo !== '') {
+                $pseudoLength = strlen($pseudo);
+                if ($pseudoLength < 3 || $pseudoLength > 30) {
+                    $form->get('pseudo')->addError(new FormError('Le pseudo doit contenir entre 3 et 30 caracteres.'));
+                }
+                if (!preg_match('/^[A-Za-z0-9_.-]+$/', $pseudo)) {
+                    $form->get('pseudo')->addError(new FormError('Le pseudo contient des caracteres invalides.'));
+                }
+            }
+        }
+
+        $plainPassword = (string) $form->get('plainPassword')->getData();
+        if (trim($plainPassword) !== '') {
+            if (strlen($plainPassword) < 6) {
+                $form->get('plainPassword')->addError(new FormError('Le mot de passe doit contenir au moins 6 caracteres.'));
+            }
+            if (!preg_match('/[A-Za-z]/', $plainPassword) || !preg_match('/\d/', $plainPassword)) {
+                $form->get('plainPassword')->addError(new FormError('Le mot de passe doit contenir au moins une lettre et un chiffre.'));
+            }
+        }
+
+        if ($nom !== '') {
+            $user->setNom($nom);
+        }
+        if ($form->has('pseudo') && $pseudo !== '') {
+            $user->setPseudo($pseudo);
+        }
+    }
+
     #[Route('/profile/delete', name: 'app_profile_delete', methods: ['POST'])]
-    public function deleteProfile(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage): Response
+    public function deleteProfile(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $tokenStorage, ManagerRegistry $registry): Response
     {
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->redirectToRoute('app_login');
+        }
 
         // Verify CSRF token
         if (!$this->isCsrfTokenValid('delete_profile', $request->getPayload()->getString('_token'))) {
-            $this->addFlash('error', 'Invalid security token. Please try again.');
+            $this->addFlash('error', 'Jeton de securite invalide. Veuillez reessayer.');
             return $this->redirectToRoute('app_profile');
         }
 
-        // Remove user from database
-        $entityManager->remove($user);
-        $entityManager->flush();
+        $userId = $user->getId();
 
         // Clear the security token to prevent refresh attempts
         $tokenStorage->setToken(null);
@@ -73,7 +130,53 @@ class HomeController extends AbstractController
         // Invalidate the session
         $request->getSession()->invalidate();
 
-        // Redirect to login page
+        if ($userId === null) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        try {
+            $this->removeUserWithRetry($entityManager, $registry, $userId);
+        } catch (LockWaitTimeoutException | EntityManagerClosed $exception) {
+            $this->addFlash('error', 'Suppression impossible pour le moment. Reessayez dans quelques secondes.');
+        }
+
         return $this->redirectToRoute('app_login');
+    }
+
+    private function removeUserWithRetry(EntityManagerInterface $entityManager, ManagerRegistry $registry, int $userId): void
+    {
+        $attempts = 0;
+        $maxAttempts = 2;
+        $manager = $entityManager;
+
+        while ($attempts < $maxAttempts) {
+            try {
+                if (method_exists($manager, 'isOpen') && !$manager->isOpen()) {
+                    $manager = $registry->resetManager();
+                }
+
+                $user = $manager->find(User::class, $userId);
+                if ($user !== null) {
+                    $manager->remove($user);
+                    $manager->flush();
+                }
+                return;
+            } catch (EntityManagerClosed $exception) {
+                $manager = $registry->resetManager();
+                $attempts++;
+                if ($attempts >= $maxAttempts) {
+                    throw $exception;
+                }
+            } catch (LockWaitTimeoutException $exception) {
+                if (method_exists($manager, 'isOpen') && $manager->isOpen()) {
+                    $manager->clear();
+                }
+                $attempts++;
+                if ($attempts >= $maxAttempts) {
+                    throw $exception;
+                }
+                usleep(250000);
+            }
+        }
     }
 }

@@ -260,11 +260,27 @@
             {% endif %}
 
             <div class="input-group">
+                {{ form_widget(registrationForm.pseudo, {attr: {placeholder: 'Pseudo', class: 'form-control'}}) }}
+                <i class="fas fa-user-tag"></i>
+            </div>
+            {% if registrationForm.pseudo.vars.errors|length > 0 %}
+                <div class="field-error">{{ form_errors(registrationForm.pseudo) }}</div>
+            {% endif %}
+
+            <div class="input-group">
                 {{ form_widget(registrationForm.plainPassword, {attr: {placeholder: 'Mot de passe', class: 'form-control'}}) }}
                 <i class="fas fa-lock"></i>
             </div>
             {% if registrationForm.plainPassword.vars.errors|length > 0 %}
                 <div class="field-error">{{ form_errors(registrationForm.plainPassword) }}</div>
+            {% endif %}
+
+            <div class="input-group">
+                {{ form_widget(registrationForm.confirmPassword, {attr: {placeholder: 'Confirmer le mot de passe', class: 'form-control'}}) }}
+                <i class="fas fa-lock"></i>
+            </div>
+            {% if registrationForm.confirmPassword.vars.errors|length > 0 %}
+                <div class="field-error">{{ form_errors(registrationForm.confirmPassword) }}</div>
             {% endif %}
 
             <div class="checkbox-group">
@@ -285,4 +301,3 @@
 
 </body>
 </html>
-
