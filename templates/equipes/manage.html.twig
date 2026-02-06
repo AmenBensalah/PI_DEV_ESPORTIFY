@@ -1,0 +1,278 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gérer {{ equipe.nomEquipe }} - E-Sportify{% endblock %}
+
+{% block body %}
+
+{# ─── PAGE HEADER ─── #}
+<div class="page-header animate__animated animate__fadeIn">
+    <h1 class="hero-title">
+        <i class="fas fa-cog"></i> GESTION D'ÉQUIPE
+    </h1>
+    <p class="hero-subtitle">
+        Gérez {{ equipe.nomEquipe }} et ses membres
+    </p>
+</div>
+
+{# ─── QUICK STATS ROW ─── #}
+<div class="stats-section animate__animated animate__fadeInUp" style="max-width: 900px; margin: 0 auto 50px;">
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-users"></i></div>
+        <div class="stat-value">{{ equipe.membres|length|default(1) }}<span style="font-size:18px; color: var(--text-secondary);">/10</span></div>
+        <div class="stat-label">Membres</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-trophy"></i></div>
+        <div class="stat-value">{{ equipe.classement|default('—') }}</div>
+        <div class="stat-label">Classement</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
+        <div class="stat-value" style="font-size: 22px;">{{ equipe.dateCreation|date('d/m/Y') }}</div>
+        <div class="stat-label">Créée le</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-star"></i></div>
+        <div class="stat-value">{{ equipe.victoires|default(0) }}</div>
+        <div class="stat-label">Victoires</div>
+    </div>
+</div>
+
+{# ─── MAIN MANAGEMENT CARD ─── #}
+<div class="form-container animate__animated animate__fadeInUp" style="max-width: 960px;">
+    <div class="management-card">
+
+        {# ── HEADER : Nom équipe + actions ── #}
+        <div class="management-header">
+            <h3><i class="fas fa-shield-alt"></i> {{ equipe.nomEquipe }}</h3>
+            <div class="management-actions" style="flex-wrap: wrap; gap: 10px;">
+                <a href="{{ path('app_equipes_edit', {'id': equipe.id}) }}" class="btn-action edit">
+                    <i class="fas fa-edit"></i> Modifier
+                </a>
+                <a href="{{ path('app_recrutements_manage') }}" class="btn-action" style="border-color: var(--primary-blue); color: var(--primary-blue);">
+                    <i class="fas fa-user-plus"></i> Recrutements
+                </a>
+                <button class="btn-action delete" onclick="openDeleteModal()">
+                    <i class="fas fa-trash"></i> Supprimer
+                </button>
+            </div>
+        </div>
+
+        {# ── LOGO + DESCRIPTION SIDE BY SIDE ── #}
+        <div style="display: grid; grid-template-columns: auto 1fr; gap: 35px; align-items: center; margin-bottom: 35px; padding-bottom: 35px; border-bottom: 2px solid rgba(0,217,255,0.1);">
+            {# Logo bloc #}
+            <div style="text-align: center;">
+                {% if equipe.logo %}
+                    <div style="width: 140px; height: 140px; border-radius: 50%; border: 4px solid var(--primary-blue); box-shadow: var(--shadow-glow); overflow: hidden; margin: 0 auto;">
+                        <img src="{{ asset('uploads/equipes/' ~ equipe.logo) }}" alt="Logo {{ equipe.nomEquipe }}"
+                             style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                {% else %}
+                    <div style="width: 140px; height: 140px; border-radius: 50%; border: 3px dashed rgba(0,217,255,0.4); display: flex; align-items: center; justify-content: center; margin: 0 auto; background: var(--darker-bg);">
+                        <i class="fas fa-image" style="font-size: 42px; color: rgba(0,217,255,0.3);"></i>
+                    </div>
+                {% endif %}
+                <div style="margin-top: 12px;">
+                    <a href="{{ path('app_equipes_edit', {'id': equipe.id}) }}" style="font-size: 13px; color: var(--primary-blue); text-decoration: none; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+                        <i class="fas fa-pencil-alt"></i> {% if equipe.logo %}Changer{% else %}Ajouter{% endif %}
+                    </a>
+                </div>
+            </div>
+
+            {# Description bloc #}
+            <div>
+                <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-align-left" style="color: var(--primary-blue);"></i> Description
+                </div>
+                <p style="color: var(--text-secondary); font-size: 16px; line-height: 1.7;">
+                    {{ equipe.description|default('Aucune description fournie. Modifiez votre équipe pour en ajouter une.') }}
+                </p>
+            </div>
+        </div>
+
+        {# ── INFO GRID : ID, Date, Classement, Statut ── #}
+        <div class="team-info-grid" style="margin-bottom: 40px;">
+            <div class="info-item">
+                <div class="info-item-label"><i class="fas fa-hashtag"></i> ID de l'Équipe</div>
+                <div class="info-item-value">#{{ equipe.id }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-label"><i class="fas fa-calendar-alt"></i> Date de Création</div>
+                <div class="info-item-value">{{ equipe.dateCreation|date('d/m/Y') }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-label"><i class="fas fa-trophy"></i> Classement</div>
+                <div class="info-item-value">
+                    {% if equipe.classement %}
+                        <span class="badge badge-primary"><i class="fas fa-medal"></i> {{ equipe.classement }}</span>
+                    {% else %}
+                        <span style="color: var(--text-secondary);">Non classé</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-label"><i class="fas fa-globe"></i> Visibilité</div>
+                <div class="info-item-value">
+                    {% if equipe.estPrivee is defined and equipe.estPrivee %}
+                        <span class="badge badge-warning"><i class="fas fa-lock"></i> Privée</span>
+                    {% else %}
+                        <span class="badge badge-success"><i class="fas fa-globe"></i> Publique</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# ── MEMBRES ── #}
+        <div class="members-section">
+            <div class="members-header">
+                <h4><i class="fas fa-users"></i> Membres de l'Équipe
+                    <span class="badge badge-primary" style="font-size: 11px; padding: 4px 10px;">
+                        {{ equipe.membres|length|default(1) }} / 10
+                    </span>
+                </h4>
+                <button class="btn-gradient" style="padding: 10px 22px; font-size: 14px; border: none; border-radius: var(--radius-md); cursor: pointer; display: flex; align-items: center; gap: 8px; font-family: 'Rajdhani', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: white; transition: var(--transition);"
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='var(--shadow-glow)';"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                    <i class="fas fa-user-plus"></i> Inviter
+                </button>
+            </div>
+
+            <div class="members-list">
+                {# ── Créateur / Capitaine ── #}
+                <div class="member-item" style="border-color: rgba(255,215,0,0.25); background: linear-gradient(135deg, var(--darker-bg), rgba(255,215,0,0.04));">
+                    <div class="member-avatar" style="border: 3px solid #FFD700; box-shadow: 0 0 14px rgba(255,215,0,0.35);">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="member-info">
+                        <div class="member-name">Vous (Créateur)</div>
+                        <div class="member-role">Manager de l'équipe</div>
+                    </div>
+                    <span class="member-badge captain"><i class="fas fa-crown"></i> Capitaine</span>
+                </div>
+
+                {# ── Autres membres (loop dynamique) ── #}
+                {% if equipe.membres is defined and equipe.membres|length > 1 %}
+                    {% for membre in equipe.membres %}
+                        {% if membre != equipe.createur %}
+                        <div class="member-item">
+                            <div class="member-avatar">
+                                {% if membre.avatar %}
+                                    <img src="{{ asset('uploads/avatars/' ~ membre.avatar) }}" alt="{{ membre.nomUtilisateur }}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+                                {% else %}
+                                    {{ membre.nomUtilisateur|upper|slice(0,2) }}
+                                {% endif %}
+                            </div>
+                            <div class="member-info">
+                                <div class="member-name">{{ membre.nomUtilisateur }}</div>
+                                <div class="member-role">{{ membre.role|default('Joueur') }}</div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span class="member-badge member">Joueur</span>
+                                <button class="btn-action delete" style="padding: 8px 14px; font-size: 12px;" title="Retirer {{ membre.nomUtilisateur }}">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+
+                {# ── Slots libres visuels ── #}
+                {% set nombreMembres = equipe.membres|length|default(1) %}
+                {% for i in range(nombreMembres + 1, 10) %}
+                    <div class="member-item" style="border-style: dashed; border-color: rgba(255,255,255,0.1); opacity: 0.45;">
+                        <div style="width:50px; height:50px; border-radius:50%; border: 2px dashed rgba(0,217,255,0.3); display:flex; align-items:center; justify-content:center;">
+                            <i class="fas fa-plus" style="color: rgba(0,217,255,0.35); font-size: 18px;"></i>
+                        </div>
+                        <div class="member-info">
+                            <div class="member-name" style="color: var(--text-secondary); font-weight:400;">Slot libre</div>
+                            <div class="member-role">En attente d'un joueur</div>
+                        </div>
+                        <button class="btn-action" style="border-color: rgba(0,217,255,0.3); color: rgba(0,217,255,0.5); padding: 8px 16px; font-size: 12px;">
+                            <i class="fas fa-user-plus"></i> Inviter
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# ── BACK BUTTON ── #}
+        <div style="text-align: center; margin-top: 45px; padding-top: 30px; border-top: 2px solid rgba(0,217,255,0.1);">
+            <a href="{{ path('app_equipes_index') }}" class="btn-secondary" style="padding: 14px 38px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; border-radius: var(--radius-full); font-weight: 700; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; transition: var(--transition);"
+               onmouseover="this.style.background='var(--primary-blue)'; this.style.color='white'; this.style.transform='translateY(-3px)';"
+               onmouseout="this.style.background='transparent'; this.style.color='var(--primary-blue)'; this.style.transform='translateY(0)';">
+                <i class="fas fa-arrow-left"></i> Retour aux Équipes
+            </a>
+        </div>
+    </div>
+</div>
+
+{# ─── DELETE MODAL ─── #}
+<div id="deleteModal" class="modal-overlay delete-modal">
+    <div class="modal-content">
+        <div class="delete-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h2 class="delete-title">Supprimer l'Équipe ?</h2>
+        <p class="delete-text">
+            Cette action est <strong style="color: var(--primary-pink);">irréversible</strong>. 
+            Tous les membres seront retirés et toutes les données de <strong style="color: var(--text-primary);">{{ equipe.nomEquipe }}</strong> seront perdues définitivement.
+        </p>
+        <div class="delete-actions">
+            <button class="btn-submit secondary" onclick="closeDeleteModal()" style="flex: 1;">
+                <i class="fas fa-times"></i> Annuler
+            </button>
+            <form method="post" action="{{ path('app_equipes_delete', {'id': equipe.id}) }}" style="flex: 1;">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ equipe.id) }}">
+                <button type="submit" class="btn-submit primary" style="width: 100%; background: var(--primary-pink); box-shadow: none;">
+                    <i class="fas fa-trash"></i> Supprimer
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{# ─── SCRIPTS ─── #}
+<script>
+    function openDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.style.display = 'flex';
+        modal.style.alignItems = 'center';
+        modal.style.justifyContent = 'center';
+        document.body.style.overflow = 'hidden';
+        // Animate in
+        const content = modal.querySelector('.modal-content');
+        content.style.transform = 'scale(0.85)';
+        content.style.opacity = '0';
+        content.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                content.style.transform = 'scale(1)';
+                content.style.opacity = '1';
+            });
+        });
+    }
+
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        const content = modal.querySelector('.modal-content');
+        content.style.transform = 'scale(0.85)';
+        content.style.opacity = '0';
+        setTimeout(() => {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }, 280);
+    }
+
+    // ESC to close
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeDeleteModal();
+    });
+
+    // Click outside to close
+    document.getElementById('deleteModal').addEventListener('click', function (e) {
+        if (e.target === this) closeDeleteModal();
+    });
+</script>
+
+{% endblock %}

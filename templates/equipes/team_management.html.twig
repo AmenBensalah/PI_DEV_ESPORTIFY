@@ -1,0 +1,115 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Équipes - E-Sportify{% endblock %}
+
+{% block body %}
+    <!-- Page Header -->
+    <div class="page-header animate__animated animate__fadeIn">
+        <h1 class="hero-title">
+            <i class="fas fa-users"></i> MES ÉQUIPES
+        </h1>
+        <p class="hero-subtitle">
+            Gérez votre équipe ou créez-en une nouvelle
+        </p>
+    </div>
+
+    <!-- Team Status Section -->
+    <div class="form-container animate__animated animate__fadeInUp" style="max-width: 800px; margin: 0 auto;">
+        {% if equipe %}
+            <!-- User already has a team -->
+            <div style="text-align: center; padding: 60px 40px;">
+                <div style="width: 120px; height: 120px; margin: 0 auto 30px; border-radius: 50%; background: rgba(255, 0, 110, 0.1); border: 4px solid var(--primary-pink); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-shield-alt" style="font-size: 60px; color: var(--primary-pink);"></i>
+                </div>
+                
+                <h2 style="font-family: 'Orbitron', sans-serif; font-size: 32px; margin-bottom: 15px; color: var(--primary-pink);">
+                    Tu as déjà une équipe !
+                </h2>
+                
+                <p style="color: var(--text-secondary); font-size: 18px; margin-bottom: 40px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                    Vous faites déjà partie de l'équipe <strong style="color: var(--text-primary);">{{ equipe.nomEquipe }}</strong>. 
+                    Cliquez ci-dessous pour gérer votre équipe.
+                </p>
+
+                <!-- Team Info Card -->
+                <div style="background: var(--darker-bg); border-radius: 20px; padding: 30px; margin-bottom: 40px; border: 2px solid rgba(255, 0, 110, 0.2);">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                        <div>
+                            <div style="color: var(--text-secondary); font-size: 13px; text-transform: uppercase; margin-bottom: 5px;">Équipe</div>
+                            <div style="font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700;">{{ equipe.nomEquipe }}</div>
+                        </div>
+                        <div>
+                            <div style="color: var(--text-secondary); font-size: 13px; text-transform: uppercase; margin-bottom: 5px;">Classement</div>
+                            <div style="font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700; color: var(--primary-blue);">{{ equipe.classement }}</div>
+                        </div>
+                        <div>
+                            <div style="color: var(--text-secondary); font-size: 13px; text-transform: uppercase; margin-bottom: 5px;">Créée le</div>
+                            <div style="font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700;">{{ equipe.dateCreation|date('d/m/Y') }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                    <a href="{{ path('app_equipes_show', {'id': equipe.id}) }}" class="btn-gradient" style="padding: 18px 40px; text-decoration: none; font-size: 18px;">
+                        <i class="fas fa-cog"></i> Gérer Mon Équipe
+                    </a>
+                    <a href="/" class="btn-outline" style="padding: 18px 40px; text-decoration: none; font-size: 18px;">
+                        <i class="fas fa-arrow-left"></i> Retour à l'Accueil
+                    </a>
+                </div>
+
+                <div style="margin-top: 30px; padding: 20px; background: rgba(0, 217, 255, 0.05); border-radius: 12px; border: 1px solid rgba(0, 217, 255, 0.2);">
+                    <i class="fas fa-info-circle" style="color: var(--primary-blue);"></i>
+                    <span style="color: var(--text-secondary); margin-left: 10px;">
+                        Un utilisateur ne peut créer qu'une seule équipe. Pour en créer une autre, vous devez d'abord supprimer l'équipe actuelle.
+                    </span>
+                </div>
+            </div>
+        {% else %}
+            <!-- User doesn't have a team yet -->
+            <div style="text-align: center; padding: 60px 40px;">
+                <div style="width: 120px; height: 120px; margin: 0 auto 30px; border-radius: 50%; background: rgba(0, 217, 255, 0.1); border: 4px solid var(--primary-blue); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-plus-circle" style="font-size: 60px; color: var(--primary-blue);"></i>
+                </div>
+                
+                <h2 style="font-family: 'Orbitron', sans-serif; font-size: 32px; margin-bottom: 15px;">
+                    Créez Votre Équipe
+                </h2>
+                
+                <p style="color: var(--text-secondary); font-size: 18px; margin-bottom: 40px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                    Vous n'avez pas encore d'équipe. Créez votre équipe dès maintenant et commencez votre aventure e-sport !
+                </p>
+
+                <!-- Features -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px;">
+                    <div style="padding: 20px; background: var(--darker-bg); border-radius: 16px; border: 2px solid rgba(0, 217, 255, 0.1);">
+                        <i class="fas fa-users" style="font-size: 32px; color: var(--primary-blue); margin-bottom: 10px;"></i>
+                        <div style="font-weight: 600; margin-bottom: 5px;">Recrutez</div>
+                        <div style="color: var(--text-secondary); font-size: 14px;">Invitez des joueurs</div>
+                    </div>
+                    <div style="padding: 20px; background: var(--darker-bg); border-radius: 16px; border: 2px solid rgba(255, 0, 110, 0.1);">
+                        <i class="fas fa-trophy" style="font-size: 32px; color: var(--primary-pink); margin-bottom: 10px;"></i>
+                        <div style="font-weight: 600; margin-bottom: 5px;">Compétitions</div>
+                        <div style="color: var(--text-secondary); font-size: 14px;">Participez aux tournois</div>
+                    </div>
+                    <div style="padding: 20px; background: var(--darker-bg); border-radius: 16px; border: 2px solid rgba(123, 47, 255, 0.1);">
+                        <i class="fas fa-chart-line" style="font-size: 32px; color: var(--primary-purple); margin-bottom: 10px;"></i>
+                        <div style="font-weight: 600; margin-bottom: 5px;">Progression</div>
+                        <div style="color: var(--text-secondary); font-size: 14px;">Suivez vos stats</div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                    <a href="{{ path('app_equipes_new') }}" class="btn-gradient" style="padding: 18px 40px; text-decoration: none; font-size: 18px;">
+                        <i class="fas fa-plus-circle"></i> Créer Mon Équipe
+                    </a>
+                    <a href="/" class="btn-outline" style="padding: 18px 40px; text-decoration: none; font-size: 18px;">
+                        <i class="fas fa-arrow-left"></i> Retour à l'Accueil
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Demandes Managers - Admin{% endblock %}
+{% block page_title %}Demandes de Rôle Manager{% endblock %}
+
+{% block body %}
+    <div class="admin-table-container">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Utilisateur</th>
+                    <th>Expérience</th>
+                    <th>Motivation</th>
+                    <th>Date</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Mock Data - Request 1 -->
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--gradient-1); display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                JD
+                            </div>
+                            <div>
+                                <div style="font-weight: 600;">JohnDoe</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">john.doe@email.com</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="max-width: 250px; font-size: 13px; color: var(--text-secondary);">
+                            3 ans d'expérience sur LoL, ancien capitaine équipe amateur.
+                        </div>
+                    </td>
+                    <td>
+                        <div style="max-width: 300px; font-size: 13px; color: var(--text-secondary);">
+                            Je souhaite créer ma propre structure pour participer aux tournois officiels.
+                        </div>
+                    </td>
+                    <td>04/02/2026</td>
+                    <td><span class="badge badge-warning">En attente</span></td>
+                    <td>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-gradient" onclick="alert('Rôle Manager attribué !')" style="padding: 8px 15px; font-size: 12px;">
+                                <i class="fas fa-check"></i> Accepter
+                            </button>
+                            <button style="padding: 8px 15px; border: 1px solid var(--primary-pink); background: rgba(255,0,110,0.1); color: var(--primary-pink); border-radius: 6px; cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 12px;" onclick="alert('Demande refusée.')">
+                                <i class="fas fa-times"></i> Refuser
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Mock Data - Request 2 -->
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--gradient-2); display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                KB
+                            </div>
+                            <div>
+                                <div style="font-weight: 600;">KevinB</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">kevin.b@email.com</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="max-width: 250px; font-size: 13px; color: var(--text-secondary);">
+                            Coach Valorant depuis 2024.
+                        </div>
+                    </td>
+                    <td>
+                        <div style="max-width: 300px; font-size: 13px; color: var(--text-secondary);">
+                            Besoin d'un compte manager pour inscrire mon équipe aux scrims.
+                        </div>
+                    </td>
+                    <td>03/02/2026</td>
+                    <td><span class="badge badge-warning">En attente</span></td>
+                    <td>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-gradient" onclick="alert('Rôle Manager attribué !')" style="padding: 8px 15px; font-size: 12px;">
+                                <i class="fas fa-check"></i> Accepter
+                            </button>
+                            <button style="padding: 8px 15px; border: 1px solid var(--primary-pink); background: rgba(255,0,110,0.1); color: var(--primary-pink); border-radius: 6px; cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 12px;" onclick="alert('Demande refusée.')">
+                                <i class="fas fa-times"></i> Refuser
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

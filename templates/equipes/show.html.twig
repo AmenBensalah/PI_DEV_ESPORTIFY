@@ -1,0 +1,306 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ equipe.nomEquipe }} - E-Sportify{% endblock %}
+
+{% block body %}
+    {# Pass server flashes to JS via a data container (no inline JS) #}
+    <div id="flash-data" data-flashes-success='{{ app.flashes('success')|json_encode()|e('html_attr') }}' data-flashes-error='{{ app.flashes('error')|json_encode()|e('html_attr') }}' style="display:none"></div>
+
+    {# content injected into base's main (avoid nested <main>) #}
+
+        <!-- Flash Messages -->
+        <div class="flash-messages-container">
+            {% for message in app.flashes('success') %}
+                <div class="flash-success" role="status" aria-live="polite" style="margin:12px 0;">
+                    <i class="fas fa-check-circle" style="color: var(--success-color); font-size: 18px; margin-right:10px;"></i>
+                    <span style="color: var(--success-color); font-weight:600;">{{ message }}</span>
+                </div>
+            {% endfor %}
+            {% for message in app.flashes('error') %}
+                <div class="flash-error" role="status" aria-live="polite" style="margin:12px 0; background: rgba(255,0,110,0.06); border:1px solid var(--primary-pink); padding:10px 12px; border-radius:8px;">
+                    <i class="fas fa-exclamation-circle" style="color: var(--primary-pink); font-size: 18px; margin-right:10px;"></i>
+                    <span style="color: var(--primary-pink); font-weight:600;">{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+        <!-- Hero with Team Logo -->
+        <div class="hero-section" style="height: 400px; display: flex; align-items: center; justify-content: center; flex-direction: column; border-radius: 24px; padding: 40px;">
+            <!-- Team Logo -->
+            {% if equipe.logo %}
+                <img src="{{ asset('uploads/equipes/' ~ equipe.logo) }}" alt="{{ equipe.nomEquipe }}" 
+                     style="width: 180px; height: 180px; border-radius: 50%; border: 6px solid var(--primary-blue); box-shadow: var(--shadow-glow); margin-bottom: 30px; object-fit: cover;">
+            {% else %}
+                <div style="width: 180px; height: 180px; border-radius: 50%; border: 6px solid var(--primary-blue); box-shadow: var(--shadow-glow); margin-bottom: 30px; background: var(--gradient-1); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-users" style="font-size: 70px; color: white;"></i>
+                </div>
+            {% endif %}
+            
+            <h1 class="hero-title" style="font-size: 48px; margin-bottom: 15px;">{{ equipe.nomEquipe|upper }}</h1>
+            <span class="badge badge-primary" style="padding: 12px 35px; font-size: 18px;">
+                <i class="fas fa-{{ equipe.classement == 'Challenger' ? 'star' : (equipe.classement == 'Master' ? 'crown' : 'medal') }}"></i> 
+                {{ equipe.classement|upper }}
+            </span>
+        </div>
+
+        <!-- Action Buttons (Public) -->
+        <div class="action-buttons" style="display: flex; gap: 15px; justify-content: center; margin: 40px 0; flex-wrap: wrap;">
+            {% if isMember %}
+                <div class="badge badge-success" style="padding: 14px 30px; font-size: 16px; display: inline-flex; align-items: center; gap: 10px; border-radius: 12px;">
+                    <i class="fas fa-check-circle"></i> Membre Officiel
+                </div>
+            {% endif %}
+
+            {% if not isMember and not isManager %}
+                <a href="{{ path('app_equipes_apply', {'id': equipe.id}) }}" class="btn-gradient" style="padding: 14px 40px; border-radius: 12px; text-decoration: none; font-weight: 600;">
+                    <i class="fas fa-paper-plane"></i> Postuler maintenant
+                </a>
+            {% endif %}
+
+            <a href="{{ path('app_home') }}" class="btn-outline" style="padding: 14px 40px; border-radius: 12px; text-decoration: none;">
+                <i class="fas fa-arrow-left"></i> Retour à l'accueil
+            </a>
+        </div>
+
+        <!-- Content Grid -->
+            <!-- Left: Info -->
+            <div>
+                {% if isManager %}
+                <!-- MANAGER DASHBOARD SECTION -->
+                <div class="info-card" style="border: 1px solid var(--primary-blue); background: rgba(0, 217, 255, 0.03); margin-bottom: 40px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                        <h2 style="font-family: 'Orbitron'; font-size: 24px; color: var(--primary-blue); margin: 0;">
+                            <i class="fas fa-user-shield"></i> TABLEAU DE BORD MANAGER
+                        </h2>
+                        <span class="badge badge-primary">ADMINISTRATION</span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
+                        <a href="{{ path('app_recrutements_manage', {'id': equipe.id}) }}" class="btn-gradient" style="text-align: center; padding: 15px; text-decoration: none; border-radius: 12px;">
+                            <i class="fas fa-user-plus"></i> Gérer Recrutements
+                        </a>
+                        <a href="{{ path('app_equipes_edit', {'id': equipe.id}) }}" class="btn-outline" style="text-align: center; padding: 15px; text-decoration: none; border-radius: 12px; border-color: #FFC107; color: #FFC107;">
+                            <i class="fas fa-edit"></i> Modifier l'Équipe
+                        </a>
+                        <form method="post" action="{{ path('app_equipes_delete', {'id': equipe.id}) }}" onsubmit="return confirm('⚠️ Action irréversible ! Supprimer ?');" style="margin: 0;">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ equipe.id) }}">
+                            <button class="btn-outline" style="width: 100%; height: 100%; padding: 15px; border-radius: 12px; border-color: var(--primary-pink); color: var(--primary-pink); background: none; cursor: pointer;">
+                                <i class="fas fa-trash-alt"></i> Supprimer
+                            </button>
+                        </form>
+                    </div>
+
+                    <div style="background: rgba(0,0,0,0.2); border-radius: 12px; padding: 20px;">
+                        <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--text-secondary);">
+                            <i class="fas fa-database"></i> DONNÉES DE VOTRE ÉQUIPE
+                        </h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px;">
+                            <div style="flex: 1;"><strong>Visibilité:</strong> {{ equipe.isPrivate ? '🔒 Privée' : '🌐 Publique' }}</div>
+                            <div style="flex: 1;"><strong>Membres Max:</strong> {{ equipe.maxMembers }}</div>
+                            <div style="flex: 1;"><strong>Tag:</strong> [{{ equipe.tag }}]</div>
+                            <div style="flex: 1;"><strong>ID Système:</strong> #{{ equipe.id }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="info-card">
+                    <h2 style="font-family: 'Orbitron'; font-size: 28px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px;">
+                        <span style="width: 50px; height: 50px; border-radius: 12px; background: var(--gradient-1); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-info-circle"></i>
+                        </span>
+                        À propos
+                    </h2>
+                    
+                    <p style="color: var(--text-secondary); line-height: 1.8; font-size: 18px; margin-bottom: 30px;">
+                        {{ equipe.description }}
+                    </p>
+
+                    <div style="display: grid; gap: 20px;">
+                        <!-- ID -->
+                        <div style="display: flex; align-items: center; gap: 20px; padding: 20px; background: var(--darker-bg); border-radius: 16px;">
+                            <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(0, 217, 255, 0.1); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--primary-blue);">
+                                <i class="fas fa-hashtag"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 5px;">ID de l'équipe</div>
+                                <div style="font-size: 20px; font-weight: 700; font-family: 'Orbitron', sans-serif;">{{ equipe.id }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Date de création -->
+                        <div style="display: flex; align-items: center; gap: 20px; padding: 20px; background: var(--darker-bg); border-radius: 16px;">
+                            <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(0, 217, 255, 0.1); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--primary-blue);">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 5px;">Date de création</div>
+                                <div style="font-size: 20px; font-weight: 700;">{{ equipe.dateCreation|date('d F Y') }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Classement -->
+                        <div style="display: flex; align-items: center; gap: 20px; padding: 20px; background: var(--darker-bg); border-radius: 16px;">
+                            <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(0, 217, 255, 0.1); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--primary-blue);">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 5px;">Classement</div>
+                                <div style="font-size: 20px; font-weight: 700;">{{ equipe.classement }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Tag -->
+                        <div style="display: flex; align-items: center; gap: 20px; padding: 20px; background: var(--darker-bg); border-radius: 16px;">
+                            <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(0, 217, 255, 0.06); display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--primary-blue);">
+                                <i class="fas fa-tags"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 5px;">Tag</div>
+                                <div style="font-size: 20px; font-weight: 700;">{{ equipe.tag ?? '—' }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Région -->
+                        <div style="display: flex; align-items: center; gap: 20px; padding: 20px; background: var(--darker-bg); border-radius: 16px;">
+                            <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(0, 217, 255, 0.06); display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--primary-blue);">
+                                <i class="fas fa-globe"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 5px;">Région</div>
+                                <div style="font-size: 20px; font-weight: 700;">{{ equipe.region ?? '—' }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Nombre de recrutements -->
+                        <div style="display: flex; align-items: center; gap: 20px; padding: 20px; background: var(--darker-bg); border-radius: 16px;">
+                            <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(0, 217, 255, 0.1); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--primary-blue);">
+                                <i class="fas fa-user-friends"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 5px;">Recrutements actifs</div>
+                                <div style="font-size: 20px; font-weight: 700;">{{ equipe.recrutements|length }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recrutements -->
+                {% if equipe.recrutements|length > 0 %}
+                <div class="info-card" style="margin-top: 40px;">
+                    <h2 style="font-family: 'Orbitron'; font-size: 28px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px;">
+                        <span style="width: 50px; height: 50px; border-radius: 12px; background: var(--gradient-1); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-user-plus"></i>
+                        </span>
+                        Recrutements
+                    </h2>
+
+                    <div style="display: grid; gap: 20px;">
+                        {% for recrutement in equipe.recrutements %}
+                        <div style="background: var(--darker-bg); border-radius: 16px; padding: 25px;">
+                            <h3 style="font-family: 'Orbitron'; font-size: 20px; margin-bottom: 10px;">{{ recrutement.titre }}</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 15px;">{{ recrutement.description|slice(0, 100) }}...</p>
+                            <span class="badge badge-{{ recrutement.statut == 'Ouvert' ? 'success' : 'danger' }}">
+                                <i class="fas fa-{{ recrutement.statut == 'Ouvert' ? 'check-circle' : 'times-circle' }}"></i> {{ recrutement.statut }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Contacts (statique) -->
+                {% if isManager or isMember %}
+                <div class="info-card" style="margin-top: 40px;">
+                    <h2 style="font-family: 'Orbitron'; font-size: 28px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+                        <span style="width: 44px; height: 44px; border-radius: 10px; background: var(--gradient-1); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-address-book"></i>
+                        </span>
+                        Coordonnées des membres (statique)
+                    </h2>
+
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; min-width: 720px;">
+                            <thead>
+                                <tr style="background: rgba(0,0,0,0.15); text-transform: uppercase; color: var(--text-secondary); font-size: 13px;">
+                                    <th style="padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.04);">ID</th>
+                                    <th style="padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.04);">Nom</th>
+                                    <th style="padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.04);">Prénom</th>
+                                    <th style="padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.04);">Email</th>
+                                    <th style="padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.04);">Téléphone</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Lignes statiques - à gérer côté users par votre collègue -->
+                                <tr>
+                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">1</td>
+                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">Dupont</td>
+                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">Jean</td>
+                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">jean.dupont@example.com</td>
+                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">+33 6 12 34 56 78</td>
+                                </tr>
+                                <tr style="background: rgba(255,255,255,0.02);">
+                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">2</td>
+                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">Martin</td>
+                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">Claire</td>
+                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">claire.martin@example.com</td>
+                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">+33 6 98 76 54 32</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">3</td>
+                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">Nguyen</td>
+                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">Linh</td>
+                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">linh.nguyen@example.com</td>
+                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">+33 7 11 22 33 44</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right: Stats -->
+            <div>
+                <div class="info-card" style="position: sticky; top: 100px;">
+                    <h2 style="font-family: 'Orbitron'; font-size: 24px; margin-bottom: 30px; display: flex; align-items: center; gap: 15px;">
+                        <span style="width: 50px; height: 50px; border-radius: 12px; background: var(--gradient-1); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-chart-line"></i>
+                        </span>
+                        Statistiques
+                    </h2>
+
+                    <div style="display: grid; gap: 25px;">
+                        <div class="stat-box" style="background: var(--darker-bg); padding: 25px; border-radius: 16px; text-align: center;">
+                            <div class="stat-icon" style="width: 60px; height: 60px; margin: 0 auto 15px; border-radius: 50%; background: var(--gradient-1); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-user-friends" style="font-size: 24px;"></i>
+                            </div>
+                            <div class="stat-value" style="font-family: 'Orbitron', sans-serif; font-size: 36px; font-weight: 900; color: var(--primary-blue);">{{ equipe.recrutements|length }}</div>
+                            <div class="stat-label" style="color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">Recrutements</div>
+                        </div>
+
+                        <div class="stat-box" style="background: var(--darker-bg); padding: 25px; border-radius: 16px; text-align: center;">
+                            <div class="stat-icon" style="width: 60px; height: 60px; margin: 0 auto 15px; border-radius: 50%; background: rgba(0, 255, 136, 0.2); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-check-circle" style="font-size: 24px; color: var(--success-color);"></i>
+                            </div>
+                            <div class="stat-value" style="font-family: 'Orbitron', sans-serif; font-size: 36px; font-weight: 900; color: var(--success-color);">
+                                {{ equipe.recrutements|filter(r => r.statut == 'Ouvert')|length }}
+                            </div>
+                            <div class="stat-label" style="color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">Ouverts</div>
+                        </div>
+
+                        <div class="stat-box" style="background: var(--darker-bg); padding: 25px; border-radius: 16px; text-align: center;">
+                            <div class="stat-icon" style="width: 60px; height: 60px; margin: 0 auto 15px; border-radius: 50%; background: rgba(123, 47, 255, 0.2); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-calendar-check" style="font-size: 24px; color: var(--primary-purple);"></i>
+                            </div>
+                            <div class="stat-value" style="font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 900; color: var(--primary-purple);">
+                                {{ equipe.dateCreation|date('d/m/Y') }}
+                            </div>
+                            <div class="stat-label" style="color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">Créée le</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {# end content - base.html.twig provides the <main> wrapper #}
+
+{% endblock %}

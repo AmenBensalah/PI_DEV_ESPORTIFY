@@ -1,0 +1,99 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Postuler chez {{ equipe.nomEquipe }} - E-Sportify{% endblock %}
+
+{% block body %}
+<div class="container animate__animated animate__fadeIn" style="max-width: 800px; margin: 60px auto;">
+    
+    <div style="text-align: center; margin-bottom: 40px;">
+        <h1 style="font-family: 'Orbitron', sans-serif; font-size: 36px; margin-bottom: 10px;">
+            REJOINDRE <span style="color: var(--primary-blue);">{{ equipe.nomEquipe|upper }}</span>
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 18px;">
+            Remplissez ce formulaire pour soumettre votre candidature au manager.
+        </p>
+    </div>
+
+    <div class="card" style="padding: 40px; border: 1px solid rgba(0, 217, 255, 0.2); box-shadow: 0 0 30px rgba(0,0,0,0.3);">
+        
+        {# AFFICHAGE DES ERREURS DE VALIDATION (BACKEND) #}
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-danger" style="background: rgba(255, 0, 0, 0.1); border-left: 5px solid #ff4b2b; color: #ff8a8a; padding: 15px; margin-bottom: 20px; border-radius: 8px;">
+                <i class="fas fa-exclamation-triangle"></i> {{ message }}
+            </div>
+        {% endfor %}
+
+        <form method="post">
+            
+            <!-- Pseudo -->
+            <div class="form-group" style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 10px; font-weight: 600; color: var(--text-primary);">
+                    <i class="fas fa-user"></i> Pseudo / GamerTag
+                </label>
+                <input type="text" name="pseudo" placeholder="Votre pseudo en jeu..."
+                       value="{{ formData.pseudo|default('') }}"
+                       class="form-control" 
+                       style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.1); background: var(--darker-bg); color: white; font-size: 16px;">
+            </div>
+
+            <!-- Email -->
+            <div class="form-group" style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 10px; font-weight: 600; color: var(--text-primary);">
+                    <i class="fas fa-envelope"></i> Email de contact
+                </label>
+                <input type="text" name="email" placeholder="Pour recevoir la réponse..."
+                       value="{{ formData.email|default('') }}"
+                       class="form-control" 
+                       style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.1); background: var(--darker-bg); color: white; font-size: 16px;">
+            </div>
+
+            <!-- Niveau -->
+            <div class="form-group" style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 10px; font-weight: 600; color: var(--text-primary);">
+                    <i class="fas fa-chart-bar"></i> Votre Niveau de Jeu
+                </label>
+                <select name="niveau" 
+                        style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.1); background: var(--darker-bg); color: white; font-size: 16px; cursor: pointer;">
+                    <option value="" disabled {{ not formData.niveau|default(false) ? 'selected' : '' }}>Sélectionnez votre niveau...</option>
+                    <option value="Débutant" {{ formData.niveau|default('') == 'Débutant' ? 'selected' : '' }}>Débutant (Je commence tout juste)</option>
+                    <option value="Intermédiaire" {{ formData.niveau|default('') == 'Intermédiaire' ? 'selected' : '' }}>Intermédiaire (Je connais les bases)</option>
+                    <option value="Confirmé" {{ formData.niveau|default('') == 'Confirmé' ? 'selected' : '' }}>Confirmé (Bon niveau compétitif)</option>
+                    <option value="Expert" {{ formData.niveau|default('') == 'Expert' ? 'selected' : '' }}>Expert / Pro (Haut niveau)</option>
+                </select>
+            </div>
+
+            <!-- Motivation -->
+            <div class="form-group" style="margin-bottom: 30px;">
+                <label style="display: block; margin-bottom: 10px; font-weight: 600; color: var(--text-primary);">
+                    <i class="fas fa-pen"></i> Pourquoi cette équipe ?
+                </label>
+                <textarea name="reason" rows="4" placeholder="Qu'est-ce qui vous attire chez nous ?"
+                          style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.1); background: var(--darker-bg); color: white; font-size: 16px; resize: vertical;">{{ formData.reason|default('') }}</textarea>
+            </div>
+
+            <!-- Style de jeu -->
+            <div class="form-group" style="margin-bottom: 30px;">
+                <label style="display: block; margin-bottom: 10px; font-weight: 600; color: var(--text-primary);">
+                    <i class="fas fa-gamepad"></i> Style de Jeu
+                </label>
+                <textarea name="playStyle" rows="4" placeholder="Votre rôle, vos personnages préférés, votre façon de jouer..."
+                          style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.1); background: var(--darker-bg); color: white; font-size: 16px; resize: vertical;">{{ formData.playStyle|default('') }}</textarea>
+            </div>
+
+            <!-- Autre Motivation / Description Libre (optionnel ou caché si redondant) -->
+             <input type="hidden" name="motivation" value="Candidature spontanée">
+
+            <!-- Actions -->
+            <div style="display: flex; gap: 20px; justify-content: center;">
+                <a href="{{ path('app_equipes_show', {'id': equipe.id}) }}" class="btn-outline" style="padding: 15px 30px; text-decoration: none; border-radius: 12px;">
+                    Annuler
+                </a>
+                <button type="submit" class="btn-gradient" style="padding: 15px 50px; border-radius: 12px; font-size: 18px; font-weight: 600;">
+                    <i class="fas fa-paper-plane"></i> Envoyer ma Candidature
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}

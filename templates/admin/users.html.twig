@@ -1,0 +1,83 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Utilisateurs - Admin{% endblock %}
+{% block page_title %}Gestion des Utilisateurs{% endblock %}
+
+{% block body %}
+    <!-- Actions Banner -->
+    <div style="margin-bottom: 30px; display: flex; justify-content: flex-end;">
+        <button class="btn-gradient" onclick="alert('Fonctionnalité d\'ajout utilisateur à venir !')" style="padding: 12px 25px;">
+            <i class="fas fa-plus"></i> Ajouter un Utilisateur
+        </button>
+    </div>
+
+    <div class="admin-table-container">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                    <th>Statut</th>
+                    <th>Date d'inscription</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Mock Data -->
+                <tr>
+                    <td>#1024</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--gradient-1); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px;">JD</div>
+                            <span style="font-weight: 600;">JohnDoe</span>
+                        </div>
+                    </td>
+                    <td>john.doe@example.com</td>
+                    <td><span class="badge badge-primary">Manager</span></td>
+                    <td><span style="color: var(--success-color);">Active</span></td>
+                    <td>01/02/2026</td>
+                    <td>
+                        <button class="btn-icon"><i class="fas fa-edit"></i></button>
+                        <button class="btn-icon"><i class="fas fa-ban" style="color: var(--primary-pink);"></i></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>#1025</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 30px; height: 30px; border-radius: 50%; background: var(--gradient-2); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px;">AS</div>
+                            <span style="font-weight: 600;">AlexSmith</span>
+                        </div>
+                    </td>
+                    <td>alex.smith@example.com</td>
+                    <td><span class="badge">Joueur</span></td>
+                    <td><span style="color: var(--success-color);">Active</span></td>
+                    <td>02/02/2026</td>
+                    <td>
+                        <button class="btn-icon"><i class="fas fa-edit"></i></button>
+                        <button class="btn-icon"><i class="fas fa-ban" style="color: var(--primary-pink);"></i></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>#1026</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 30px; height: 30px; border-radius: 50%; background: #666; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px;">SM</div>
+                            <span style="font-weight: 600;">SarahM</span>
+                        </div>
+                    </td>
+                    <td>sarah.m@example.com</td>
+                    <td><span class="badge badge-success">Admin</span></td>
+                    <td><span style="color: var(--success-color);">Active</span></td>
+                    <td>15/01/2026</td>
+                    <td>
+                        <button class="btn-icon"><i class="fas fa-edit"></i></button>
+                        <button class="btn-icon"><i class="fas fa-ban" style="color: var(--primary-pink);"></i></button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

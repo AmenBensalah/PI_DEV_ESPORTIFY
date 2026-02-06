@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}E-Sportify{% endblock %}</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
+    <!-- Custom CSS (Legacy) -->
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+    
+    <!-- Custom JS (Legacy) -->
+    <script src="{{ asset('js/app.js') }}?v=1.2" defer></script>
+    
+    {% block stylesheets %}{% endblock %}
+</head>
+<body class="with-sidebar" data-theme="dark">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <img src="{{ asset('images/logo3.png') }}" alt="Logo" class="sidebar-logo-img">
+            </div>
+            <h1 class="sidebar-brand">E-SPORTIFY</h1>
+            <div class="online-count">
+                <i class="fas fa-circle"></i> +21 000 JOUEURS
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ path('app_home') }}" class="nav-link">
+                <i class="fas fa-home"></i>
+                <span>Accueil</span>
+            </a>
+            <a href="{{ path('app_equipes_index') }}" class="nav-link">
+                <i class="fas fa-users"></i>
+                <span>Équipes</span>
+            </a>
+            <a href="#" class="nav-link">
+                <i class="fas fa-trophy"></i>
+                <span>Tournois</span>
+            </a>
+            <a href="#" class="nav-link">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Boutique</span>
+            </a>
+            <a href="#" class="nav-link">
+                <i class="fas fa-comments"></i>
+                <span>Chat</span>
+            </a>
+            <a href="#" class="nav-link">
+                <i class="fas fa-rss"></i>
+                <span>News</span>
+            </a>
+            
+        </nav>
+
+        <div class="sidebar-footer">
+                <button id="themeToggle" class="sidebar-footer-btn">
+                    <i class="fas fa-moon"></i>
+                    <span>Mode Nuit</span>
+                </button>
+            <a href="#" class="sidebar-footer-btn">
+                <i class="fas fa-user"></i>
+                <span>Mon Compte</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block body %}{% endblock %}
+    </main>
+
+
+
+    {% block javascripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard - E-Sportify{% endblock %}</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS (Reusing app styles + overrides) -->
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+    
+    <style>
+        :root {
+            --bg-dark: #0f1015; /* Very dark background */
+            --bg-panel: #1b1e2e; /* Card/Sidebar background */
+            --primary-purple: #9d4edd;
+            --primary-pink: #f72585;
+            --primary-cyan: #4cc9f0;
+            --primary-blue: #4361ee;
+            
+            --text-muted: #8d91a5;
+            --radius-lg: 25px;
+            --radius-md: 15px;
+        }
+        
+        body {
+            background-color: var(--bg-dark);
+            color: #fff;
+            margin: 0;
+            font-family: 'Poppins', sans-serif; /* Cleaner font like the image */
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styling for CRM Look */
+        .admin-sidebar {
+            width: 280px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: var(--bg-panel);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            padding: 20px 0;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .admin-brand {
+            padding: 0 40px;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+        }
+
+        .admin-nav {
+            padding: 0;
+            flex: 1;
+        }
+
+        .admin-nav-title {
+            padding: 10px 40px;
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        .admin-nav-link {
+            display: flex;
+            align-items: center;
+            padding: 14px 40px;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 15px;
+            border-left: 4px solid transparent;
+            position: relative;
+        }
+
+        /* Active State mimicking the image (Purple Glow + Border) */
+        .admin-nav-link:hover, .admin-nav-link.active {
+            color: #fff;
+            background: linear-gradient(90deg, rgba(157, 78, 221, 0.1), transparent);
+            border-left-color: var(--primary-purple);
+        }
+
+        .admin-nav-link.active::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary-purple);
+            box-shadow: 0 0 10px var(--primary-purple);
+        }
+
+        .admin-nav-link i {
+            width: 25px;
+            margin-right: 15px;
+            font-size: 18px;
+        }
+
+        .admin-content {
+            margin-left: 280px;
+            padding: 40px;
+            min-height: 100vh;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        /* Card Styling to match Image */
+        .stat-card {
+            background: var(--bg-panel);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: none;
+        }
+
+        /* Gradient Cards (like the top row in image) */
+        .card-gradient-purple {
+            background: linear-gradient(135deg, #c77dff 0%, #7b2cbf 100%);
+        }
+
+        .card-gradient-blue {
+            background: linear-gradient(135deg, #4cc9f0 0%, #4361ee 100%);
+        }
+        
+        /* Table Styles */
+        .admin-table-container {
+            background: var(--bg-panel);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            border: none;
+        }
+
+        .admin-table th {
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 500;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 15px;
+        }
+        
+        .admin-table td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            vertical-align: middle;
+        }
+
+        .badge {
+            border-radius: 30px;
+            padding: 5px 15px;
+            font-weight: 500;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<aside class="admin-sidebar">
+    <div class="admin-brand">
+        <!-- Logo -->
+        <img src="{{ asset('images/logo3.png') }}" alt="Logo" style="height: 40px; margin-right: 10px;">
+        <div>
+            <div style="font-size: 18px; font-weight: 800; background: linear-gradient(45deg, var(--primary-blue), #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-SPORTIFY</div>
+            <div style="font-size: 10px; color: var(--text-secondary); letter-spacing: 2px;">ADMIN PANEL</div>
+        </div>
+    </div>
+    <nav class="admin-nav">
+        <a href="{{ path('admin_dashboard') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_dashboard' %}active{% endif %}">
+            <i class="fas fa-chart-line"></i> Dashboard
+        </a>
+        <a href="{{ path('admin_requests') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_requests' %}active{% endif %}">
+            <i class="fas fa-user-plus"></i> Demandes
+        </a>
+        <a href="{{ path('admin_social') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_social' %}active{% endif %}">
+            <i class="fas fa-newspaper"></i> Fil Actualité
+        </a>
+        <a href="{{ path('admin_users') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_users' %}active{% endif %}">
+            <i class="fas fa-users"></i> Utilisateurs
+        </a>
+        <a href="{{ path('admin_equipes') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_equipes' %}active{% endif %}">
+            <i class="fas fa-gamepad"></i> Équipes
+        </a>
+        <a href="{{ path('admin_tournois') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_tournois' %}active{% endif %}">
+            <i class="fas fa-trophy"></i> Tournois
+        </a>
+        <a href="{{ path('admin_boutique') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_boutique' %}active{% endif %}">
+            <i class="fas fa-shopping-bag"></i> Boutique
+        </a>
+        <a href="{{ path('admin_settings') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_settings' %}active{% endif %}">
+            <i class="fas fa-cog"></i> Paramètres
+        </a>
+    </nav>
+    <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.05);">
+        <a href="{{ path('app_home') }}" style="display: block; color: var(--text-secondary); text-decoration: none; margin-bottom: 15px; font-size: 14px; transition: color 0.3s;">
+            <i class="fas fa-globe" style="margin-right: 10px;"></i> Voir le Site
+        </a>
+        <a href="{{ path('app_logout') }}" style="display: block; color: var(--primary-pink); text-decoration: none; font-size: 14px; font-weight: 600; transition: opacity 0.3s;">
+            <i class="fas fa-sign-out-alt" style="margin-right: 10px;"></i> Déconnexion
+        </a>
+    </div>
+</aside>
+
+<main class="admin-content">
+    <header class="admin-header">
+        <h1 style="font-family: 'Orbitron', sans-serif; font-size: 24px; margin: 0;">{% block page_title %}Dashboard{% endblock %}</h1>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary-blue); display: flex; align-items: center; justify-content: center; font-weight: bold;">AD</div>
+                <span style="font-weight: 600;">Admin User</span>
+            </div>
+        </div>
+    </header>
+
+    {% block body %}{% endblock %}
+</main>
+
+<script src="{{ asset('js/app.js') }}"></script>
+</body>
+</html>
