@@ -1,0 +1,295 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}NEXUS | Future Store{% endblock %}
+
+{% block stylesheets %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap');
+
+    :root {
+        --nexus-white: #ffffff;
+        /* --- NOUVELLE PALETTE BLEUE --- */
+        --nexus-bg: #e3f2fd; 
+        --deep-blue: #1a237e;
+        --neon-blue: #00b0ff;
+        --electric-blue: #00e5ff;
+        --tech-success: #00e676;
+        --tech-danger: #ff1744;
+        --glass-white: rgba(255, 255, 255, 0.85);
+    }
+
+    body {
+        font-family: 'Rajdhani', sans-serif;
+        /* --- FOND BLEU AVANCÉ --- */
+        background-color: var(--nexus-bg);
+        background-image: 
+            radial-gradient(circle at 0% 0%, rgba(0, 176, 255, 0.15) 0%, transparent 35%),
+            radial-gradient(circle at 100% 100%, rgba(26, 35, 126, 0.1) 0%, transparent 35%),
+            linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        background-attachment: fixed;
+        min-height: 100vh;
+        color: #1a237e;
+        margin: 0;
+    }
+
+    .container {
+        width: 95%;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 40px 0;
+    }
+
+    /* --- TITRE --- */
+    .store-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 3.5rem;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 15px;
+        background: linear-gradient(90deg, var(--deep-blue), var(--neon-blue));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 5px;
+    }
+
+    /* --- SEARCH TERMINAL BLEU --- */
+    .search-wrapper {
+        max-width: 800px;
+        margin: 40px auto;
+        position: relative;
+        background: var(--glass-white);
+        padding: 5px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(26, 35, 126, 0.1);
+        border: 1px solid rgba(0, 176, 255, 0.2);
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 15px 30px 15px 60px;
+        border: none;
+        background: transparent;
+        font-size: 1.1rem;
+        font-family: 'Rajdhani', sans-serif;
+        font-weight: 600;
+        outline: none;
+        color: var(--deep-blue);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 25px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--neon-blue);
+        font-size: 1.2rem;
+    }
+
+    /* --- NAVIGATION --- */
+    .category-nav {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 50px;
+    }
+
+    .cat-btn {
+        padding: 10px 25px;
+        background: var(--glass-white);
+        border: 1px solid rgba(0, 176, 255, 0.2);
+        border-radius: 0;
+        cursor: pointer;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        color: var(--deep-blue);
+        transition: 0.3s;
+        clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
+    }
+
+    .cat-btn.active, .cat-btn:hover {
+        background: var(--deep-blue);
+        color: white;
+        border-color: var(--deep-blue);
+        transform: scale(1.05);
+    }
+
+    /* --- PRODUCT CARDS --- */
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 35px;
+    }
+
+    .product-card {
+        background: var(--glass-white);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 20px;
+        padding: 20px;
+        transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 15px 35px rgba(26, 35, 126, 0.05);
+    }
+
+    .product-card:hover {
+        transform: translateY(-12px);
+        box-shadow: 0 25px 50px rgba(26, 35, 126, 0.15);
+        border-color: var(--electric-blue);
+    }
+
+    .image-box {
+        width: 100%;
+        height: 250px;
+        background: #ffffff;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.02);
+    }
+
+    .image-box img {
+        max-width: 80%;
+        max-height: 80%;
+        transition: 0.5s;
+    }
+
+    .product-card:hover .image-box img {
+        transform: scale(1.1) rotate(-2deg);
+    }
+
+    /* Badges & Status */
+    .status-tag {
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 4px 10px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .status-available { background: rgba(0, 230, 118, 0.1); color: #2e7d32; }
+    .status-out { background: rgba(255, 23, 68, 0.1); color: #c62828; }
+
+    /* Stock Bar */
+    .stock-bar-bg {
+        width: 100%;
+        height: 6px;
+        background: #e0e0e0;
+        border-radius: 10px;
+        margin: 10px 0 20px;
+        overflow: hidden;
+    }
+
+    .stock-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--deep-blue), var(--neon-blue));
+        border-radius: 10px;
+    }
+
+    .price-tag {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 2rem;
+        color: var(--deep-blue);
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+    .price-tag span { font-size: 1rem; color: var(--neon-blue); }
+
+    .btn-buy {
+        width: 100%;
+        padding: 15px;
+        background: var(--deep-blue);
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 0.85rem;
+        font-weight: bold;
+        border-radius: 12px;
+        transition: 0.3s;
+        letter-spacing: 2px;
+    }
+
+    .btn-buy:hover {
+        background: var(--neon-blue);
+        box-shadow: 0 10px 20px rgba(0, 176, 255, 0.3);
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container" data-controller="filter">
+    <div style="text-align: center; margin-bottom: 40px;">
+        <h1 class="store-title">Nexus_Blue_Market</h1>
+        <div style="font-family: monospace; font-size: 0.75rem; color: var(--neon-blue); font-weight: bold; letter-spacing: 5px;">
+            <i class="fas fa-network-wired"></i> SYSTEM_ONLINE // QUANTUM_ENCRYPTION_ACTIVE
+        </div>
+    </div>
+
+    <div class="search-wrapper">
+        <form action="{{ path('app_front_produit_index') }}" method="get">
+            <i class="fa-solid fa-microchip search-icon"></i>
+            <input type="text" name="q" class="search-input" placeholder="SCANNER LA BASE DE DONNÉES..." value="{{ current_search|default('') }}">
+        </form>
+    </div>
+
+    <div class="category-nav">
+        <button class="cat-btn active" data-filter-target="btn" data-category="all" data-action="click->filter#filter">Tous_Secteurs</button>
+        {% for cat in categories %}
+            <button class="cat-btn" data-filter-target="btn" data-category="{{ cat.id }}" data-action="click->filter#filter">
+                {{ cat.nom|upper }}
+            </button>
+        {% endfor %}
+    </div>
+
+    <div class="product-grid">
+        {% for produit in produits %}
+            <div class="product-card" data-filter-target="item" data-category="{{ produit.categorie ? produit.categorie.id : 'other' }}">
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <span style="font-size: 0.7rem; font-weight: bold; color: var(--neon-blue);">#UNIT_{{ produit.id }}</span>
+                    {% if produit.statut == 'disponible' %}
+                        <span class="status-tag status-available">● Dispo</span>
+                    {% else %}
+                        <span class="status-tag status-out">○ Rupture</span>
+                    {% endif %}
+                </div>
+
+                <div class="image-box">
+                    <img src="{{ produit.image starts with 'http' ? produit.image : asset('images/' ~ produit.image) }}" 
+                         alt="{{ produit.nom }}"
+                         onerror="this.src='https://placehold.co/400x400/e3f2fd/1a237e?text={{ produit.nom|url_encode }}'">
+                </div>
+
+                <div class="product-info">
+                    <div style="font-size: 0.65rem; font-weight: 800; color: var(--neon-blue); text-transform: uppercase;">
+                        {{ produit.categorie ? produit.categorie.nom : 'Hardware' }}
+                    </div>
+                    <h2 style="font-family: 'Orbitron', sans-serif; margin: 10px 0; font-size: 1.3rem;">{{ produit.nom }}</h2>
+
+                    <div style="font-size: 0.7rem; color: #555; font-weight: bold; margin-bottom: 5px;">STOCK_CAPACITY: {{ produit.stock }}%</div>
+                    <div class="stock-bar-bg">
+                        <div class="stock-bar-fill" style="width: {{ min(produit.stock, 100) }}%;"></div>
+                    </div>
+
+                    <div class="price-tag">{{ produit.prix|number_format(2) }} <span>€</span></div>
+                    
+                    <a href="{{ path('app_front_produit_show', {'id': produit.id}) }}" class="btn-buy">
+                        DÉTAILS_TECHNIQUES
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <div style="grid-column: 1/-1; text-align: center; padding: 100px;">
+                <p style="font-family: 'Orbitron'; font-size: 1.5rem; color: var(--deep-blue); opacity: 0.5;">ERROR: NO_HARDWARE_FOUND</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
