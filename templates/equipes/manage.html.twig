@@ -49,8 +49,11 @@
                 <a href="{{ path('app_equipes_edit', {'id': equipe.id}) }}" class="btn-action edit">
                     <i class="fas fa-edit"></i> Modifier
                 </a>
-                <a href="{{ path('app_recrutements_manage') }}" class="btn-action" style="border-color: var(--primary-blue); color: var(--primary-blue);">
+                <a href="{{ path('app_recrutements_manage', {'id': equipe.id}) }}" class="btn-action" style="border-color: var(--primary-blue); color: var(--primary-blue);">
                     <i class="fas fa-user-plus"></i> Recrutements
+                </a>
+                <a href="{{ path('app_equipes_show', {'id': equipe.id}) }}" class="btn-action" style="border-color: var(--success-color); color: var(--success-color);">
+                    <i class="fas fa-eye"></i> Voir Page Publique
                 </a>
                 <button class="btn-action delete" onclick="openDeleteModal()">
                     <i class="fas fa-trash"></i> Supprimer
@@ -110,16 +113,14 @@
                     {% endif %}
                 </div>
             </div>
-            <div class="info-item">
                 <div class="info-item-label"><i class="fas fa-globe"></i> Visibilité</div>
                 <div class="info-item-value">
-                    {% if equipe.estPrivee is defined and equipe.estPrivee %}
+                    {% if equipe.isPrivate %}
                         <span class="badge badge-warning"><i class="fas fa-lock"></i> Privée</span>
                     {% else %}
                         <span class="badge badge-success"><i class="fas fa-globe"></i> Publique</span>
                     {% endif %}
                 </div>
-            </div>
         </div>
 
         {# ── MEMBRES ── #}

@@ -92,6 +92,10 @@
             box-sizing: border-box;
         }
 
+        .input-group input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
         .input-group input:focus {
             outline: none;
             border-color: var(--primary-pink);
@@ -168,8 +172,8 @@
         }
 
         .links a:hover {
-            color: var(--primary-cyan);
-            text-shadow: 0 0 5px var(--primary-cyan);
+            color: var(--primary-pink);
+            text-shadow: 0 0 5px var(--primary-pink);
         }
 
         .social-login {
@@ -225,7 +229,6 @@
 
     <div class="login-container">
         <div class="logo">
-            <!-- Ensure logo3.png exists or use text -->
             <img src="{{ asset('images/logo3.png') }}" alt="E-Sportify Logo">
             <h1 style="font-family: 'Orbitron', sans-serif; font-size: 24px; margin: 10px 0 0 0; background: linear-gradient(45deg, var(--primary-blue), #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-SPORTIFY</h1>
         </div>
@@ -238,12 +241,12 @@
 
         <form method="post">
             <div class="input-group">
-                <input type="email" value="{{ last_username }}" name="_username" id="username" placeholder="Email" required autofocus>
+                <input type="email" value="{{ last_username }}" name="email" id="email" placeholder="Email" required autofocus>
                 <i class="fas fa-envelope"></i>
             </div>
 
             <div class="input-group">
-                <input type="password" name="_password" id="password" placeholder="Mot de passe" required>
+                <input type="password" name="password" id="password" placeholder="Mot de passe" required>
                 <i class="fas fa-lock"></i>
             </div>
 

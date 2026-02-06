@@ -25,21 +25,28 @@ final class RecrutementsController extends AbstractController
     #[Route('/manage/{id}', name: 'app_recrutements_manage', defaults: ['id' => null], methods: ['GET'])]
     public function manage(?\App\Entity\Equipe $equipe, \App\Repository\CandidatureRepository $candidatureRepository, \App\Repository\EquipeRepository $equipeRepository, Request $request): Response
     {
-        // Si une équipe est passée en paramètre (via Admin/Dev Mode), on l'utilise directement
+        // 1. Get the target team (either from URL {id} or session)
         if (!$equipe) {
-            // Sinon on regarde la session
             $session = $request->getSession();
             $teamId = $session->get('my_team_id');
-            
             if ($teamId) {
                 $equipe = $equipeRepository->find($teamId);
             }
         }
 
-        // DEV MODE: Allow access if we have an equipe, regardless of ownership
         if (!$equipe) {
-             $this->addFlash('error', 'Aucune équipe sélectionnée.');
+             $this->addFlash('error', 'Aucune équipe sélectionnée ou trouvée.');
              return $this->redirectToRoute('app_equipes_index');
+        }
+
+        // 2. SECURITY CHECK: Only Manager or Admin
+        $session = $request->getSession();
+        $isManager = $session && $session->get('my_team_id') == $equipe->getId();
+        $isAdmin = $this->isGranted('ROLE_ADMIN');
+
+        if (!$isManager && !$isAdmin) {
+             $this->addFlash('error', 'Accès refusé : Vous ne pouvez pas gérer les recrutements d\'une équipe qui ne vous appartient pas.');
+             return $this->redirectToRoute('app_equipes_show', ['id' => $equipe->getId()]);
         }
 
         // Fetch candidatures for this team
@@ -78,11 +85,11 @@ final class RecrutementsController extends AbstractController
     {
         // SECURITY CHECK: Only Manager of this team OR Admin
         $isAdmin = $this->isGranted('ROLE_ADMIN');
-        $isManager = $this->getUser() && $request->getSession()->get('my_team_id') == $candidature->getEquipe()->getId();
+        $isManager = $request->getSession() && $request->getSession()->get('my_team_id') == $candidature->getEquipe()->getId();
         
-        // BYPASS FOR DEV
-        if (!$isAdmin && !$isManager && false) {
-             throw $this->createAccessDeniedException('Vous n\'avez pas accès à cette action.');
+        if (!$isAdmin && !$isManager) {
+             $this->addFlash('error', 'Accès refusé.');
+             return $this->redirectToRoute('app_home');
         }
 
         $candidature->setStatut('Accepté');
@@ -95,9 +102,13 @@ final class RecrutementsController extends AbstractController
     #[Route('/{id}/refuse', name: 'app_recrutements_refuse', methods: ['POST'])]
     public function refuse(Request $request, \App\Entity\Candidature $candidature, EntityManagerInterface $entityManager): Response
     {
-        // BYPASS FOR DEV
-        if (!$isAdmin && !$isManager && false) {
-             throw $this->createAccessDeniedException('Vous n\'avez pas accès à cette action.');
+        // SECURITY CHECK: Only Manager of this team OR Admin
+        $isAdmin = $this->isGranted('ROLE_ADMIN');
+        $isManager = $request->getSession() && $request->getSession()->get('my_team_id') == $candidature->getEquipe()->getId();
+        
+        if (!$isAdmin && !$isManager) {
+             $this->addFlash('error', 'Accès refusé.');
+             return $this->redirectToRoute('app_home');
         }
 
         $candidature->setStatut('Refusé');

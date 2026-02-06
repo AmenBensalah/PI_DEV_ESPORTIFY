@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription - E-Sportify</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-purple: #9d4edd;
+            --primary-blue: #4361ee;
+            --primary-pink: #f72585;
+            --glass-bg: rgba(10, 14, 35, 0.6);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), url("{{ asset('images/gaming1.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .signup-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            animation: slideIn 0.8s ease-out;
+            position: relative;
+            margin: auto;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            margin-bottom: 20px;
+        }
+
+        .logo img {
+            height: 50px;
+        }
+
+        .logo h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            margin: 10px 0 0 0;
+            background: linear-gradient(45deg, var(--primary-pink), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 10px rgba(67, 97, 238, 0.3);
+            background: rgba(0,0,0,0.5);
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-pink);
+            font-size: 18px;
+            pointer-events: none;
+            transition: color 0.3s;
+        }
+
+        .input-group input:focus + i {
+            color: var(--primary-blue);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-top: 0;
+            cursor: pointer;
+            accent-color: var(--primary-blue);
+        }
+
+        .checkbox-group label {
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .error-message {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff6b6b;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            text-align: left;
+        }
+
+        .form-errors {
+            margin-bottom: 15px;
+        }
+
+        .field-error {
+            background: rgba(255, 0, 0, 0.1);
+            color: #ff6b6b;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            border-left: 3px solid #ff6b6b;
+        }
+
+        .btn-signup {
+            background: linear-gradient(45deg, var(--primary-pink), var(--primary-purple));
+            color: #fff;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-signup:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(157, 78, 221, 0.4);
+        }
+
+        .btn-signup::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255,255,255,0.1);
+            transform: rotate(45deg);
+            transition: 0.5s;
+            opacity: 0;
+        }
+
+        .btn-signup:hover::after {
+            opacity: 1;
+            left: 100%;
+        }
+
+        .links {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .links a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .links a:hover {
+            color: var(--primary-blue);
+            text-shadow: 0 0 5px var(--primary-blue);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="signup-container">
+        <div class="logo">
+            <img src="{{ asset('images/logo3.png') }}" alt="E-Sportify Logo">
+            <h1>E-SPORTIFY</h1>
+        </div>
+        
+        <h2>Créer un compte</h2>
+
+        {{ form_start(registrationForm) }}
+            <div class="form-errors">
+                {{ form_errors(registrationForm) }}
+            </div>
+
+            <div class="input-group">
+                {{ form_widget(registrationForm.email, {attr: {placeholder: 'Email', class: 'form-control'}}) }}
+                <i class="fas fa-envelope"></i>
+            </div>
+            {% if registrationForm.email.vars.errors|length > 0 %}
+                <div class="field-error">{{ form_errors(registrationForm.email) }}</div>
+            {% endif %}
+
+            <div class="input-group">
+                {{ form_widget(registrationForm.nom, {attr: {placeholder: 'Nom Complet', class: 'form-control'}}) }}
+                <i class="fas fa-id-card"></i>
+            </div>
+            {% if registrationForm.nom.vars.errors|length > 0 %}
+                <div class="field-error">{{ form_errors(registrationForm.nom) }}</div>
+            {% endif %}
+
+            <div class="input-group">
+                {{ form_widget(registrationForm.pseudo, {attr: {placeholder: 'Pseudo', class: 'form-control'}}) }}
+                <i class="fas fa-user-tag"></i>
+            </div>
+            {% if registrationForm.pseudo.vars.errors|length > 0 %}
+                <div class="field-error">{{ form_errors(registrationForm.pseudo) }}</div>
+            {% endif %}
+
+            <div class="input-group">
+                {{ form_widget(registrationForm.plainPassword, {attr: {placeholder: 'Mot de passe', class: 'form-control'}}) }}
+                <i class="fas fa-lock"></i>
+            </div>
+            {% if registrationForm.plainPassword.vars.errors|length > 0 %}
+                <div class="field-error">{{ form_errors(registrationForm.plainPassword) }}</div>
+            {% endif %}
+
+            <div class="input-group">
+                {{ form_widget(registrationForm.confirmPassword, {attr: {placeholder: 'Confirmer le mot de passe', class: 'form-control'}}) }}
+                <i class="fas fa-lock"></i>
+            </div>
+            {% if registrationForm.confirmPassword.vars.errors|length > 0 %}
+                <div class="field-error">{{ form_errors(registrationForm.confirmPassword) }}</div>
+            {% endif %}
+
+            <div class="checkbox-group">
+                {{ form_widget(registrationForm.agreeTerms) }}
+                {{ form_label(registrationForm.agreeTerms, 'J\'accepte les conditions d\'utilisation') }}
+            </div>
+            {% if registrationForm.agreeTerms.vars.errors|length > 0 %}
+                <div class="field-error">{{ form_errors(registrationForm.agreeTerms) }}</div>
+            {% endif %}
+
+            <button type="submit" class="btn-signup">Inscription Gratuite</button>
+        {{ form_end(registrationForm) }}
+
+        <div class="links">
+            <a href="{{ path('app_login') }}">Déjà un compte ? Se Connecter</a>
+        </div>
+    </div>
+
+</body>
+</html>

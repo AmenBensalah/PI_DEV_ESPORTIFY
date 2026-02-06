@@ -56,52 +56,21 @@
                 </a>
             {% endif %}
 
+            {% if isManager %}
+                <a href="{{ path('app_equipes_manage', {'id': equipe.id}) }}" class="btn-gradient" style="padding: 14px 40px; border-radius: 12px; text-decoration: none; font-weight: 600; background: var(--primary-blue);">
+                    <i class="fas fa-cog"></i> Gérer l'Équipe
+                </a>
+            {% endif %}
+
             <a href="{{ path('app_home') }}" class="btn-outline" style="padding: 14px 40px; border-radius: 12px; text-decoration: none;">
                 <i class="fas fa-arrow-left"></i> Retour à l'accueil
             </a>
         </div>
 
         <!-- Content Grid -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 40px; margin-bottom: 60px;">
             <!-- Left: Info -->
             <div>
-                {% if isManager %}
-                <!-- MANAGER DASHBOARD SECTION -->
-                <div class="info-card" style="border: 1px solid var(--primary-blue); background: rgba(0, 217, 255, 0.03); margin-bottom: 40px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                        <h2 style="font-family: 'Orbitron'; font-size: 24px; color: var(--primary-blue); margin: 0;">
-                            <i class="fas fa-user-shield"></i> TABLEAU DE BORD MANAGER
-                        </h2>
-                        <span class="badge badge-primary">ADMINISTRATION</span>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
-                        <a href="{{ path('app_recrutements_manage', {'id': equipe.id}) }}" class="btn-gradient" style="text-align: center; padding: 15px; text-decoration: none; border-radius: 12px;">
-                            <i class="fas fa-user-plus"></i> Gérer Recrutements
-                        </a>
-                        <a href="{{ path('app_equipes_edit', {'id': equipe.id}) }}" class="btn-outline" style="text-align: center; padding: 15px; text-decoration: none; border-radius: 12px; border-color: #FFC107; color: #FFC107;">
-                            <i class="fas fa-edit"></i> Modifier l'Équipe
-                        </a>
-                        <form method="post" action="{{ path('app_equipes_delete', {'id': equipe.id}) }}" onsubmit="return confirm('⚠️ Action irréversible ! Supprimer ?');" style="margin: 0;">
-                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ equipe.id) }}">
-                            <button class="btn-outline" style="width: 100%; height: 100%; padding: 15px; border-radius: 12px; border-color: var(--primary-pink); color: var(--primary-pink); background: none; cursor: pointer;">
-                                <i class="fas fa-trash-alt"></i> Supprimer
-                            </button>
-                        </form>
-                    </div>
-
-                    <div style="background: rgba(0,0,0,0.2); border-radius: 12px; padding: 20px;">
-                        <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--text-secondary);">
-                            <i class="fas fa-database"></i> DONNÉES DE VOTRE ÉQUIPE
-                        </h3>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px;">
-                            <div style="flex: 1;"><strong>Visibilité:</strong> {{ equipe.isPrivate ? '🔒 Privée' : '🌐 Publique' }}</div>
-                            <div style="flex: 1;"><strong>Membres Max:</strong> {{ equipe.maxMembers }}</div>
-                            <div style="flex: 1;"><strong>Tag:</strong> [{{ equipe.tag }}]</div>
-                            <div style="flex: 1;"><strong>ID Système:</strong> #{{ equipe.id }}</div>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
 
                 <div class="info-card">
                     <h2 style="font-family: 'Orbitron'; font-size: 28px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px;">
@@ -171,14 +140,25 @@
                             </div>
                         </div>
 
-                        <!-- Nombre de recrutements -->
+                        <!-- Capacité -->
                         <div style="display: flex; align-items: center; gap: 20px; padding: 20px; background: var(--darker-bg); border-radius: 16px;">
                             <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(0, 217, 255, 0.1); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--primary-blue);">
                                 <i class="fas fa-user-friends"></i>
                             </div>
                             <div style="flex: 1;">
-                                <div style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 5px;">Recrutements actifs</div>
-                                <div style="font-size: 20px; font-weight: 700;">{{ equipe.recrutements|length }}</div>
+                                <div style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 5px;">Membres Maximum</div>
+                                <div style="font-size: 20px; font-weight: 700;">{{ equipe.maxMembers }} Joueurs</div>
+                            </div>
+                        </div>
+
+                        <!-- Visibilité (pour les détails) -->
+                        <div style="display: flex; align-items: center; gap: 20px; padding: 20px; background: var(--darker-bg); border-radius: 16px;">
+                            <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(0, 217, 255, 0.1); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--primary-blue);">
+                                <i class="fas fa-{{ equipe.isPrivate ? 'lock' : 'globe' }}"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 5px;">Visibilité</div>
+                                <div style="font-size: 20px; font-weight: 700;">{{ equipe.isPrivate ? 'Equipe Privée' : 'Equipe Publique' }}</div>
                             </div>
                         </div>
                     </div>
