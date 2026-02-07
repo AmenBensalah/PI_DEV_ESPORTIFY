@@ -1,0 +1,114 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+<div class="feed-layout">
+    <section class="feed-main">
+        <div class="feed-title">Fil d'actualite</div>
+
+        <article class="glass-card composer">
+            <div class="composer-header">
+                <div class="avatar">V</div>
+                <strong>Vous</strong>
+            </div>
+            <textarea class="composer-input" placeholder="Publier un message, une image, une video, un lien..."></textarea>
+            <div class="composer-actions">
+                <div class="action-group">
+                    <button class="chip-btn" type="button"><i class="fa-regular fa-image"></i> Image</button>
+                    <button class="chip-btn" type="button"><i class="fa-solid fa-video"></i> Video</button>
+                    <button class="chip-btn" type="button"><i class="fa-solid fa-link"></i> Lien</button>
+                    <button class="chip-btn" type="button"><i class="fa-solid fa-bolt"></i> Event</button>
+                </div>
+                <button class="publish-btn" type="button">Publier</button>
+            </div>
+        </article>
+
+        <div class="glass-card">
+            <div class="filters">
+                <button class="filter-pill active" type="button">Tout</button>
+                <button class="filter-pill" type="button">Equipes</button>
+                <button class="filter-pill" type="button">Joueurs</button>
+                <button class="filter-pill" type="button">Tournois</button>
+                <button class="filter-pill" type="button">Media</button>
+            </div>
+        </div>
+
+        {% if posts is empty %}
+            <div class="glass-card post-card">
+                <div class="post-content">Aucune publication pour le moment.</div>
+            </div>
+        {% else %}
+            {% for post in posts %}
+                <article class="glass-card post-card">
+                    <div class="post-header">
+                        <div class="avatar">U</div>
+                        <div class="post-meta">
+                            <div class="post-author">Utilisateur</div>
+                            <div class="post-time">
+                                {{ post.createdAt ? post.createdAt|date('d/m/Y H:i') : 'Maintenant' }}
+                            </div>
+                        </div>
+                    </div>
+                    {% if post.content %}
+                        <div class="post-content">{{ post.content }}</div>
+                    {% endif %}
+
+                    {% if post.mediaType == 'image' and post.mediaFilename %}
+                        <div class="post-media">
+                            <img src="{{ asset(post.mediaFilename starts with 'http' ? post.mediaFilename : 'uploads/' ~ post.mediaFilename) }}" alt="media">
+                        </div>
+                    {% elseif post.mediaType == 'video' and post.mediaFilename %}
+                        <div class="post-media">
+                            <video controls>
+                                <source src="{{ asset(post.mediaFilename starts with 'http' ? post.mediaFilename : 'uploads/' ~ post.mediaFilename) }}">
+                            </video>
+                        </div>
+                    {% elseif post.mediaType == 'link' and post.mediaFilename %}
+                        <div class="post-media">
+                            <div class="media-placeholder">{{ post.mediaFilename }}</div>
+                        </div>
+                    {% endif %}
+
+                    <div class="post-actions">
+                        <div class="reaction-row">
+                            <button class="reaction-pill" type="button"><i class="fa-regular fa-heart"></i> J'aime</button>
+                            <button class="reaction-pill" type="button"><i class="fa-regular fa-comment"></i> Commenter</button>
+                            <button class="reaction-pill" type="button"><i class="fa-solid fa-share"></i> Partager</button>
+                        </div>
+                        <div class="reaction-row">
+                            <button class="reaction-pill" type="button"><i class="fa-regular fa-bookmark"></i> Sauvegarder</button>
+                        </div>
+                    </div>
+                    <div class="comment-box">
+                        <input class="comment-input" placeholder="Ajouter un commentaire..." />
+                        <button class="comment-send" type="button">Envoyer</button>
+                    </div>
+                </article>
+            {% endfor %}
+        {% endif %}
+    </section>
+
+    <aside class="feed-right">
+        <div class="glass-card announce-card">
+            <div class="announce-title">Annonces</div>
+            {% if announcements is empty %}
+                <div class="announce-item">
+                    <div class="title">Aucune annonce</div>
+                    <div class="meta">Ajoute des annonces depuis /admin</div>
+                </div>
+            {% else %}
+                {% for announcement in announcements %}
+                    <div class="announce-item">
+                        <div class="tag">{{ announcement.tag }}</div>
+                        <div class="title">{{ announcement.title }}</div>
+                        <div class="meta">
+                            {{ announcement.createdAt ? announcement.createdAt|date('d/m/Y H:i') : '' }}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </aside>
+</div>
+
+{% endblock %}

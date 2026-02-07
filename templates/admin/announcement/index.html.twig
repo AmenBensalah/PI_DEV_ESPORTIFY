@@ -1,0 +1,45 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block admin_body %}
+<div class="admin-page-header">
+    <div class="admin-page-title">Annonces</div>
+    <a class="admin-btn" href="{{ path('admin_announcement_new') }}">Nouvelle annonce</a>
+</div>
+
+<div class="admin-card">
+    <table class="admin-table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Tag</th>
+            <th>Titre</th>
+            <th>Lien</th>
+            <th>Creation</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for announcement in announcements %}
+            <tr>
+                <td>#{{ announcement.id }}</td>
+                <td>{{ announcement.tag }}</td>
+                <td>{{ announcement.title }}</td>
+                <td>{{ announcement.link|default('')|slice(0, 40) }}</td>
+                <td>{{ announcement.createdAt ? announcement.createdAt|date('d/m/Y H:i') : '' }}</td>
+                <td class="admin-actions">
+                    <a class="admin-link-btn" href="{{ path('admin_announcement_edit', {id: announcement.id}) }}">Editer</a>
+                    <form method="post" action="{{ path('admin_announcement_delete', {id: announcement.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete_announcement_' ~ announcement.id) }}">
+                        <button class="admin-link-btn danger" type="submit">Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">Aucune annonce.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

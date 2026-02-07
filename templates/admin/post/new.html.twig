@@ -1,0 +1,17 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block admin_body %}
+<div class="admin-page-header">
+    <div class="admin-page-title">Nouvelle publication</div>
+    <a class="admin-link-btn" href="{{ path('admin_post_index') }}">Retour</a>
+</div>
+
+<div class="admin-card">
+    {{ form_start(form, {attr: {class: 'admin-form'}}) }}
+        {{ form_row(form.content) }}
+        {{ form_row(form.mediaType) }}
+        {{ form_row(form.mediaFilename) }}
+        <button class="admin-btn" type="submit">Enregistrer</button>
+    {{ form_end(form) }}
+</div>
+{% endblock %}

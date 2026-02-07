@@ -1,0 +1,79 @@
+<?php
+
+namespace App\Controller\Admin;
+
+use App\Entity\Post;
+use App\Form\PostType;
+use App\Repository\PostRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+
+#[Route('/admin/posts')]
+class AdminPostController extends AbstractController
+{
+    #[Route('/', name: 'admin_post_index')]
+    public function index(PostRepository $postRepository): Response
+    {
+        return $this->render('admin/post/index.html.twig', [
+            'posts' => $postRepository->findBy([], ['createdAt' => 'DESC']),
+        ]);
+    }
+
+    #[Route('/new', name: 'admin_post_new')]
+    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $post = new Post();
+        $form = $this->createForm(PostType::class, $post);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            if (!$post->getCreatedAt()) {
+                $post->setCreatedAt(new \DateTimeImmutable());
+            }
+            if (!$post->getMediaType()) {
+                $post->setMediaType('text');
+            }
+
+            $entityManager->persist($post);
+            $entityManager->flush();
+
+            return $this->redirectToRoute('admin_post_index');
+        }
+
+        return $this->render('admin/post/new.html.twig', [
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/{id}/edit', name: 'admin_post_edit')]
+    public function edit(Post $post, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $form = $this->createForm(PostType::class, $post);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+
+            return $this->redirectToRoute('admin_post_index');
+        }
+
+        return $this->render('admin/post/edit.html.twig', [
+            'form' => $form,
+            'post' => $post,
+        ]);
+    }
+
+    #[Route('/{id}/delete', name: 'admin_post_delete', methods: ['POST'])]
+    public function delete(Post $post, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if ($this->isCsrfTokenValid('delete_post_' . $post->getId(), $request->request->get('_token'))) {
+            $entityManager->remove($post);
+            $entityManager->flush();
+        }
+
+        return $this->redirectToRoute('admin_post_index');
+    }
+}

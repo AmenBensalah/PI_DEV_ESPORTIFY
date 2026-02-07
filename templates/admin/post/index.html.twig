@@ -1,0 +1,45 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block admin_body %}
+<div class="admin-page-header">
+    <div class="admin-page-title">Publications</div>
+    <a class="admin-btn" href="{{ path('admin_post_new') }}">Nouvelle publication</a>
+</div>
+
+<div class="admin-card">
+    <table class="admin-table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Contenu</th>
+            <th>Media</th>
+            <th>Creation</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for post in posts %}
+            <tr>
+                <td>#{{ post.id }}</td>
+                <td>{{ post.mediaType }}</td>
+                <td>{{ post.content|default('')|slice(0, 80) }}</td>
+                <td>{{ post.mediaFilename|default('')|slice(0, 40) }}</td>
+                <td>{{ post.createdAt ? post.createdAt|date('d/m/Y H:i') : '' }}</td>
+                <td class="admin-actions">
+                    <a class="admin-link-btn" href="{{ path('admin_post_edit', {id: post.id}) }}">Editer</a>
+                    <form method="post" action="{{ path('admin_post_delete', {id: post.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete_post_' ~ post.id) }}">
+                        <button class="admin-link-btn danger" type="submit">Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">Aucune publication.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
