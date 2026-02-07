@@ -21,8 +21,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 
 class HomeController extends AbstractController
 {
-    #[Route('/', name: 'app_home')]
-    #[Route('/home', name: 'app_home_index')]
+    #[Route('/home', name: 'app_home')]
     public function index(
         Request $request,
         EquipeRepository $equipeRepository,
@@ -35,40 +34,24 @@ class HomeController extends AbstractController
 
         // 1. Check if user is an ADMIN (Admins have manager rights everywhere)
         $isAdmin = $this->isGranted('ROLE_ADMIN');
+        if ($isAdmin) {
+            return $this->redirectToRoute('admin_dashboard');
+        }
 
-        // 2. Check for Manager via Session
+
+
+        // Find Team for display
         $myTeamId = $session->get('my_team_id');
         if ($myTeamId) {
             $myTeam = $equipeRepository->find($myTeamId);
-            $isManager = true;
-        }
-
-        // 3. Check for Member (Accepted Candidature) if not already a manager of this team
-        if (!$isManager && $user) {
-            $userEmail = $user->getUserIdentifier();
-            $membership = $candidatureRepository->findOneBy([
-                'email' => $userEmail,
-                'statut' => 'Accepté',
-            ]);
-
-            if ($membership) {
-                $myTeam = $membership->getEquipe();
-                // If they are a member, they are NOT a manager (unless they are also Admin)
-                $isManager = $isAdmin;
-            }
         }
 
         return $this->render('home/index.html.twig', [
             'featuredTeams' => $equipeRepository->findBy([], ['id' => 'DESC'], 4),
             'myTeam' => $myTeam,
-            'isManager' => $isManager || $isAdmin, // Admins see management buttons if a team is shown
+            'isManager' => $this->isGranted('ROLE_MANAGER') || $isAdmin,
+            'isPlayer' => $this->isGranted('ROLE_JOUEUR'),
         ]);
-    }
-
-    #[Route('/manager/request', name: 'app_manager_request')]
-    public function requestManager(): Response
-    {
-        return $this->render('home/formmanager.html.twig');
     }
 
     #[Route('/manager/request/submit', name: 'app_manager_request_submit', methods: ['POST'])]
@@ -79,6 +62,12 @@ class HomeController extends AbstractController
 
         $this->addFlash('success', 'Votre demande pour devenir manager a été envoyée avec succès !');
         return $this->redirectToRoute('app_home');
+    }
+
+    #[Route('/manager/request', name: 'app_manager_request', methods: ['GET'])]
+    public function requestManager(): Response
+    {
+        return $this->render('home/formmanager.html.twig');
     }
 
     #[Route('/profile', name: 'app_profile')]

@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Form\User1Type;
+use App\Repository\EquipeRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,24 +18,44 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class DashboardController extends AbstractController
 {
+    #[Route('/admin', name: 'admin_root')]
+    public function root(): Response
+    {
+        return $this->redirectToRoute('admin_dashboard');
+    }
+
     #[Route('/admin/dashboard', name: 'admin_dashboard')]
-    public function index(UserRepository $userRepository): Response
+    public function index(UserRepository $userRepository, EquipeRepository $equipeRepository, \App\Repository\ManagerRequestRepository $managerRequestRepository): Response
     {
         $users = $userRepository->findAll();
         $userCount = count($users);
+        $equipes = $equipeRepository->findBy([], ['id' => 'DESC'], 5);
+        $pendingRequests = $managerRequestRepository->count(['status' => 'pending']);
 
         return $this->render('admin/dashboard/index.html.twig', [
             'userCount' => $userCount,
-            'equipeCount' => 12, // Replace with actual data from DB
-            'reportCount' => 3,  // Replace with actual data from DB
+            'equipeCount' => $equipeRepository->count([]),
+            'reportCount' => 0,
+            'pendingRequests' => $pendingRequests,
+            'latestUsers' => $userRepository->findBy([], ['id' => 'DESC'], 5),
+            'latestEquipes' => $equipes,
         ]);
     }
 
     #[Route('/admin/utilisateurs', name: 'admin_users')]
-    public function users(UserRepository $userRepository): Response
+    public function users(Request $request, UserRepository $userRepository): Response
     {
+        $query = $request->query->get('q');
+        $role = $request->query->get('role');
+        $sort = $request->query->get('sort', 'id');
+        $direction = $request->query->get('direction', 'DESC');
+
         return $this->render('admin/users/index.html.twig', [
-            'users' => $userRepository->findAll(),
+            'users' => $userRepository->searchAndSort($query, $role, $sort, $direction),
+            'currentQuery' => $query,
+            'currentRole' => $role,
+            'currentSort' => $sort,
+            'currentDirection' => $direction
         ]);
     }
 

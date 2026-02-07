@@ -362,9 +362,8 @@ function createTeam(event) {
         .then(result => {
             console.log('Réponse du serveur:', result);
             if (result.status === 200 || result.status === 201 || result.body.success) {
-                const indexUrl = form.dataset.indexUrl || '/equipe';
-                const redirectUrl = result.body.id ? (indexUrl.endsWith('/') ? indexUrl + result.body.id : indexUrl + '/' + result.body.id) : indexUrl;
-                window.location.href = redirectUrl;
+                const indexUrl = form.dataset.indexUrl || '/equipe/';
+                window.location.href = indexUrl;
             } else {
                 // AFFICHAGE DES ERREURS DU CONTROLLER
                 if (result.body.errors && Array.isArray(result.body.errors)) {

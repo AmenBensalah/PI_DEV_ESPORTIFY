@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'equipes/base.html.twig' %}
 
 {% block title %}Postuler chez {{ equipe.nomEquipe }} - E-Sportify{% endblock %}
 
@@ -25,28 +25,6 @@
 
         <form method="post">
             
-            <!-- Pseudo -->
-            <div class="form-group" style="margin-bottom: 25px;">
-                <label style="display: block; margin-bottom: 10px; font-weight: 600; color: var(--text-primary);">
-                    <i class="fas fa-user"></i> Pseudo / GamerTag
-                </label>
-                <input type="text" name="pseudo" placeholder="Votre pseudo en jeu..."
-                       value="{{ formData.pseudo|default('') }}"
-                       class="form-control" 
-                       style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.1); background: var(--darker-bg); color: white; font-size: 16px;">
-            </div>
-
-            <!-- Email -->
-            <div class="form-group" style="margin-bottom: 25px;">
-                <label style="display: block; margin-bottom: 10px; font-weight: 600; color: var(--text-primary);">
-                    <i class="fas fa-envelope"></i> Email de contact
-                </label>
-                <input type="text" name="email" placeholder="Pour recevoir la réponse..."
-                       value="{{ formData.email|default('') }}"
-                       class="form-control" 
-                       style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.1); background: var(--darker-bg); color: white; font-size: 16px;">
-            </div>
-
             <!-- Niveau -->
             <div class="form-group" style="margin-bottom: 25px;">
                 <label style="display: block; margin-bottom: 10px; font-weight: 600; color: var(--text-primary);">
@@ -80,7 +58,7 @@
                           style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.1); background: var(--darker-bg); color: white; font-size: 16px; resize: vertical;">{{ formData.playStyle|default('') }}</textarea>
             </div>
 
-            <!-- Autre Motivation / Description Libre (optionnel ou caché si redondant) -->
+            <!-- Autre Motivation / Description Libre -->
              <input type="hidden" name="motivation" value="Candidature spontanée">
 
             <!-- Actions -->
@@ -97,3 +75,4 @@
     </div>
 </div>
 {% endblock %}
+

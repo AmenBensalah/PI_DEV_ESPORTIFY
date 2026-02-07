@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'equipes/base.html.twig' %}
 
 {% block title %}{{ equipe.nomEquipe }} - E-Sportify{% endblock %}
 
@@ -42,7 +42,7 @@
             </span>
         </div>
 
-        <!-- Action Buttons (Public) -->
+        <!-- Action Buttons -->
         <div class="action-buttons" style="display: flex; gap: 15px; justify-content: center; margin: 40px 0; flex-wrap: wrap;">
             {% if isMember %}
                 <div class="badge badge-success" style="padding: 14px 30px; font-size: 16px; display: inline-flex; align-items: center; gap: 10px; border-radius: 12px;">
@@ -57,13 +57,32 @@
             {% endif %}
 
             {% if isManager %}
-                <a href="{{ path('app_equipes_manage', {'id': equipe.id}) }}" class="btn-gradient" style="padding: 14px 40px; border-radius: 12px; text-decoration: none; font-weight: 600; background: var(--primary-blue);">
-                    <i class="fas fa-cog"></i> Gérer l'Équipe
-                </a>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+                    <a href="{{ path('app_equipes_edit', {'id': equipe.id}) }}" class="btn-outline" style="padding: 14px 30px; text-decoration: none; border-radius: 12px; font-weight: 600; border: 1px solid #FFC107; color: #FFC107;">
+                        <i class="fas fa-edit"></i> Modifier
+                    </a>
+                    <form method="post" action="{{ path('app_equipes_delete', {'id': equipe.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette équipe ? Cette action est irréversible.');" style="display: inline;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ equipe.id) }}">
+                        <button class="btn-outline" style="padding: 14px 30px; border-radius: 12px; font-weight: 600; border: 1px solid var(--primary-pink); color: var(--primary-pink); background: none; cursor: pointer; font-family: inherit;">
+                            <i class="fas fa-trash-alt"></i> Supprimer
+                        </button>
+                    </form>
+                    <a href="{{ path('app_recrutements_manage', {'id': equipe.id}) }}" class="btn-gradient" style="padding: 14px 30px; border-radius: 12px; text-decoration: none; font-weight: 600;">
+                        <i class="fas fa-user-plus"></i> Gérer demandes
+                    </a>
+                </div>
+            {% elseif isMember %}
+                <div style="display: flex; gap: 15px; justify-content: center;">
+                    <form method="post" action="{{ path('app_equipes_leave', {'id': equipe.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir quitter cette équipe ?');">
+                        <button class="btn-outline" style="padding: 14px 40px; border-radius: 12px; font-weight: 600; border: 1px solid var(--primary-pink); color: var(--primary-pink); background: none; cursor: pointer; font-family: inherit;">
+                            <i class="fas fa-sign-out-alt"></i> Quitter le groupe
+                        </button>
+                    </form>
+                </div>
             {% endif %}
 
-            <a href="{{ path('app_home') }}" class="btn-outline" style="padding: 14px 40px; border-radius: 12px; text-decoration: none;">
-                <i class="fas fa-arrow-left"></i> Retour à l'accueil
+            <a href="{{ path('app_equipes_index') }}" class="btn-outline" style="padding: 14px 40px; border-radius: 12px; text-decoration: none; font-weight: 600;">
+                <i class="fas fa-arrow-left"></i> Retour à la liste
             </a>
         </div>
 
@@ -195,43 +214,57 @@
                         <span style="width: 44px; height: 44px; border-radius: 10px; background: var(--gradient-1); display: flex; align-items: center; justify-content: center;">
                             <i class="fas fa-address-book"></i>
                         </span>
-                        Coordonnées des membres (statique)
+                        Coordonnées des membres 
+                        {% if isManager %}
+                        <button class="btn-gradient" onclick="openAddMemberModal()" style="font-size: 14px; padding: 8px 20px; text-transform: uppercase; letter-spacing: 1px; margin-left: auto;">
+                            <i class="fas fa-plus"></i> Ajouter un membre
+                        </button>
+                        {% endif %}
                     </h2>
 
                     <div style="overflow-x: auto;">
                         <table style="width: 100%; border-collapse: collapse; min-width: 720px;">
                             <thead>
                                 <tr style="background: rgba(0,0,0,0.15); text-transform: uppercase; color: var(--text-secondary); font-size: 13px;">
-                                    <th style="padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.04);">ID</th>
                                     <th style="padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.04);">Nom</th>
-                                    <th style="padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.04);">Prénom</th>
+                                    <th style="padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.04);">Pseudo</th>
                                     <th style="padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.04);">Email</th>
-                                    <th style="padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.04);">Téléphone</th>
+                                    {% if isManager %}
+                                        <th style="padding: 12px 16px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.04);">Actions</th>
+                                    {% endif %}
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Lignes statiques - à gérer côté users par votre collègue -->
-                                <tr>
-                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">1</td>
-                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">Dupont</td>
-                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">Jean</td>
-                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">jean.dupont@example.com</td>
-                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">+33 6 12 34 56 78</td>
-                                </tr>
-                                <tr style="background: rgba(255,255,255,0.02);">
-                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">2</td>
-                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">Martin</td>
-                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">Claire</td>
-                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">claire.martin@example.com</td>
-                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">+33 6 98 76 54 32</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">3</td>
-                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">Nguyen</td>
-                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">Linh</td>
-                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">linh.nguyen@example.com</td>
-                                    <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">+33 7 11 22 33 44</td>
-                                </tr>
+                                {% for member in members %}
+                                    <tr style="{{ loop.index is even ? 'background: rgba(255,255,255,0.02);' : '' }}">
+                                        {# Note: Nom is fetched from user if possible, but here we show pseudo as name if no user linked? 
+                                           The user requested 'Nom', 'Pseudo', 'Email'. 
+                                           I'll try to find the User or just use pseudo for both if needed, 
+                                           but let's assume we can at least get Pseudo and Email from candidature. #}
+                                        <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">{{ member.nom }}</td>
+                                        <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03); font-weight: 700;">{{ member.pseudo }}</td>
+                                        <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">{{ member.email }}</td>
+                                        {% if isManager %}
+                                            <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03); text-align: right;">
+                                                <form method="post" action="{{ path('app_equipes_remove_member', {'id': equipe.id}) }}" onsubmit="return confirm('Voulez-vous vraiment retirer ce membre ?');" style="display:inline;">
+                                                    <input type="hidden" name="user_id" value="{{ member.id }}">
+                                                    <button type="submit" class="btn-action delete" style="padding: 6px 12px; font-size: 11px; border: 1px solid var(--primary-pink); color: var(--primary-pink); background: rgba(255,0,110,0.1); border-radius: 6px; cursor: pointer; transition: all 0.3s;" title="Exclure du groupe"
+                                                            onmouseover="this.style.background='var(--primary-pink)'; this.style.color='white';"
+                                                            onmouseout="this.style.background='rgba(255,0,110,0.1)'; this.style.color='var(--primary-pink)';">
+                                                        <i class="fas fa-user-times"></i> Exclure
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        {% endif %}
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                    <tr style="border: none;">
+                                        <td colspan="{% if isManager %}4{% else %}3{% endif %}" style="padding: 30px; text-align: center; color: var(--text-secondary);">
+                                            Aucun membre officiel pour le moment.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -282,5 +315,85 @@
             </div>
         </div>
     {# end content - base.html.twig provides the <main> wrapper #}
+
+    {% if isManager %}
+    {# â”€â”€â”€ ADD MEMBER MODAL â”€â”€â”€ #}
+    <div id="addMemberModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+        <div class="modal-content" style="background: var(--dark-bg); padding: 30px; border-radius: 20px; width: 90%; max-width: 500px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 50px rgba(0,0,0,0.5); transform: scale(0.9); opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div style="width: 60px; height: 60px; background: rgba(0,217,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; border: 2px solid var(--primary-blue);">
+                    <i class="fas fa-user-plus" style="font-size: 24px; color: var(--primary-blue);"></i>
+                </div>
+                <h2 style="font-family: 'Orbitron', sans-serif; font-size: 24px; margin-bottom: 10px; color: white;">Ajouter un Membre</h2>
+                <p style="color: var(--text-secondary);">Entrez le pseudo ou l'email du joueur à ajouter.</p>
+            </div>
+
+            <form method="post" action="{{ path('app_equipes_add_member', {'id': equipe.id}) }}">
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; color: var(--text-secondary); margin-bottom: 8px; font-size: 14px; font-weight: 600;">Pseudo ou Email</label>
+                    <div style="position: relative;">
+                        <i class="fas fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                        <input type="text" name="identifier" required placeholder="Ex: Faker, joueur@email.com" 
+                               style="width: 100%; padding: 12px 12px 12px 45px; background: var(--darker-bg); border: 2px solid rgba(255,255,255,0.1); border-radius: 10px; color: white; font-family: 'Rajdhani', sans-serif; font-size: 16px; outline: none; transition: var(--transition);"
+                               onfocus="this.style.borderColor='var(--primary-blue)'; this.style.boxShadow='0 0 15px rgba(0,217,255,0.15)';"
+                               onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.boxShadow='none';">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 15px;">
+                    <button type="button" onclick="closeAddMemberModal()" style="flex: 1; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+                        Annuler
+                    </button>
+                    <button type="submit" class="btn-gradient" style="flex: 1; border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                        Ajouter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openAddMemberModal() {
+            const modal = document.getElementById('addMemberModal');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            const content = modal.querySelector('.modal-content');
+            
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    content.style.opacity = '1';
+                    content.style.transform = 'scale(1)';
+                });
+            });
+            
+            setTimeout(() => {
+                const input = modal.querySelector('input[name="identifier"]');
+                if (input) input.focus();
+            }, 100);
+        }
+
+        function closeAddMemberModal() {
+            const modal = document.getElementById('addMemberModal');
+            const content = modal.querySelector('.modal-content');
+            
+            content.style.opacity = '0';
+            content.style.transform = 'scale(0.9)';
+            
+            setTimeout(() => {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }, 300);
+        }
+        
+        document.getElementById('addMemberModal').addEventListener('click', function(e) {
+            if (e.target === this) closeAddMemberModal();
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeAddMemberModal();
+        });
+    </script>
+    {% endif %}
 
 {% endblock %}

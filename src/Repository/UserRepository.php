@@ -33,28 +33,36 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
-    //    /**
-    //     * @return User[] Returns an array of User objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('u.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    /**
+     * @return User[] Returns filtered and sorted users
+     */
+    public function searchAndSort(?string $query, ?string $roleValue = null, string $sortField = 'id', string $sortDirection = 'DESC'): array
+    {
+        $qb = $this->createQueryBuilder('u');
 
-    //    public function findOneBySomeField($value): ?User
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        if ($query) {
+            $qb->andWhere('LOWER(u.pseudo) LIKE LOWER(:query) OR LOWER(u.email) LIKE LOWER(:query) OR LOWER(u.nom) LIKE LOWER(:query)')
+               ->setParameter('query', '%' . strtolower($query) . '%');
+        }
+
+        if ($roleValue) {
+            $roleEnum = \App\Enum\Role::tryFrom($roleValue);
+            if ($roleEnum) {
+                $qb->andWhere('u.role = :role')
+                   ->setParameter('role', $roleEnum);
+            }
+        }
+
+        // Whitelist sort fields
+        $allowedSortFields = ['id', 'nom', 'email'];
+        if (!in_array($sortField, $allowedSortFields)) {
+            $sortField = 'id';
+        }
+        
+        $sortDirection = strtoupper($sortDirection) === 'ASC' ? 'ASC' : 'DESC';
+
+        return $qb->orderBy('u.' . $sortField, $sortDirection)
+                  ->getQuery()
+                  ->getResult();
+    }
 }

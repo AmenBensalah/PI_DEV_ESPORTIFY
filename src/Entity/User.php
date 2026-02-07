@@ -4,6 +4,9 @@ namespace App\Entity;
 use App\Enum\Role;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use App\Entity\ManagerRequest;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -38,6 +41,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $pseudo = null;
+
+    /**
+     * @var Collection<int, Candidature>
+     */
+    #[ORM\OneToMany(targetEntity: Candidature::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $candidatures;
+
+    /**
+     * @var Collection<int, ManagerRequest>
+     */
+    #[ORM\OneToMany(targetEntity: ManagerRequest::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $managerRequests;
+
+    public function __construct()
+    {
+        $this->candidatures = new ArrayCollection();
+        $this->managerRequests = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -136,6 +157,66 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPseudo(?string $pseudo): static
     {
         $this->pseudo = $pseudo;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Candidature>
+     */
+    public function getCandidatures(): Collection
+    {
+        return $this->candidatures;
+    }
+
+    public function addCandidature(Candidature $candidature): static
+    {
+        if (!$this->candidatures->contains($candidature)) {
+            $this->candidatures->add($candidature);
+            $candidature->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCandidature(Candidature $candidature): static
+    {
+        if ($this->candidatures->removeElement($candidature)) {
+            // set the owning side to null (unless already changed)
+            if ($candidature->getUser() === $this) {
+                $candidature->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ManagerRequest>
+     */
+    public function getManagerRequests(): Collection
+    {
+        return $this->managerRequests;
+    }
+
+    public function addManagerRequest(ManagerRequest $managerRequest): static
+    {
+        if (!$this->managerRequests->contains($managerRequest)) {
+            $this->managerRequests->add($managerRequest);
+            $managerRequest->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeManagerRequest(ManagerRequest $managerRequest): static
+    {
+        if ($this->managerRequests->removeElement($managerRequest)) {
+            // set the owning side to null (unless already changed)
+            if ($managerRequest->getUser() === $this) {
+                $managerRequest->setUser(null);
+            }
+        }
 
         return $this;
     }

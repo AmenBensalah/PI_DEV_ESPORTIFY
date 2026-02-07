@@ -15,6 +15,8 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Credentials\PasswordC
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\SecurityRequestAttributes;
 use Symfony\Component\Security\Http\Util\TargetPathTrait;
+use App\Repository\EquipeRepository;
+use App\Repository\CandidatureRepository;
 
 class SecurityAuthenticator extends AbstractLoginFormAuthenticator
 {
@@ -22,8 +24,11 @@ class SecurityAuthenticator extends AbstractLoginFormAuthenticator
 
     public const LOGIN_ROUTE = 'app_login';
 
-    public function __construct(private UrlGeneratorInterface $urlGenerator)
-    {
+    public function __construct(
+        private UrlGeneratorInterface $urlGenerator,
+        private EquipeRepository $equipeRepository,
+        private CandidatureRepository $candidatureRepository
+    ) {
     }
 
     public function authenticate(Request $request): Passport
@@ -42,25 +47,45 @@ class SecurityAuthenticator extends AbstractLoginFormAuthenticator
         );
     }
 
- public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
-{
-    $user = $token->getUser();
-    $roles = $user->getRoles();
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
+    {
+        /** @var \App\Entity\User $user */
+        $user = $token->getUser();
+        $session = $request->getSession();
 
-    // DEBUG: This will stop the redirect and show you what roles the user has.
-    // Once you see "ROLE_ADMIN" in the list on your screen, remove this line.
-    // dd($roles); 
+        // Find Team and store in session for navigation
+        $userEmail = $user->getUserIdentifier();
+        
+        // Check if user is a member (Accepted)
+        $membership = $this->candidatureRepository->findOneBy([
+            'user' => $user,
+            'statut' => 'Accepté'
+        ]);
 
-    // Use a case-insensitive check just in case
-    foreach ($roles as $role) {
-        if (strtoupper($role) === 'ROLE_ADMIN') {
-            return new RedirectResponse($this->urlGenerator->generate('admin_dashboard'));
+        if ($membership) {
+            $session->set('my_team_id', $membership->getEquipe()->getId());
+        } else {
+            // Check if they are a manager of a team
+            $managedTeam = $this->equipeRepository->findOneBy(['manager' => $user]);
+            if ($managedTeam) {
+                $session->set('my_team_id', $managedTeam->getId());
+            }
         }
-    }
 
-    // Default for Joueurs
-    return new RedirectResponse($this->urlGenerator->generate('app_home'));
-}
+        $roles = $user->getRoles();
+        foreach ($roles as $role) {
+            $upperRole = strtoupper($role);
+            if ($upperRole === 'ROLE_ADMIN') {
+                return new RedirectResponse($this->urlGenerator->generate('admin_dashboard'));
+            }
+            if ($upperRole === 'ROLE_MANAGER') {
+                return new RedirectResponse($this->urlGenerator->generate('app_equipes_index'));
+            }
+        }
+
+        // Default for JOUEUR, ORGANISATEUR, etc.
+        return new RedirectResponse($this->urlGenerator->generate('app_home'));
+    }
 
     protected function getLoginUrl(Request $request): string
     {

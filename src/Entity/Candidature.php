@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use App\Entity\Equipe;
+use App\Entity\User;
 use App\Repository\CandidatureRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -13,12 +15,6 @@ class Candidature
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
-
-    #[ORM\Column(length: 255)]
-    private ?string $pseudo = null;
-
-    #[ORM\Column(length: 255)]
-    private ?string $email = null;
 
     #[ORM\Column(length: 50)]
     private ?string $niveau = null;
@@ -32,6 +28,10 @@ class Candidature
     #[ORM\ManyToOne(inversedBy: 'candidatures')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Equipe $equipe = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?User $user = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $dateCandidature = null;
@@ -50,30 +50,6 @@ class Candidature
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getPseudo(): ?string
-    {
-        return $this->pseudo;
-    }
-
-    public function setPseudo(string $pseudo): static
-    {
-        $this->pseudo = $pseudo;
-
-        return $this;
-    }
-
-    public function getEmail(): ?string
-    {
-        return $this->email;
-    }
-
-    public function setEmail(string $email): static
-    {
-        $this->email = $email;
-
-        return $this;
     }
 
     public function getNiveau(): ?string
@@ -120,6 +96,18 @@ class Candidature
     public function setEquipe(?Equipe $equipe): static
     {
         $this->equipe = $equipe;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
 
         return $this;
     }

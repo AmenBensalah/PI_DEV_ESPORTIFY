@@ -33,13 +33,13 @@
         <!-- Recruitment Requests List -->
         <div id="requests-list" class="requests-list" data-recruitment-filter-target="list" style="margin-bottom: 60px;">
             {% for candidature in candidatures %}
-            <div class="card recruitment-card animate__animated animate__fadeInUp" role="article" aria-label="Candidature de {{ candidature.pseudo }}" 
+            <div class="card recruitment-card animate__animated animate__fadeInUp" role="article" aria-label="Candidature de {{ candidature.user.pseudo }}" 
                  data-status="{% if candidature.statut == 'En attente' %}pending{% elseif candidature.statut == 'Accepté' %}accepted{% else %}refused{% endif %}"
                  style="animation-delay: {{ loop.index0 * 0.05 }}s; {% if candidature.statut == 'Accepté' %}border-color: var(--success-color);{% elseif candidature.statut == 'Refusé' %}border-color: var(--primary-pink);{% endif %}">
                 <div style="display: flex; gap: 20px; align-items: start;">
                     <!-- Avatar -->
                     <div style="flex-shrink: 0;">
-                        <div class="avatar" style="background:var(--gradient-1); font-size:24px;">{{ candidature.pseudo|slice(0, 2)|upper }}</div>
+                        <div class="avatar" style="background:var(--gradient-1); font-size:24px;">{{ candidature.user.pseudo|slice(0, 2)|upper }}</div>
                     </div>
                     
                     <!-- Content -->
@@ -47,7 +47,7 @@
                         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                             <div>
                                 <h3 style="font-size: 24px; margin-bottom: 8px; font-family: 'Orbitron', sans-serif;">
-                                    {{ candidature.pseudo }}
+                                    {{ candidature.user.pseudo }} <span style="font-size: 14px; opacity: 0.7;">({{ candidature.user.nom }})</span>
                                 </h3>
                                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                                     <span class="badge {% if candidature.statut == 'En attente' %}badge-warning{% elseif candidature.statut == 'Accepté' %}badge-success{% else %}badge-danger{% endif %}" style="{% if candidature.statut == 'En attente' %}background: var(--warning-color);{% endif %}">
@@ -63,7 +63,7 @@
                                         <i class="fas fa-gamepad"></i> {{ candidature.niveau }}
                                     </span>
                                     <span class="badge" style="background: rgba(0, 217, 255, 0.1); color: var(--primary-blue); border: 1px solid var(--primary-blue);">
-                                        <i class="fas fa-envelope"></i> {{ candidature.email }}
+                                        <i class="fas fa-envelope"></i> {{ candidature.user.email }}
                                     </span>
                                 </div>
                             </div>
@@ -111,12 +111,12 @@
                         <div class="card-actions">
                             {% if candidature.statut == 'En attente' %}
                                 <form method="post" action="{{ path('app_recrutements_accept', {'id': candidature.id}) }}" style="display: inline;">
-                                    <button type="submit" class="btn-gradient" style="padding: 12px 24px; border: none; cursor: pointer;" onclick="return confirm('✅ Accepter {{ candidature.pseudo }} ?')">
+                                    <button type="submit" class="btn-gradient" style="padding: 12px 24px; border: none; cursor: pointer;" onclick="return confirm('✅ Accepter {{ candidature.user.pseudo }} ?')">
                                         <i class="fas fa-check"></i> Accepter
                                     </button>
                                 </form>
                                 <form method="post" action="{{ path('app_recrutements_refuse', {'id': candidature.id}) }}" style="display: inline;">
-                                    <button type="submit" class="btn-danger" style="padding: 12px 24px; background: rgba(255, 0, 110, 0.1); border: 2px solid var(--primary-pink); color: var(--primary-pink); border-radius: 12px; cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 700;" onclick="return confirm('❌ Refuser {{ candidature.pseudo }} ?')">
+                                    <button type="submit" class="btn-danger" style="padding: 12px 24px; background: rgba(255, 0, 110, 0.1); border: 2px solid var(--primary-pink); color: var(--primary-pink); border-radius: 12px; cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 700;" onclick="return confirm('❌ Refuser {{ candidature.user.pseudo }} ?')">
                                         <i class="fas fa-times"></i> Refuser
                                     </button>
                                 </form>

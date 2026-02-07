@@ -25,9 +25,46 @@ class EquipeRepository extends ServiceEntityRepository
             ->andWhere('LOWER(e.nomEquipe) LIKE LOWER(:term)')
             ->setParameter('term', '%'.strtolower($term).'%')
             ->orderBy('e.nomEquipe', 'ASC')
-            ->setMaxResults(20) // Limit to 20 results for pro performance
+            ->setMaxResults(20)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @return Equipe[] Returns filtered and sorted teams
+     */
+    public function searchAndSort(?string $query, ?string $region = null, ?string $visibility = null, string $sortField = 'id', string $sortDirection = 'DESC'): array
+    {
+        $qb = $this->createQueryBuilder('e');
+
+        if ($query) {
+            $qb->andWhere('LOWER(e.nomEquipe) LIKE LOWER(:query) OR LOWER(e.tag) LIKE LOWER(:query)')
+               ->setParameter('query', '%' . strtolower($query) . '%');
+        }
+
+        if ($region) {
+            $qb->andWhere('e.region = :region')
+               ->setParameter('region', $region);
+        }
+
+        if ($visibility !== null && $visibility !== '') {
+            $isPrivate = $visibility === 'private';
+            $qb->andWhere('e.isPrivate = :isPrivate')
+               ->setParameter('isPrivate', $isPrivate);
+        }
+
+        // Whitelist sort fields to prevent SQL injection
+        $allowedSortFields = ['id', 'nomEquipe', 'tag', 'dateCreation', 'classement'];
+        if (!in_array($sortField, $allowedSortFields)) {
+            $sortField = 'id';
+        }
+        
+        // Whitelist direction
+        $sortDirection = strtoupper($sortDirection) === 'ASC' ? 'ASC' : 'DESC';
+
+        return $qb->orderBy('e.' . $sortField, $sortDirection)
+                  ->getQuery()
+                  ->getResult();
     }
 
 //    /**

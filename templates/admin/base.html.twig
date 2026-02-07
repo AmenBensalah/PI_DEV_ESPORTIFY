@@ -342,10 +342,22 @@
         <a href="{{ path('admin_users') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_users' %}active{% endif %}">
             <i class="fas fa-users"></i> Utilisateurs
         </a>
+        <a href="{{ path('admin_equipes') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_equipes' %}active{% endif %}">
+            <i class="fas fa-gamepad"></i> Équipes
+        </a>
+        <a href="{{ path('admin_manager_requests_index') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_manager_requests_index' %}active{% endif %}">
+            <i class="fas fa-user-plus"></i> Demandes Manager
+        </a>
         <a href="{{ path('admin_boutique') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_boutique' %}active{% endif %}">
             <i class="fas fa-store"></i> Boutique
         </a>
-        <a href="{{ path('admin_profile') }}" class="admin-nav-link">
+        <a href="{{ path('admin_tournois') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_tournois' %}active{% endif %}">
+            <i class="fas fa-trophy"></i> Tournois
+        </a>
+        <a href="{{ path('admin_social') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_social' %}active{% endif %}">
+            <i class="fas fa-newspaper"></i> Fil d'actualité
+        </a>
+        <a href="{{ path('admin_profile') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_profile' %}active{% endif %}">
             <i class="fas fa-user-circle"></i> Mon Profil
         </a>
     </nav>

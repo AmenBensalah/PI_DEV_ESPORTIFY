@@ -1,72 +1,271 @@
 {% extends 'admin/base.html.twig' %}
 
-{% block title %}Gestion Équipes - Admin{% endblock %}
+{% block title %}Gestion des Équipes - Admin{% endblock %}
 {% block page_title %}Gestion des Équipes{% endblock %}
 
 {% block body %}
-    <!-- Actions Banner -->
-    <div style="margin-bottom: 30px; display: flex; justify-content: flex-end;">
-        <a href="{{ path('app_equipes_new') }}" class="btn-gradient" style="padding: 12px 25px; text-decoration: none; display: inline-block;">
-            <i class="fas fa-plus"></i> Ajouter une Équipe
-        </a>
+    <style>
+        .advanced-search-container {
+            background: #15182b;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        .search-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .filter-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .filter-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 10px 12px;
+            color: white;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--primary-pink);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .search-actions {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+        .btn-search {
+            background: #4e65f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 25px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        .btn-search:hover {
+            background: #3d52d9;
+            transform: translateY(-2px);
+        }
+        .btn-reset {
+            background: rgba(255, 255, 255, 0.05);
+            color: #a0a0ff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px; /* Reduced padding */
+            font-weight: 600;
+            font-size: 13px; /* Slightly smaller font */
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .sort-row {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .sort-label {
+            font-weight: 700;
+            color: white;
+            font-size: 14px;
+        }
+        .sort-link {
+            font-size: 13px;
+            color: #a0a0ff;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .sort-link:hover, .sort-link.active {
+            color: var(--primary-pink);
+        }
+    </style>
+
+    <div class="advanced-search-container animate__animated animate__fadeIn">
+        <div class="search-title">
+            <i class="fas fa-search"></i> Recherche Avancée
+        </div>
+        
+        <form action="{{ path('admin_equipes') }}" method="get">
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end;">
+                <div class="filter-group" style="flex: 1; min-width: 200px;">
+                    <label class="filter-label">NOM OU TAG</label>
+                    <input type="text" name="q" class="filter-input" placeholder="ex: Team Vitality, VIT..." value="{{ currentQuery }}">
+                </div>
+                
+                <div class="filter-group" style="flex: 1; min-width: 200px;">
+                    <label class="filter-label">RÉGION</label>
+                    <select name="region" class="filter-input">
+                        <option value="">-- Toutes --</option>
+                        {% for reg in ['Africa', 'Asia', 'Europe', 'Middle East', 'North America', 'South America', 'Oceania'] %}
+                            <option value="{{ reg }}" {% if currentRegion == reg %}selected{% endif %}>{{ reg }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group" style="flex: 1; min-width: 200px;">
+                    <label class="filter-label">VISIBILITÉ</label>
+                    <select name="visibility" class="filter-input">
+                        <option value="">-- Tous --</option>
+                        <option value="public" {% if currentVisibility == 'public' %}selected{% endif %}>Public</option>
+                        <option value="private" {% if currentVisibility == 'private' %}selected{% endif %}>Privé</option>
+                    </select>
+                </div>
+
+                <div class="search-actions" style="display: flex; gap: 10px; align-items: center; margin-bottom: 2px;">
+                    <button type="submit" class="btn-search">
+                        <i class="fas fa-search"></i> Rechercher
+                    </button>
+                    <a href="{{ path('admin_equipes') }}" class="btn-reset" title="Réinitialiser tous les filtres">
+                        <i class="fas fa-sync-alt"></i> Réinitialiser
+                    </a>
+                </div>
+            </div>
+
+            <!-- Manually pass sort info if needed, but links below handle it better -->
+            <input type="hidden" name="sort" value="{{ currentSort }}">
+            <input type="hidden" name="direction" value="{{ currentDirection }}">
+
+            <div class="sort-row">
+                <span class="sort-label">Trier par :</span>
+                <a href="{{ path('admin_equipes', {q: currentQuery, region: currentRegion, visibility: currentVisibility, sort: 'nomEquipe', direction: 'ASC'}) }}" 
+                   class="sort-link {% if currentSort == 'nomEquipe' and currentDirection == 'ASC' %}active{% endif %}">Nom A → Z</a>
+                <a href="{{ path('admin_equipes', {q: currentQuery, region: currentRegion, visibility: currentVisibility, sort: 'nomEquipe', direction: 'DESC'}) }}" 
+                   class="sort-link {% if currentSort == 'nomEquipe' and currentDirection == 'DESC' %}active{% endif %}">Nom Z → A</a>
+                <a href="{{ path('admin_equipes', {q: currentQuery, region: currentRegion, visibility: currentVisibility, sort: 'dateCreation', direction: 'DESC'}) }}" 
+                   class="sort-link {% if currentSort == 'dateCreation' and currentDirection == 'DESC' %}active{% endif %}">Date ↓</a>
+                <a href="{{ path('admin_equipes', {q: currentQuery, region: currentRegion, visibility: currentVisibility, sort: 'dateCreation', direction: 'ASC'}) }}" 
+                   class="sort-link {% if currentSort == 'dateCreation' and currentDirection == 'ASC' %}active{% endif %}">Date ↑</a>
+            </div>
+        </form>
     </div>
 
-    <div class="admin-table-container">
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nom</th>
-                    <th>Tag</th>
-                    <th>Region</th>
-                    <th>Classement</th>
-                    <th>Membres</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for equipe in equipes %}
+    <div class="admin-table-container animate__animated animate__fadeInUp">
+        <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <p style="color: var(--text-muted);">{{ equipes|length }} équipe(s) trouvée(s) selon vos critères.</p>
+        </div>
+
+        {% if equipes is empty %}
+            <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                <i class="fas fa-users-slash" style="font-size: 40px; margin-bottom: 15px; opacity: 0.5;"></i>
+                <p>Aucune équipe trouvée.</p>
+            </div>
+        {% else %}
+            <table class="admin-table">
+                <thead>
                     <tr>
-                        <td>#{{ equipe.id }}</td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                {% if equipe.logo %}
-                                    <img src="{{ asset('uploads/equipes/' ~ equipe.logo) }}" alt="Logo" style="width: 30px; height: 30px; border-radius: 6px; object-fit: cover;">
-                                {% else %}
-                                    <div style="width: 30px; height: 30px; border-radius: 6px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;">
-                                        <i class="fas fa-users" style="font-size: 12px;"></i>
+                        <th>
+                            <a href="{{ path('admin_equipes', {q: currentQuery, region: currentRegion, visibility: currentVisibility, sort: 'id', direction: currentSort == 'id' and currentDirection == 'ASC' ? 'DESC' : 'ASC'}) }}" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 5px;">
+                                ID {% if currentSort == 'id' %}<i class="fas fa-sort-{{ currentDirection == 'ASC' ? 'up' : 'down' }}"></i>{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ path('admin_equipes', {q: currentQuery, region: currentRegion, visibility: currentVisibility, sort: 'nomEquipe', direction: currentSort == 'nomEquipe' and currentDirection == 'ASC' ? 'DESC' : 'ASC'}) }}" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 5px;">
+                                Nom de l'équipe {% if currentSort == 'nomEquipe' %}<i class="fas fa-sort-{{ currentDirection == 'ASC' ? 'up' : 'down' }}"></i>{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ path('admin_equipes', {q: currentQuery, region: currentRegion, visibility: currentVisibility, sort: 'tag', direction: currentSort == 'tag' and currentDirection == 'ASC' ? 'DESC' : 'ASC'}) }}" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 5px;">
+                                Tag {% if currentSort == 'tag' %}<i class="fas fa-sort-{{ currentDirection == 'ASC' ? 'up' : 'down' }}"></i>{% endif %}
+                            </a>
+                        </th>
+                        <th>Chef d'équipe</th>
+                        <th>Membres</th>
+                        <th>
+                            <a href="{{ path('admin_equipes', {q: currentQuery, region: currentRegion, visibility: currentVisibility, sort: 'dateCreation', direction: currentSort == 'dateCreation' and currentDirection == 'ASC' ? 'DESC' : 'ASC'}) }}" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 5px;">
+                                Date de création {% if currentSort == 'dateCreation' %}<i class="fas fa-sort-{{ currentDirection == 'ASC' ? 'up' : 'down' }}"></i>{% endif %}
+                            </a>
+                        </th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for equipe in equipes %}
+                        <tr>
+                            <td>#{{ equipe.id }}</td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    {% if equipe.logo %}
+                                        <img src="{{ asset('uploads/equipes/' ~ equipe.logo) }}" alt="Logo" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
+                                    {% else %}
+                                        <div class="avatar-circle" style="width: 30px; height: 30px; font-size: 10px;">{{ equipe.nomEquipe|first|upper }}</div>
+                                    {% endif %}
+                                    <span style="font-weight: 600; color: white;">{{ equipe.nomEquipe }}</span>
+                                </div>
+                            </td>
+                            <td><span class="badge badge-joueur">{{ equipe.tag }}</span></td>
+                            <td>
+                                {% if equipe.manager %}
+                                    <div class="user-avatar-small">
+                                        <div class="avatar-circle" style="width: 25px; height: 25px; font-size: 10px;">
+                                            {{ equipe.manager.nom|first|upper }}
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 13px;">{{ equipe.manager.pseudo|default(equipe.manager.nom) }}</div>
+                                        </div>
                                     </div>
+                                {% else %}
+                                    <span style="color: var(--text-muted); font-style: italic;">Aucun</span>
                                 {% endif %}
-                                <span style="font-weight: 600;">{{ equipe.nomEquipe }}</span>
-                            </div>
-                        </td>
-                        <td><span class="badge badge-primary">{{ equipe.tag }}</span></td>
-                        <td>{{ equipe.region|default('N/A') }}</td>
-                        <td>{{ equipe.classement }}</td>
-                        <td>{{ equipe.recrutements|length }}</td>
-                        <td>
-                            <div style="display: flex; gap: 8px;">
-                                <a href="{{ path('app_equipes_show', {'id': equipe.id}) }}" class="btn-icon" target="_blank" title="Voir">
-                                    <i class="fas fa-eye" style="color: var(--primary-blue);"></i>
-                                </a>
-                                <a href="{{ path('app_equipes_edit', {'id': equipe.id}) }}" class="btn-icon" title="Modifier">
-                                    <i class="fas fa-edit" style="color: var(--text-secondary);"></i>
-                                </a>
-                                <form method="post" action="{{ path('app_equipes_delete', {'id': equipe.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette équipe ?');" style="display: inline-block;">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ equipe.id) }}">
-                                    <button class="btn-icon" title="Supprimer" style="background: none; border: none; cursor: pointer;">
-                                        <i class="fas fa-trash-alt" style="color: var(--primary-pink);"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="7" style="text-align: center; padding: 30px;">Aucune équipe trouvée</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                            </td>
+                            <td>
+                                <span style="color: var(--text-muted);">{{ equipe.membres|length }} membres</span>
+                            </td>
+                            <td>
+                                <span style="color: var(--text-muted); font-size: 13px;">
+                                    {{ equipe.dateCreation ? equipe.dateCreation|date('d/m/Y') : 'N/A' }}
+                                </span>
+                            </td>
+                            <td style="text-align: right;">
+                                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                                    <a href="{{ path('app_equipes_show', {'id': equipe.id}) }}" class="btn-icon" title="Voir" target="_blank">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <form method="post" action="{{ path('admin_equipes_delete', {'id': equipe.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette équipe ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ equipe.id) }}">
+                                        <button class="btn-icon" style="color: var(--primary-pink); border-color: var(--primary-pink);" title="Supprimer">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
     </div>
 {% endblock %}

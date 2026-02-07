@@ -1,6 +1,6 @@
 {% extends "admin/base.html.twig" %}
 
-{% block content %}
+{% block body %}
 <div class="dashboard-container">
     <div class="page-header">
         <h1>Vue d'ensemble</h1>
@@ -25,7 +25,7 @@
             </div>
             <div class="stat-content">
                 <h3>Équipes</h3>
-                <div class="stat-value">{{ equipeCount }}</div>
+                <div class="stat-value"><a href="{{ path('admin_equipes') }}" style="text-decoration: none; color: inherit;">{{ equipeCount }}</a></div>
                 <p class="stat-label">Équipes active</p>
             </div>
         </div>
@@ -42,6 +42,17 @@
         </div>
 
         <div class="stat-card">
+            <div class="stat-icon purple">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Demandes Manager</h3>
+                <div class="stat-value"><a href="{{ path('admin_manager_requests_index') }}" style="text-decoration: none; color: inherit;">{{ pendingRequests }}</a></div>
+                <p class="stat-label">En attente</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
             <div class="stat-icon blue">
                 <i class="fas fa-exclamation-circle"></i>
             </div>
@@ -54,6 +65,72 @@
     </div>
 
     <div class="dashboard-sections">
+        <div class="section-card">
+            <div class="section-header">
+                <h2><i class="fas fa-users"></i> Utilisateurs récents</h2>
+                <a href="{{ path('admin_users') }}" class="btn-gradient" style="text-decoration: none; padding: 8px 15px; font-size: 13px;">Gérer utilisateurs</a>
+            </div>
+            <div class="admin-table-container" style="padding: 0; border: none; background: transparent;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nom</th>
+                            <th>Email</th>
+                            <th>Rôle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in latestUsers %}
+                            <tr>
+                                <td>#{{ user.id }}</td>
+                                <td>{{ user.nom }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>{{ user.role.value }}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="4" style="color: #aaa;">Aucun utilisateur.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-header">
+                <h2><i class="fas fa-gamepad"></i> Équipes récentes</h2>
+                <a href="{{ path('admin_equipes') }}" class="btn-gradient" style="text-decoration: none; padding: 8px 15px; font-size: 13px;">Gérer équipes</a>
+            </div>
+            <div class="admin-table-container" style="padding: 0; border: none; background: transparent;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nom</th>
+                            <th>Classement</th>
+                            <th>Tag</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for equipe in latestEquipes %}
+                            <tr>
+                                <td>#{{ equipe.id }}</td>
+                                <td>{{ equipe.nomEquipe }}</td>
+                                <td>{{ equipe.classement }}</td>
+                                <td>{{ equipe.tag }}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="4" style="color: #aaa;">Aucune équipe.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <div class="section-card">
             <div class="section-header">
                 <h2><i class="fas fa-clock"></i> Activité récente</h2>
@@ -265,6 +342,9 @@
         margin-bottom: 1.5rem;
         padding-bottom: 1rem;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
     .section-header h2 {

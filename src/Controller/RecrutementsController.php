@@ -41,11 +41,11 @@ final class RecrutementsController extends AbstractController
 
         // 2. SECURITY CHECK: Only Manager or Admin
         $session = $request->getSession();
-        $isManager = $session && $session->get('my_team_id') == $equipe->getId();
         $isAdmin = $this->isGranted('ROLE_ADMIN');
+        $isManager = $this->isGranted('ROLE_MANAGER') && $session && $session->get('my_team_id') == $equipe->getId();
 
         if (!$isManager && !$isAdmin) {
-             $this->addFlash('error', 'Accès refusé : Vous ne pouvez pas gérer les recrutements d\'une équipe qui ne vous appartient pas.');
+             $this->addFlash('error', 'Accès refusé : Seuls les Managers peuvent gérer les recrutements.');
              return $this->redirectToRoute('app_equipes_show', ['id' => $equipe->getId()]);
         }
 
@@ -85,7 +85,8 @@ final class RecrutementsController extends AbstractController
     {
         // SECURITY CHECK: Only Manager of this team OR Admin
         $isAdmin = $this->isGranted('ROLE_ADMIN');
-        $isManager = $request->getSession() && $request->getSession()->get('my_team_id') == $candidature->getEquipe()->getId();
+        $session = $request->getSession();
+        $isManager = $this->isGranted('ROLE_MANAGER') && $session && $session->get('my_team_id') == $candidature->getEquipe()->getId();
         
         if (!$isAdmin && !$isManager) {
              $this->addFlash('error', 'Accès refusé.');
@@ -104,7 +105,8 @@ final class RecrutementsController extends AbstractController
     {
         // SECURITY CHECK: Only Manager of this team OR Admin
         $isAdmin = $this->isGranted('ROLE_ADMIN');
-        $isManager = $request->getSession() && $request->getSession()->get('my_team_id') == $candidature->getEquipe()->getId();
+        $session = $request->getSession();
+        $isManager = $this->isGranted('ROLE_MANAGER') && $session && $session->get('my_team_id') == $candidature->getEquipe()->getId();
         
         if (!$isAdmin && !$isManager) {
              $this->addFlash('error', 'Accès refusé.');

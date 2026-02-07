@@ -4290,7 +4290,7 @@ body.with-sidebar .footer {
 .hero-section {
     position: relative;
     padding: 100px 20px;
-    background: linear-gradient(rgba(10, 14, 35, 0.75), rgba(10, 14, 35, 0.85)), url('../images/gaming1.jpg');
+    background: linear-gradient(rgba(10, 14, 35, 0.75), rgba(10, 14, 35, 0.85)), url('/images/gaming1.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;

@@ -43,6 +43,10 @@ class Equipe
     #[ORM\Column(options: ["default" => false])]
     private ?bool $isPrivate = false;
 
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?User $manager = null;
+
     /**
      * @var Collection<int, Recrutement>
      */
@@ -230,5 +234,40 @@ class Equipe
     {
         $this->isPrivate = $isPrivate;
         return $this;
+    }
+
+    public function getManager(): ?User
+    {
+        return $this->manager;
+    }
+
+    public function setManager(?User $manager): static
+    {
+        $this->manager = $manager;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getMembres(): Collection
+    {
+        $membres = new ArrayCollection();
+        
+        // Add Manager/Creator if not already in candidatures (usually they are not)
+        if ($this->manager) {
+            $membres->add($this->manager);
+        }
+
+        foreach ($this->candidatures as $candidature) {
+            if ($candidature->getStatut() === 'Accepté' && $candidature->getUser()) {
+                if (!$membres->contains($candidature->getUser())) {
+                    $membres->add($candidature->getUser());
+                }
+            }
+        }
+
+        return $membres;
     }
 }
