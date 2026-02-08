@@ -80,6 +80,7 @@
                         <th>Tournament Type</th>
                         <th>Game</th>
                         <th>Status</th>
+                        <th>Demande</th>
                         <th>Places restantes</th>
                         <th>Start Date</th>
                         <th>End Date</th>
@@ -108,6 +109,24 @@
                                 {% endif %}
                             </td>
                             <td>
+                                {% set reqStatus = requestStatuses[tournoi.idTournoi]|default(null) %}
+                                {% if participantTournoiIds[tournoi.idTournoi]|default(false) %}
+                                    <span class="badge bg-success">Approuvée</span>
+                                {% elseif reqStatus %}
+                                    {% if reqStatus in ['pending', 'en_attente'] %}
+                                        <span class="badge bg-info">En attente</span>
+                                    {% elseif reqStatus in ['approved', 'approuvee', 'approuvée'] %}
+                                        <span class="badge bg-success">Approuvée</span>
+                                    {% elseif reqStatus in ['rejected', 'rejetee', 'rejetée'] %}
+                                        <span class="badge bg-danger">Rejetée</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ reqStatus }}</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
                                 {% if tournoi.remainingPlaces is null %}
                                     inf
                                 {% else %}
@@ -119,14 +138,15 @@
                             <td>${{ tournoi.prizeWon }}</td>
                             <td>
                                 <a href="{{ path('tournoi_show', {id: tournoi.idTournoi}) }}" class="btn btn-sm btn-info">View</a>
-                                {% if tournoi.currentStatus == 'planned' and (tournoi.remainingPlaces is null or tournoi.remainingPlaces > 0) %}
-                                    <a href="{{ path('tournoi_participate', {id: tournoi.idTournoi}) }}" class="btn btn-sm btn-primary">Rejoindre</a>
-                                {% endif %}
-                                {% if is_granted('ROLE_USER') %}
-                                    {% if app.user in tournoi.participants %}
-                                        <button class="btn btn-sm btn-outline-success" disabled>Inscrit</button>
-                                    {% else %}
-                                        <a href="{{ path('tournoi_participate', {id: tournoi.idTournoi}) }}" class="btn btn-sm btn-primary">Participer</a>
+                                {% set alreadyIn = participantTournoiIds[tournoi.idTournoi]|default(false) %}
+                                {% set alreadyRequested = requestTournoiIds[tournoi.idTournoi]|default(false) %}
+                                {% if app.user and alreadyIn %}
+                                    <button class="btn btn-sm btn-outline-success" disabled>Déjà inscrit</button>
+                                {% elseif app.user and alreadyRequested %}
+                                    <button class="btn btn-sm btn-outline-info" disabled>Demande envoyée</button>
+                                {% else %}
+                                    {% if tournoi.currentStatus == 'planned' and (tournoi.remainingPlaces is null or tournoi.remainingPlaces > 0) %}
+                                        <a href="{{ path('tournoi_participate', {id: tournoi.idTournoi}) }}" class="btn btn-sm btn-primary">Rejoindre</a>
                                     {% endif %}
                                 {% endif %}
                             </td>

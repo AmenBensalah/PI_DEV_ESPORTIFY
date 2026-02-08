@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/admin', name: 'admin_')]
 class TournoiAdminController extends AbstractController
 {
-    #[Route('/', name: 'dashboard')]
+    #[Route('/tournoi/dashboard', name: 'tournoi_dashboard')]
     public function dashboard(TournoiRepository $tournoiRepository): Response
     {
         $tournois = $tournoiRepository->findAll();

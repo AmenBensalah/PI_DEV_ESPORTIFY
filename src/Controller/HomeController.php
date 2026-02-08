@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Form\UserProfileFormType;
 use App\Repository\CandidatureRepository;
 use App\Repository\EquipeRepository;
+use App\Repository\TournoiRepository;
 use Doctrine\DBAL\Exception\LockWaitTimeoutException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Exception\EntityManagerClosed;
@@ -26,7 +27,8 @@ class HomeController extends AbstractController
         Request $request,
         EquipeRepository $equipeRepository,
         CandidatureRepository $candidatureRepository,
-        \App\Repository\ProduitRepository $produitRepository
+        \App\Repository\ProduitRepository $produitRepository,
+        TournoiRepository $tournoiRepository
     ): Response {
         $session = $request->getSession();
         $user = $this->getUser();
@@ -50,6 +52,7 @@ class HomeController extends AbstractController
         return $this->render('home/index.html.twig', [
             'featuredTeams' => $equipeRepository->findBy([], ['id' => 'DESC'], 4),
             'products' => $produitRepository->findBy([], ['id' => 'DESC'], 4),
+            'tournois' => $tournoiRepository->findBy([], ['startDate' => 'DESC'], 6),
             'myTeam' => $myTeam,
             'isManager' => $this->isGranted('ROLE_MANAGER') || $isAdmin,
             'isPlayer' => $this->isGranted('ROLE_JOUEUR'),

@@ -41,7 +41,7 @@
                 <i class="fas fa-users"></i>
                 <span>Équipes</span>
             </a>
-            <a href="#" class="nav-link">
+            <a href="{{ path('tournoi_index') }}" class="nav-link">
                 <i class="fas fa-trophy"></i>
                 <span>Tournois</span>
             </a>
@@ -50,8 +50,8 @@
                 <span>Boutique</span>
             </a>
             <a href="#" class="nav-link">
-                <i class="fas fa-comments"></i>
-                <span>Chat</span>
+                <i class="fas fa-rss"></i>
+                <span>Fil d'actualité</span>
             </a>
             <a href="#" class="nav-link">
                 <i class="fas fa-rss"></i>
@@ -307,6 +307,83 @@
                     <p>Aucune équipe vedette pour le moment.</p>
                 </div>
                 {% endfor %}
+            </div>
+        </div>
+
+        <!-- SECTION 2: TOURNOIS (Front Office) -->
+        <div id="tournois" style="margin-bottom: 80px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
+                <h2 class="section-title" style="margin: 0;">
+                    <i class="fas fa-trophy"></i> Tournois
+                </h2>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <a href="{{ path('tournoi_index') }}" class="btn-outline" style="padding: 10px 18px; text-decoration: none;">
+                        <i class="fas fa-list"></i> Tous les tournois
+                    </a>
+                    <a href="{{ path('tournoi_participation_requests') }}" class="btn-gradient" style="padding: 10px 18px; text-decoration: none;">
+                        <i class="fas fa-envelope-open-text"></i> Mes demandes
+                    </a>
+                </div>
+            </div>
+
+            <div class="admin-table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Statut</th>
+                            <th>Nom</th>
+                            <th>Jeu</th>
+                            <th>Date de début</th>
+                            <th>Cash Prize</th>
+                            <th>Places</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if tournois is not empty %}
+                            {% for tournoi in tournois %}
+                                <tr>
+                                    <td>
+                                        {% set status = tournoi.currentStatus %}
+                                        {% if status == 'planned' %}
+                                            <span class="badge badge-warning">Inscriptions</span>
+                                        {% elseif status == 'ongoing' %}
+                                            <span class="badge badge-success">En cours</span>
+                                        {% else %}
+                                            <span class="badge">Terminé</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div style="font-weight: 600;">{{ tournoi.name }}</div>
+                                        <div style="font-size: 12px; color: var(--text-secondary);">{{ tournoi.typeTournoi|upper }}</div>
+                                    </td>
+                                    <td><span style="color: var(--primary-blue);">{{ tournoi.game }}</span></td>
+                                    <td>{{ tournoi.startDate|date('d/m/Y') }}</td>
+                                    <td style="font-weight: 700; color: #ffd700;">{{ tournoi.prizeWon|number_format(0, '.', ' ') }} €</td>
+                                    <td>
+                                        {% if tournoi.maxPlaces is null %}
+                                            ∞
+                                        {% else %}
+                                            {{ tournoi.participants|length }} / {{ tournoi.maxPlaces }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a class="btn-icon" href="{{ path('tournoi_show', {id: tournoi.idTournoi}) }}"><i class="fas fa-eye"></i></a>
+                                        {% if status == 'planned' %}
+                                            <a class="btn-icon" href="{{ path('tournoi_participate', {id: tournoi.idTournoi}) }}"><i class="fas fa-paper-plane"></i></a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 20px;">
+                                    Aucun tournoi disponible pour le moment.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -609,7 +686,7 @@
                     <h3>Navigation</h3>
                     <ul>
                         <li><a href="{{ path('app_home') }}">Accueil</a></li>
-                        <li><a href="#">Tournois</a></li>
+                        <li><a href="{{ path('tournoi_index') }}">Tournois</a></li>
                         <li><a href="{{ path('app_equipes_index') }}">Équipes</a></li>
                         <li><a href="#">Recrutement</a></li>
                         <li><a href="#">Shop</a></li>

@@ -16,7 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class TournoiController extends AbstractController
 {
     #[Route('/', name: 'index')]
-    public function index(Request $request, TournoiRepository $tournoiRepository): Response
+    public function index(Request $request, TournoiRepository $tournoiRepository, ParticipationRequestRepository $prRepository): Response
     {
         // Public listing with search and sorting
         $criteria = [];
@@ -51,6 +51,28 @@ class TournoiController extends AbstractController
             });
         }
 
+        $user = $this->getUser();
+        $participantTournoiIds = [];
+        $requestTournoiIds = [];
+        $requestStatuses = [];
+
+        if ($user) {
+            foreach ($tournois as $tournoi) {
+                if ($tournoi->getParticipants()->contains($user)) {
+                    $participantTournoiIds[$tournoi->getIdTournoi()] = true;
+                }
+            }
+
+            $requests = $prRepository->findBy(['user' => $user], ['createdAt' => 'DESC']);
+            foreach ($requests as $req) {
+                $tournoiId = $req->getTournoi()->getIdTournoi();
+                $requestTournoiIds[$tournoiId] = true;
+                if (!isset($requestStatuses[$tournoiId])) {
+                    $requestStatuses[$tournoiId] = $req->getStatus();
+                }
+            }
+        }
+
         return $this->render('tournoi/user/index.html.twig', [
             'tournois' => $tournois,
             'filterGame' => $request->query->get('game', ''),
@@ -59,6 +81,9 @@ class TournoiController extends AbstractController
             'filterStatus' => $filterStatus,
             'currentSort' => $sort,
             'currentOrder' => $order,
+            'participantTournoiIds' => $participantTournoiIds,
+            'requestTournoiIds' => $requestTournoiIds,
+            'requestStatuses' => $requestStatuses,
         ]);
     }
 
@@ -181,13 +206,13 @@ class TournoiController extends AbstractController
             return $this->redirectToRoute('tournoi_show', ['id' => $tournoi->getIdTournoi()]);
         }
 
-        // existing pending request
+        // existing request (any status)
         $existing = null;
         if ($user) {
-            $existing = $prRepository->findOneBy(['user' => $user, 'tournoi' => $tournoi, 'status' => 'pending']);
+            $existing = $prRepository->findOneBy(['user' => $user, 'tournoi' => $tournoi]);
         }
         if ($existing) {
-            $this->addFlash('info', 'Vous avez deja une demande en attente.');
+            $this->addFlash('info', 'Vous avez deja une demande pour ce tournoi.');
             return $this->redirectToRoute('tournoi_show', ['id' => $tournoi->getIdTournoi()]);
         }
 

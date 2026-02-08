@@ -120,6 +120,16 @@
             font-size: 18px;
         }
 
+        .admin-nav-sublink {
+            padding-left: 60px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.65);
+        }
+
+        .admin-nav-sublink i {
+            font-size: 14px;
+        }
+
         .admin-sidebar-footer {
             padding: 20px 30px;
             border-top: 1px solid rgba(255,255,255,0.05);
@@ -386,6 +396,9 @@
         </a>
         <a href="{{ path('admin_tournois') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_tournois' %}active{% endif %}">
             <i class="fas fa-trophy"></i> Tournois
+        </a>
+        <a href="{{ path('admin_participation_index') }}" class="admin-nav-link admin-nav-sublink {% if app.request.attributes.get('_route') starts with 'admin_participation' %}active{% endif %}">
+            <i class="fas fa-clipboard-check"></i> Demandes de participation
         </a>
         <a href="{{ path('admin_social') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_social' %}active{% endif %}">
             <i class="fas fa-newspaper"></i> Fil d'actualité

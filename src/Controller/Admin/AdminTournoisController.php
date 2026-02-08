@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Repository\TournoiRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -12,8 +13,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class AdminTournoisController extends AbstractController
 {
     #[Route('/', name: 'admin_tournois', methods: ['GET'])]
-    public function index(): Response
+    public function index(TournoiRepository $tournoiRepository): Response
     {
-        return $this->render('admin/tournois.html.twig');
+        $tournois = $tournoiRepository->findBy([], ['startDate' => 'DESC']);
+
+        return $this->render('admin/tournois.html.twig', [
+            'tournois' => $tournois,
+        ]);
     }
 }

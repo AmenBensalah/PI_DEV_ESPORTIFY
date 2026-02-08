@@ -25,7 +25,7 @@
                         <td>{{ r.tournoi.name }}</td>
                         <td>
                             {% if r.user %}
-                                {{ r.user.username }} ({{ r.user.email }})
+                                {{ r.user.pseudo|default(r.user.nom)|default(r.user.email) }} ({{ r.user.email }})
                             {% else %}
                                 <em class="text-muted">Anonyme</em>
                             {% endif %}

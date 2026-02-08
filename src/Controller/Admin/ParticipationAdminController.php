@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\ParticipationRequest;
 use App\Entity\User;
+use App\Enum\Role;
 use App\Repository\ParticipationRequestRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -34,8 +35,9 @@ class ParticipationAdminController extends AbstractController
             // Create a guest user so approval can decrement places
             $user = new User();
             $user->setEmail('guest_' . $requestEntity->getId() . '@example.local');
-            $user->setUsername('Guest ' . $requestEntity->getId());
-            $user->setRoles(['ROLE_USER']);
+            $user->setNom('Guest ' . $requestEntity->getId());
+            $user->setPseudo('guest_' . $requestEntity->getId());
+            $user->setRole(Role::JOUEUR);
             $user->setPassword($passwordHasher->hashPassword($user, bin2hex(random_bytes(16))));
             $em->persist($user);
             $requestEntity->setUser($user);
@@ -60,7 +62,6 @@ class ParticipationAdminController extends AbstractController
         // approve: add participant
         if (!$tournoi->getParticipants()->contains($user)) {
             $tournoi->addParticipant($user);
-            $user->addParticipatedTournoi($tournoi);
         }
         $requestEntity->setStatus('approved');
         $em->persist($tournoi);
