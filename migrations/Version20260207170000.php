@@ -16,11 +16,31 @@ final class Version20260207170000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE participation_request ADD COLUMN player_level VARCHAR(20) DEFAULT NULL, ADD COLUMN rules_accepted TINYINT(1) NOT NULL DEFAULT 0');
+        if (!$schema->hasTable('participation_request')) {
+            return;
+        }
+
+        $table = $schema->getTable('participation_request');
+        if (!$table->hasColumn('player_level')) {
+            $this->addSql('ALTER TABLE participation_request ADD COLUMN player_level VARCHAR(20) DEFAULT NULL');
+        }
+        if (!$table->hasColumn('rules_accepted')) {
+            $this->addSql('ALTER TABLE participation_request ADD COLUMN rules_accepted TINYINT(1) NOT NULL DEFAULT 0');
+        }
     }
 
     public function down(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE participation_request DROP COLUMN player_level, DROP COLUMN rules_accepted');
+        if (!$schema->hasTable('participation_request')) {
+            return;
+        }
+
+        $table = $schema->getTable('participation_request');
+        if ($table->hasColumn('player_level')) {
+            $this->addSql('ALTER TABLE participation_request DROP COLUMN player_level');
+        }
+        if ($table->hasColumn('rules_accepted')) {
+            $this->addSql('ALTER TABLE participation_request DROP COLUMN rules_accepted');
+        }
     }
 }

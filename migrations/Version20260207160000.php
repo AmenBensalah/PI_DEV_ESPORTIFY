@@ -16,11 +16,31 @@ final class Version20260207160000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE participation_request ADD COLUMN applicant_name VARCHAR(255) DEFAULT NULL, ADD COLUMN applicant_email VARCHAR(255) DEFAULT NULL');
+        if (!$schema->hasTable('participation_request')) {
+            return;
+        }
+
+        $table = $schema->getTable('participation_request');
+        if (!$table->hasColumn('applicant_name')) {
+            $this->addSql('ALTER TABLE participation_request ADD COLUMN applicant_name VARCHAR(255) DEFAULT NULL');
+        }
+        if (!$table->hasColumn('applicant_email')) {
+            $this->addSql('ALTER TABLE participation_request ADD COLUMN applicant_email VARCHAR(255) DEFAULT NULL');
+        }
     }
 
     public function down(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE participation_request DROP COLUMN applicant_name, DROP COLUMN applicant_email');
+        if (!$schema->hasTable('participation_request')) {
+            return;
+        }
+
+        $table = $schema->getTable('participation_request');
+        if ($table->hasColumn('applicant_name')) {
+            $this->addSql('ALTER TABLE participation_request DROP COLUMN applicant_name');
+        }
+        if ($table->hasColumn('applicant_email')) {
+            $this->addSql('ALTER TABLE participation_request DROP COLUMN applicant_email');
+        }
     }
 }

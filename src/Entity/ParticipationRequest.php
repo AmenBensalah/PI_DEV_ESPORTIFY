@@ -18,7 +18,7 @@ class ParticipationRequest
     private ?User $user = null;
 
     #[ORM\ManyToOne(targetEntity: Tournoi::class)]
-    #[ORM\JoinColumn(nullable: false, referencedColumnName: 'id_tournoi')]
+    #[ORM\JoinColumn(nullable: false, referencedColumnName: 'id_tournoi', onDelete: 'CASCADE')]
     private ?Tournoi $tournoi = null;
 
     #[ORM\Column(length: 20)]
