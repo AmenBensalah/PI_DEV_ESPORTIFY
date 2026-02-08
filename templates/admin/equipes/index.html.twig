@@ -119,58 +119,45 @@
             <i class="fas fa-search"></i> Recherche Avancée
         </div>
         
-        <form action="{{ path('admin_equipes') }}" method="get">
-            <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end;">
-                <div class="filter-group" style="flex: 1; min-width: 200px;">
-                    <label class="filter-label">NOM OU TAG</label>
-                    <input type="text" name="q" class="filter-input" placeholder="ex: Team Vitality, VIT..." value="{{ currentQuery }}">
-                </div>
-                
-                <div class="filter-group" style="flex: 1; min-width: 200px;">
-                    <label class="filter-label">RÉGION</label>
-                    <select name="region" class="filter-input">
-                        <option value="">-- Toutes --</option>
-                        {% for reg in ['Africa', 'Asia', 'Europe', 'Middle East', 'North America', 'South America', 'Oceania'] %}
-                            <option value="{{ reg }}" {% if currentRegion == reg %}selected{% endif %}>{{ reg }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="filter-group" style="flex: 1; min-width: 200px;">
-                    <label class="filter-label">VISIBILITÉ</label>
-                    <select name="visibility" class="filter-input">
-                        <option value="">-- Tous --</option>
-                        <option value="public" {% if currentVisibility == 'public' %}selected{% endif %}>Public</option>
-                        <option value="private" {% if currentVisibility == 'private' %}selected{% endif %}>Privé</option>
-                    </select>
-                </div>
-
-                <div class="search-actions" style="display: flex; gap: 10px; align-items: center; margin-bottom: 2px;">
-                    <button type="submit" class="btn-search">
-                        <i class="fas fa-search"></i> Rechercher
-                    </button>
-                    <a href="{{ path('admin_equipes') }}" class="btn-reset" title="Réinitialiser tous les filtres">
-                        <i class="fas fa-sync-alt"></i> Réinitialiser
-                    </a>
-                </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end;">
+            <div class="filter-group" style="flex: 1; min-width: 200px;">
+                <label class="filter-label">NOM OU TAG</label>
+                <input type="text" id="live-search-nom" class="filter-input" placeholder="ex: Team Vitality, VIT..." value="{{ currentQuery }}">
+            </div>
+            
+            <div class="filter-group" style="flex: 1; min-width: 200px;">
+                <label class="filter-label">RÉGION</label>
+                <select id="live-search-region" class="filter-input">
+                    <option value="">-- Toutes --</option>
+                    {% for reg in ['Africa', 'Asia', 'Europe', 'Middle East', 'North America', 'South America', 'Oceania'] %}
+                        <option value="{{ reg }}" {% if currentRegion == reg %}selected{% endif %}>{{ reg }}</option>
+                    {% endfor %}
+                </select>
             </div>
 
-            <!-- Manually pass sort info if needed, but links below handle it better -->
-            <input type="hidden" name="sort" value="{{ currentSort }}">
-            <input type="hidden" name="direction" value="{{ currentDirection }}">
-
-            <div class="sort-row">
-                <span class="sort-label">Trier par :</span>
-                <a href="{{ path('admin_equipes', {q: currentQuery, region: currentRegion, visibility: currentVisibility, sort: 'nomEquipe', direction: 'ASC'}) }}" 
-                   class="sort-link {% if currentSort == 'nomEquipe' and currentDirection == 'ASC' %}active{% endif %}">Nom A → Z</a>
-                <a href="{{ path('admin_equipes', {q: currentQuery, region: currentRegion, visibility: currentVisibility, sort: 'nomEquipe', direction: 'DESC'}) }}" 
-                   class="sort-link {% if currentSort == 'nomEquipe' and currentDirection == 'DESC' %}active{% endif %}">Nom Z → A</a>
-                <a href="{{ path('admin_equipes', {q: currentQuery, region: currentRegion, visibility: currentVisibility, sort: 'dateCreation', direction: 'DESC'}) }}" 
-                   class="sort-link {% if currentSort == 'dateCreation' and currentDirection == 'DESC' %}active{% endif %}">Date ↓</a>
-                <a href="{{ path('admin_equipes', {q: currentQuery, region: currentRegion, visibility: currentVisibility, sort: 'dateCreation', direction: 'ASC'}) }}" 
-                   class="sort-link {% if currentSort == 'dateCreation' and currentDirection == 'ASC' %}active{% endif %}">Date ↑</a>
+            <div class="filter-group" style="flex: 1; min-width: 200px;">
+                <label class="filter-label">VISIBILITÉ</label>
+                <select id="live-search-visibility" class="filter-input">
+                    <option value="">-- Tous --</option>
+                    <option value="public" {% if currentVisibility == 'public' %}selected{% endif %}>Public</option>
+                    <option value="private" {% if currentVisibility == 'private' %}selected{% endif %}>Privé</option>
+                </select>
             </div>
-        </form>
+
+            <div class="search-actions" style="display: flex; gap: 10px; align-items: center; margin-bottom: 2px;">
+                <button type="button" id="btn-reset-filters" class="btn-reset" title="Réinitialiser tous les filtres">
+                    <i class="fas fa-sync-alt"></i> Réinitialiser
+                </button>
+            </div>
+        </div>
+
+        <div class="sort-row">
+            <span class="sort-label">Trier par :</span>
+            <a href="#" data-sort="nomEquipe" data-dir="ASC" class="sort-link {% if currentSort == 'nomEquipe' and currentDirection == 'ASC' %}active{% endif %}">Nom A → Z</a>
+            <a href="#" data-sort="nomEquipe" data-dir="DESC" class="sort-link {% if currentSort == 'nomEquipe' and currentDirection == 'DESC' %}active{% endif %}">Nom Z → A</a>
+            <a href="#" data-sort="dateCreation" data-dir="DESC" class="sort-link {% if currentSort == 'dateCreation' and currentDirection == 'DESC' %}active{% endif %}">Date ↓</a>
+            <a href="#" data-sort="dateCreation" data-dir="ASC" class="sort-link {% if currentSort == 'dateCreation' and currentDirection == 'ASC' %}active{% endif %}">Date ↑</a>
+        </div>
     </div>
 
     <div class="admin-table-container animate__animated animate__fadeInUp">
@@ -212,9 +199,14 @@
                         <th style="text-align: right;">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="equipes-tbody">
                     {% for equipe in equipes %}
-                        <tr>
+                        <tr class="equipe-row" 
+                            data-nom="{{ equipe.nomEquipe|lower }}" 
+                            data-tag="{{ equipe.tag|lower }}" 
+                            data-region="{{ equipe.region|default('')|lower }}"
+                            data-visibility="{{ equipe.visibility|default('public')|lower }}"
+                            data-date="{{ equipe.dateCreation ? equipe.dateCreation.timestamp : 0 }}">
                             <td>#{{ equipe.id }}</td>
                             <td>
                                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -268,4 +260,126 @@
             </table>
         {% endif %}
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchNom = document.getElementById('live-search-nom');
+            const searchRegion = document.getElementById('live-search-region');
+            const searchVisibility = document.getElementById('live-search-visibility');
+            const btnReset = document.getElementById('btn-reset-filters');
+            const sortLinks = document.querySelectorAll('.sort-link');
+            const tbody = document.getElementById('equipes-tbody');
+            const resultCount = document.querySelector('.admin-table-container p');
+
+            // Live filtering function
+            function applyFilters() {
+                const nomValue = searchNom.value.toLowerCase().trim();
+                const regionValue = searchRegion.value.toLowerCase();
+                const visibilityValue = searchVisibility.value.toLowerCase();
+                
+                const rows = document.querySelectorAll('.equipe-row');
+                let visibleCount = 0;
+
+                rows.forEach(row => {
+                    const nom = row.dataset.nom || '';
+                    const tag = row.dataset.tag || '';
+                    const region = row.dataset.region || '';
+                    const visibility = row.dataset.visibility || 'public';
+
+                    let matches = true;
+
+                    // Filter by name or tag
+                    if (nomValue && !nom.includes(nomValue) && !tag.includes(nomValue)) {
+                        matches = false;
+                    }
+
+                    // Filter by region
+                    if (regionValue && region !== regionValue) {
+                        matches = false;
+                    }
+
+                    // Filter by visibility
+                    if (visibilityValue && visibility !== visibilityValue) {
+                        matches = false;
+                    }
+
+                    if (matches) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                // Update result count
+                if (resultCount) {
+                    resultCount.textContent = `${visibleCount} équipe(s) trouvée(s) selon vos critères.`;
+                }
+            }
+
+            // Sorting function
+            function sortTable(sortBy, direction) {
+                const rows = Array.from(tbody.querySelectorAll('.equipe-row'));
+                
+                rows.sort((a, b) => {
+                    let valA, valB;
+                    
+                    if (sortBy === 'dateCreation') {
+                        valA = parseInt(a.dataset.date) || 0;
+                        valB = parseInt(b.dataset.date) || 0;
+                    } else if (sortBy === 'nomEquipe') {
+                        valA = a.dataset.nom;
+                        valB = b.dataset.nom;
+                    }
+                    
+                    if (direction === 'ASC') {
+                        return valA > valB ? 1 : valA < valB ? -1 : 0;
+                    } else {
+                        return valA < valB ? 1 : valA > valB ? -1 : 0;
+                    }
+                });
+
+                // Re-append sorted rows
+                rows.forEach(row => tbody.appendChild(row));
+            }
+
+            // Event listeners for live search
+            if (searchNom) {
+                searchNom.addEventListener('input', applyFilters);
+            }
+            if (searchRegion) {
+                searchRegion.addEventListener('change', applyFilters);
+            }
+            if (searchVisibility) {
+                searchVisibility.addEventListener('change', applyFilters);
+            }
+
+            // Reset filters
+            if (btnReset) {
+                btnReset.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    searchNom.value = '';
+                    searchRegion.value = '';
+                    searchVisibility.value = '';
+                    applyFilters();
+                });
+            }
+
+            // Sort links
+            sortLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const sortBy = link.dataset.sort;
+                    const direction = link.dataset.dir;
+
+                    // Update active class
+                    sortLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+
+                    // Sort the table
+                    sortTable(sortBy, direction);
+                });
+            });
+        });
+    </script>
 {% endblock %}

@@ -11,9 +11,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class AdminBoutiqueController extends AbstractController
 {
-    #[Route('/', name: 'admin_boutique', methods: ['GET'])]
+    #[Route('/', name: 'admin_boutique_index', methods: ['GET'])]
     public function index(): Response
     {
-        return $this->render('admin/boutique.html.twig');
+        return $this->redirectToRoute('admin_boutique_produit_index');
     }
 }

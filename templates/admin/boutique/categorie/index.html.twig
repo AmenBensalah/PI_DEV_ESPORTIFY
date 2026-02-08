@@ -1,0 +1,80 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Gestion Boutique - E-Sportify{% endblock %}
+{% block page_title %}Gestion Boutique{% endblock %}
+
+{% block stylesheets %}
+<style>
+    /* Tabs Styling (Duplicated for consistency) */
+    .shop-tabs {
+        display: flex;
+        border-bottom: 2px solid rgba(255,255,255,0.05);
+        margin-bottom: 30px;
+        gap: 20px;
+    }
+    .shop-tab {
+        padding: 15px 20px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-weight: 600;
+        position: relative;
+        transition: color 0.3s;
+    }
+    .shop-tab.active {
+        color: #fff;
+    }
+    .shop-tab.active::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--primary-blue);
+        box-shadow: 0 0 10px var(--primary-blue);
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+    <!-- Navigation Tabs -->
+    <div class="shop-tabs">
+        <a href="{{ path('admin_boutique_produit_index') }}" class="shop-tab">Produits</a>
+        <a href="{{ path('admin_boutique_categorie_index') }}" class="shop-tab active">Catégories</a>
+    </div>
+
+    <div style="margin-bottom: 24px;">
+        <a href="{{ path('admin_boutique_categorie_new') }}" class="btn-gradient" style="padding: 10px 20px; text-decoration: none; color: #fff; border-radius: 8px;">
+            <i class="fas fa-plus"></i> Nouvelle catégorie
+        </a>
+    </div>
+
+    <div class="admin-table-container">
+        <table class="admin-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Nom</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for c in categories %}
+                <tr>
+                    <td>{{ c.id }}</td>
+                    <td>{{ c.nom }}</td>
+                    <td>
+                        <a href="{{ path('admin_boutique_categorie_edit', { id: c.id }) }}" style="color: var(--primary-blue); margin-right: 15px;">Modifier</a>
+                        <form method="post" action="{{ path('admin_boutique_categorie_delete', { id: c.id }) }}" onsubmit="return confirm('Supprimer cette catégorie ?');" style="display: inline;">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ c.id) }}">
+                            <button type="submit" style="background: none; border: none; color: var(--primary-pink); cursor: pointer; padding: 0;">Supprimer</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="3" style="text-align: center; padding: 40px;">Aucune catégorie.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

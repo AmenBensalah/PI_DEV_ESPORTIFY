@@ -186,7 +186,7 @@
         <a href="{{ path('admin_dashboard') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_dashboard' %}active{% endif %}">
             <i class="fas fa-chart-line"></i> Dashboard
         </a>
-        <a href="{{ path('admin_requests') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_requests' %}active{% endif %}">
+        <a href="{{ path('admin_manager_requests_index') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_manager_requests_index' %}active{% endif %}">
             <i class="fas fa-user-plus"></i> Demandes
         </a>
         <a href="{{ path('admin_social') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_social' %}active{% endif %}">
@@ -201,10 +201,16 @@
         <a href="{{ path('admin_tournois') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_tournois' %}active{% endif %}">
             <i class="fas fa-trophy"></i> Tournois
         </a>
-        <a href="{{ path('admin_boutique') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_boutique' %}active{% endif %}">
-            <i class="fas fa-shopping-bag"></i> Boutique
+        <div style="margin-top: 10px; margin-bottom: 5px; padding-left: 40px; font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px;">
+            Boutique
+        </div>
+        <a href="{{ path('admin_boutique_produit_index') }}" class="admin-nav-link {% if app.request.attributes.get('_route') starts with 'admin_boutique_produit' %}active{% endif %}">
+            <i class="fas fa-box-open"></i> Produits
         </a>
-        <a href="{{ path('admin_settings') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_settings' %}active{% endif %}">
+        <a href="{{ path('admin_boutique_categorie_index') }}" class="admin-nav-link {% if app.request.attributes.get('_route') starts with 'admin_boutique_categorie' %}active{% endif %}">
+            <i class="fas fa-tags"></i> Catégories
+        </a>
+        <a href="{{ path('admin_profile') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_profile' %}active{% endif %}">
             <i class="fas fa-cog"></i> Paramètres
         </a>
     </nav>
@@ -223,8 +229,10 @@
         <h1 style="font-family: 'Orbitron', sans-serif; font-size: 24px; margin: 0;">{% block page_title %}Dashboard{% endblock %}</h1>
         <div style="display: flex; align-items: center; gap: 20px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary-blue); display: flex; align-items: center; justify-content: center; font-weight: bold;">AD</div>
-                <span style="font-weight: 600;">Admin User</span>
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary-blue); display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                    {{ app.user.nom|first|upper }}
+                </div>
+                <span style="font-weight: 600;">{{ app.user.nom }}</span>
             </div>
         </div>
     </header>

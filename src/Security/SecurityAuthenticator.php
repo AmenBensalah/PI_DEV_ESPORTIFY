@@ -72,15 +72,12 @@ class SecurityAuthenticator extends AbstractLoginFormAuthenticator
             }
         }
 
-        $roles = $user->getRoles();
-        foreach ($roles as $role) {
-            $upperRole = strtoupper($role);
-            if ($upperRole === 'ROLE_ADMIN') {
-                return new RedirectResponse($this->urlGenerator->generate('admin_dashboard'));
-            }
-            if ($upperRole === 'ROLE_MANAGER') {
-                return new RedirectResponse($this->urlGenerator->generate('app_equipes_index'));
-            }
+        $roles = $token->getRoleNames();
+        if (in_array('ROLE_ADMIN', $roles, true)) {
+            return new RedirectResponse($this->urlGenerator->generate('admin_dashboard'));
+        }
+        if (in_array('ROLE_MANAGER', $roles, true)) {
+            return new RedirectResponse($this->urlGenerator->generate('app_equipes_index'));
         }
 
         // Default for JOUEUR, ORGANISATEUR, etc.

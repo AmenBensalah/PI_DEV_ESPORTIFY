@@ -25,7 +25,8 @@ class HomeController extends AbstractController
     public function index(
         Request $request,
         EquipeRepository $equipeRepository,
-        CandidatureRepository $candidatureRepository
+        CandidatureRepository $candidatureRepository,
+        \App\Repository\ProduitRepository $produitRepository
     ): Response {
         $session = $request->getSession();
         $user = $this->getUser();
@@ -48,6 +49,7 @@ class HomeController extends AbstractController
 
         return $this->render('home/index.html.twig', [
             'featuredTeams' => $equipeRepository->findBy([], ['id' => 'DESC'], 4),
+            'products' => $produitRepository->findBy([], ['id' => 'DESC'], 4),
             'myTeam' => $myTeam,
             'isManager' => $this->isGranted('ROLE_MANAGER') || $isAdmin,
             'isPlayer' => $this->isGranted('ROLE_JOUEUR'),

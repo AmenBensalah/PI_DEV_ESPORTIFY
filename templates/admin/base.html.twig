@@ -348,8 +348,14 @@
         <a href="{{ path('admin_manager_requests_index') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_manager_requests_index' %}active{% endif %}">
             <i class="fas fa-user-plus"></i> Demandes Manager
         </a>
-        <a href="{{ path('admin_boutique') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_boutique' %}active{% endif %}">
-            <i class="fas fa-store"></i> Boutique
+        <div style="margin-top: 20px; margin-bottom: 5px; padding-left: 30px; font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px;">
+            Boutique
+        </div>
+        <a href="{{ path('admin_boutique_produit_index') }}" class="admin-nav-link {% if app.request.attributes.get('_route') starts with 'admin_boutique_produit' %}active{% endif %}">
+            <i class="fas fa-box-open"></i> Produits
+        </a>
+        <a href="{{ path('admin_boutique_categorie_index') }}" class="admin-nav-link {% if app.request.attributes.get('_route') starts with 'admin_boutique_categorie' %}active{% endif %}">
+            <i class="fas fa-tags"></i> Catégories
         </a>
         <a href="{{ path('admin_tournois') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_tournois' %}active{% endif %}">
             <i class="fas fa-trophy"></i> Tournois

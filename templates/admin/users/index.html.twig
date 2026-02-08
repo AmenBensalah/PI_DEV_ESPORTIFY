@@ -113,78 +113,59 @@
             </a>
         </div>
         
-        <form action="{{ path('admin_users') }}" method="get">
-            <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end;">
-                <div class="filter-group" style="flex: 2; min-width: 250px;">
-                    <label class="filter-label">NOM, EMAIL OU PSEUDO</label>
-                    <input type="text" name="q" class="filter-input" placeholder="Rechercher..." value="{{ currentQuery }}">
-                </div>
-                
-                <div class="filter-group" style="flex: 1; min-width: 200px;">
-                    <label class="filter-label">RÔLE</label>
-                    <select name="role" class="filter-input">
-                        <option value="">-- Tous --</option>
-                        <option value="ROLE_ADMIN" {% if currentRole == 'ROLE_ADMIN' %}selected{% endif %}>Admin</option>
-                        <option value="ROLE_MANAGER" {% if currentRole == 'ROLE_MANAGER' %}selected{% endif %}>Manager</option>
-                        <option value="ROLE_JOUEUR" {% if currentRole == 'ROLE_JOUEUR' %}selected{% endif %}>Joueur</option>
-                        <option value="ROLE_ORGANISATEUR" {% if currentRole == 'ROLE_ORGANISATEUR' %}selected{% endif %}>Organisateur</option>
-                    </select>
-                </div>
-
-                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 2px;">
-                    <button type="submit" class="btn-search">
-                        <i class="fas fa-search"></i> Rechercher
-                    </button>
-                    <a href="{{ path('admin_users') }}" class="btn-reset">
-                        <i class="fas fa-sync-alt"></i> Réinitialiser
-                    </a>
-                </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end;">
+            <div class="filter-group" style="flex: 2; min-width: 250px;">
+                <label class="filter-label">NOM, EMAIL OU PSEUDO</label>
+                <input type="text" id="live-search-nom" class="filter-input" placeholder="Rechercher..." value="{{ currentQuery }}">
+            </div>
+            
+            <div class="filter-group" style="flex: 1; min-width: 200px;">
+                <label class="filter-label">RÔLE</label>
+                <select id="live-search-role" class="filter-input">
+                    <option value="">-- Tous --</option>
+                    <option value="ROLE_ADMIN" {% if currentRole == 'ROLE_ADMIN' %}selected{% endif %}>Admin</option>
+                    <option value="ROLE_MANAGER" {% if currentRole == 'ROLE_MANAGER' %}selected{% endif %}>Manager</option>
+                    <option value="ROLE_JOUEUR" {% if currentRole == 'ROLE_JOUEUR' %}selected{% endif %}>Joueur</option>
+                    <option value="ROLE_ORGANISATEUR" {% if currentRole == 'ROLE_ORGANISATEUR' %}selected{% endif %}>Organisateur</option>
+                </select>
             </div>
 
-            <input type="hidden" name="sort" value="{{ currentSort }}">
-            <input type="hidden" name="direction" value="{{ currentDirection }}">
-
-            <div class="sort-row">
-                <span class="sort-label">Trier par :</span>
-                <a href="{{ path('admin_users', {q: currentQuery, role: currentRole, sort: 'nom', direction: 'ASC'}) }}" 
-                   class="sort-link {% if currentSort == 'nom' and currentDirection == 'ASC' %}active{% endif %}">Nom A → Z</a>
-                <a href="{{ path('admin_users', {q: currentQuery, role: currentRole, sort: 'nom', direction: 'DESC'}) }}" 
-                   class="sort-link {% if currentSort == 'nom' and currentDirection == 'DESC' %}active{% endif %}">Nom Z → A</a>
-                <a href="{{ path('admin_users', {q: currentQuery, role: currentRole, sort: 'id', direction: 'DESC'}) }}" 
-                   class="sort-link {% if currentSort == 'id' and currentDirection == 'DESC' %}active{% endif %}">ID ↓</a>
-                <a href="{{ path('admin_users', {q: currentQuery, role: currentRole, sort: 'id', direction: 'ASC'}) }}" 
-                   class="sort-link {% if currentSort == 'id' and currentDirection == 'ASC' %}active{% endif %}">ID ↑</a>
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 2px;">
+                <button type="button" id="btn-reset-filters" class="btn-reset">
+                    <i class="fas fa-sync-alt"></i> Réinitialiser
+                </button>
             </div>
-        </form>
+        </div>
+
+        <div class="sort-row">
+            <span class="sort-label">Trier par :</span>
+            <a href="#" data-sort="nom" data-dir="ASC" class="sort-link {% if currentSort == 'nom' and currentDirection == 'ASC' %}active{% endif %}">Nom A → Z</a>
+            <a href="#" data-sort="nom" data-dir="DESC" class="sort-link {% if currentSort == 'nom' and currentDirection == 'DESC' %}active{% endif %}">Nom Z → A</a>
+            <a href="#" data-sort="id" data-dir="DESC" class="sort-link {% if currentSort == 'id' and currentDirection == 'DESC' %}active{% endif %}">ID ↓</a>
+            <a href="#" data-sort="id" data-dir="ASC" class="sort-link {% if currentSort == 'id' and currentDirection == 'ASC' %}active{% endif %}">ID ↑</a>
+        </div>
     </div>
 
     <div class="admin-table-container">
         <table class="admin-table">
             <thead>
                 <tr>
-                    <th>
-                        <a href="{{ path('admin_users', {q: currentQuery, role: currentRole, sort: 'id', direction: currentSort == 'id' and currentDirection == 'ASC' ? 'DESC' : 'ASC'}) }}" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 5px;">
-                            ID {% if currentSort == 'id' %}<i class="fas fa-sort-{{ currentDirection == 'ASC' ? 'up' : 'down' }}"></i>{% endif %}
-                        </a>
-                    </th>
-                    <th>
-                        <a href="{{ path('admin_users', {q: currentQuery, role: currentRole, sort: 'nom', direction: currentSort == 'nom' and currentDirection == 'ASC' ? 'DESC' : 'ASC'}) }}" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 5px;">
-                            Nom {% if currentSort == 'nom' %}<i class="fas fa-sort-{{ currentDirection == 'ASC' ? 'up' : 'down' }}"></i>{% endif %}
-                        </a>
-                    </th>
-                    <th>
-                        <a href="{{ path('admin_users', {q: currentQuery, role: currentRole, sort: 'email', direction: currentSort == 'email' and currentDirection == 'ASC' ? 'DESC' : 'ASC'}) }}" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 5px;">
-                            Email {% if currentSort == 'email' %}<i class="fas fa-sort-{{ currentDirection == 'ASC' ? 'up' : 'down' }}"></i>{% endif %}
-                        </a>
-                    </th>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Email</th>
                     <th>Rôle</th>
                     <th>Statut</th>
                     <th style="text-align: right;">Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="users-tbody">
                 {% for user in users %}
-                <tr>
+                <tr class="user-row"
+                    data-id="{{ user.id }}"
+                    data-nom="{{ user.nom|lower }}"
+                    data-email="{{ user.email|lower }}"
+                    data-pseudo="{{ user.pseudo|default('')|lower }}"
+                    data-role="{% if 'ROLE_ADMIN' in user.roles %}ROLE_ADMIN{% elseif 'ROLE_MANAGER' in user.roles %}ROLE_MANAGER{% elseif 'ROLE_ORGANISATEUR' in user.roles %}ROLE_ORGANISATEUR{% else %}ROLE_JOUEUR{% endif %}">
                     <td>#{{ user.id }}</td>
                     <td>
                         <div class="user-avatar-small">
@@ -221,7 +202,7 @@
                     </td>
                 </tr>
                 {% else %}
-                <tr>
+                <tr id="no-users-default">
                     <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
                         <i class="fas fa-search" style="font-size: 32px; margin-bottom: 10px; display: block;"></i>
                         Aucun utilisateur trouvé
@@ -231,4 +212,142 @@
             </tbody>
         </table>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchNom = document.getElementById('live-search-nom');
+            const searchRole = document.getElementById('live-search-role');
+            const btnReset = document.getElementById('btn-reset-filters');
+            const sortLinks = document.querySelectorAll('.sort-link');
+            const tbody = document.getElementById('users-tbody');
+
+            // Live filtering function
+            function applyFilters() {
+                const nomValue = searchNom.value.toLowerCase().trim();
+                const roleValue = searchRole.value;
+                
+                const rows = document.querySelectorAll('.user-row');
+                let visibleCount = 0;
+
+                rows.forEach(row => {
+                    const nom = row.dataset.nom || '';
+                    const email = row.dataset.email || '';
+                    const pseudo = row.dataset.pseudo || '';
+                    const role = row.dataset.role || '';
+
+                    let matches = true;
+
+                    // Filter by name, email or pseudo
+                    if (nomValue && !nom.includes(nomValue) && !email.includes(nomValue) && !pseudo.includes(nomValue)) {
+                        matches = false;
+                    }
+
+                    // Filter by role
+                    if (roleValue && role !== roleValue) {
+                        matches = false;
+                    }
+
+                    if (matches) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                // Handle empty state
+                const defaultNoResults = document.getElementById('no-users-default');
+                let noResultsRow = document.getElementById('no-results-search');
+
+                if (defaultNoResults) {
+                    defaultNoResults.style.display = 'none';
+                }
+
+                if (visibleCount === 0 && (nomValue !== '' || roleValue !== '')) {
+                    if (!noResultsRow) {
+                        noResultsRow = document.createElement('tr');
+                        noResultsRow.id = 'no-results-search';
+                        noResultsRow.innerHTML = `
+                            <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                <i class="fas fa-ghost" style="font-size: 32px; margin-bottom: 10px; display: block;"></i>
+                                Aucun utilisateur trouvé
+                            </td>
+                        `;
+                        tbody.appendChild(noResultsRow);
+                    } else {
+                        noResultsRow.style.display = '';
+                    }
+                } else if (noResultsRow) {
+                    noResultsRow.style.display = 'none';
+                }
+
+                if (visibleCount === 0 && nomValue === '' && roleValue === '' && defaultNoResults) {
+                    defaultNoResults.style.display = '';
+                }
+            }
+
+            // Sorting function
+            function sortTable(sortBy, direction) {
+                const rows = Array.from(tbody.querySelectorAll('.user-row'));
+                
+                rows.sort((a, b) => {
+                    let valA, valB;
+                    
+                    if (sortBy === 'id') {
+                        valA = parseInt(a.dataset.id) || 0;
+                        valB = parseInt(b.dataset.id) || 0;
+                    } else if (sortBy === 'nom') {
+                        valA = a.dataset.nom;
+                        valB = b.dataset.nom;
+                    } else if (sortBy === 'email') {
+                        valA = a.dataset.email;
+                        valB = b.dataset.email;
+                    }
+                    
+                    if (direction === 'ASC') {
+                        return valA > valB ? 1 : valA < valB ? -1 : 0;
+                    } else {
+                        return valA < valB ? 1 : valA > valB ? -1 : 0;
+                    }
+                });
+
+                // Re-append sorted rows
+                rows.forEach(row => tbody.appendChild(row));
+            }
+
+            // Event listeners for live search
+            if (searchNom) {
+                searchNom.addEventListener('input', applyFilters);
+            }
+            if (searchRole) {
+                searchRole.addEventListener('change', applyFilters);
+            }
+
+            // Reset filters
+            if (btnReset) {
+                btnReset.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    searchNom.value = '';
+                    searchRole.value = '';
+                    applyFilters();
+                });
+            }
+
+            // Sort links
+            sortLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const sortBy = link.dataset.sort;
+                    const direction = link.dataset.dir;
+
+                    // Update active class
+                    sortLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+
+                    // Sort the table
+                    sortTable(sortBy, direction);
+                });
+            });
+        });
+    </script>
 {% endblock %}

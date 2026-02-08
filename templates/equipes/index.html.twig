@@ -149,13 +149,13 @@
 
         <!-- Filters Section -->
         <div class="filters-section animate__animated animate__fadeInUp">
-            <form class="filters-form">
+            <div class="filters-form">
                 <div class="filters-row">
                     <div class="filter-group">
                         <label class="filter-label">
                             <i class="fas fa-search"></i> Rechercher
                         </label>
-                        <input type="text" name="search" class="filter-input" 
+                        <input type="text" id="live-search-name" class="filter-input" 
                                placeholder="Nom d'équipe...">
                     </div>
 
@@ -163,7 +163,7 @@
                         <label class="filter-label">
                             <i class="fas fa-medal"></i> Classement
                         </label>
-                        <select name="classement" class="filter-select">
+                        <select id="live-search-rank" class="filter-select">
                             <option value="">Tous</option>
                             <option value="Bronze">Bronze</option>
                             <option value="Argent">Argent</option>
@@ -179,7 +179,7 @@
                         <label class="filter-label">
                             <i class="fas fa-sort"></i> Trier
                         </label>
-                        <select name="sort" class="filter-select">
+                        <select id="live-search-sort" class="filter-select">
                             <option value="recent">Plus récentes</option>
                             <option value="oldest">Plus anciennes</option>
                             <option value="name">Nom (A-Z)</option>
@@ -187,28 +187,27 @@
                     </div>
 
                     <div class="filter-group">
-                        <button type="submit" class="btn-filter">
-                            <i class="fas fa-filter"></i> Filtrer
-                        </button>
-                    </div>
-
-                    <div class="filter-group">
-                        <button type="reset" class="btn-filter btn-reset">
+                        <button type="button" id="btn-reset-frontfilters" class="btn-filter btn-reset">
                             <i class="fas fa-redo"></i> Reset
                         </button>
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
+
+       <div class="modal-search-info" id="frontoffice-results-info" style="margin: 20px 0; text-align: center; color: var(--text-secondary); font-size: 14px; font-weight: 600;"></div>
 
         <div style="margin-bottom: 80px;">
             <h2 class="section-title" style="margin-bottom: 40px;">
                 <i class="fas fa-star"></i> ÉQUIPES VEDETTES
             </h2>
             
-            <div class="partners-grid">
+            <div class="partners-grid" id="featured-teams-container">
                 <!-- Team Card 1 - ALFA (STATIQUE) -->
-                <div class="partner-card animate__animated animate__fadeInUp">
+                <div class="partner-card animate__animated animate__fadeInUp team-card" 
+                     data-name="alpha team"
+                     data-rank="platine"
+                     data-date="1735430400">
                     <div class="partner-image">
                         <img src="{{ asset('images/alpha.png') }}" alt="Alfa Gaming">
                     </div>
@@ -242,7 +241,11 @@
                 </div>
 
                 <!-- Team Card 2 - BLAZE (STATIQUE - FEATURED) -->
-                <div class="partner-card featured animate__animated animate__fadeInUp" style="animation-delay: 0.1s">
+                <div class="partner-card featured animate__animated animate__fadeInUp team-card" 
+                     style="animation-delay: 0.1s"
+                     data-name="blaze esports"
+                     data-rank="challenger"
+                     data-date="1737936000">
                     <div class="partner-badge">
                         <i class="fas fa-crown"></i> TOP 1
                     </div>
@@ -279,7 +282,11 @@
                 </div>
 
                 <!-- Team Card 3 - OMEGA (STATIQUE) -->
-                <div class="partner-card animate__animated animate__fadeInUp" style="animation-delay: 0.2s">
+                <div class="partner-card animate__animated animate__fadeInUp team-card" 
+                     style="animation-delay: 0.2s"
+                     data-name="omega squad"
+                     data-rank="master"
+                     data-date="1736640000">
                     <div class="partner-image">
                         <img src="{{ asset('images/omega.jpg') }}" alt="Omega Squad">
                     </div>
@@ -718,5 +725,109 @@
                 <p>&copy; 2025 ESportify. Tous droits réservés. Développé avec ❤️ pour la communauté e-sport.</p>
             </div>
         </footer>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const searchName = document.getElementById('live-search-name');
+                const searchRank = document.getElementById('live-search-rank');
+                const searchSort = document.getElementById('live-search-sort');
+                const btnReset = document.getElementById('btn-reset-frontfilters');
+                const resultsInfo = document.getElementById('frontoffice-results-info');
+
+                // Live filtering and sorting function
+                function applyFilters() {
+                    const nameValue = searchName.value.toLowerCase().trim();
+                    const rankValue = searchRank.value.toLowerCase();
+                    const sortValue = searchSort.value;
+                    
+                    let cards = Array.from(document.querySelectorAll('.team-card'));
+                    let visibleCount = 0;
+
+                    // Filter cards
+                    cards.forEach(card => {
+                        const name = card.dataset.name || '';
+                        const rank = card.dataset.rank || '';
+
+                        let matches = true;
+
+                        // Filter by name
+                        if (nameValue && !name.includes(nameValue)) {
+                            matches = false;
+                        }
+
+                        // Filter by rank
+                        if (rankValue && rank !== rankValue) {
+                            matches = false;
+                        }
+
+                        if (matches) {
+                            card.style.display = '';
+                            visibleCount++;
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+
+                    // Sort visible cards
+                    const container = document.getElementById('featured-teams-container');
+                    const visibleCards = cards.filter(card => card.style.display !== 'none');
+
+                    visibleCards.sort((a, b) => {
+                        if (sortValue === 'name') {
+                            const nameA = a.dataset.name || '';
+                            const nameB = b.dataset.name || '';
+                            return nameA.localeCompare(nameB);
+                        } else if (sortValue === 'recent') {
+                            const dateA = parseInt(a.dataset.date) || 0;
+                            const dateB = parseInt(b.dataset.date) || 0;
+                            return dateB - dateA; // Plus récent en premier
+                        } else if (sortValue === 'oldest') {
+                            const dateA = parseInt(a.dataset.date) || 0;
+                            const dateB = parseInt(b.dataset.date) || 0;
+                            return dateA - dateB; // Plus ancien en premier
+                        }
+                        return 0;
+                    });
+
+                    // Re-append sorted cards
+                    visibleCards.forEach(card => container.appendChild(card));
+
+                    // Update result count
+                    if (resultsInfo) {
+                        if (visibleCount === 0 && (nameValue !== '' || rankValue !== '')) {
+                            resultsInfo.innerHTML = '<i class="fas fa-search"></i> Aucune équipe trouvée';
+                            resultsInfo.style.color = 'var(--primary-pink)';
+                        } else if (nameValue !== '' || rankValue !== '' || sortValue !== 'recent') {
+                            resultsInfo.innerHTML = `<i class="fas fa-filter"></i> ${visibleCount} équipe(s) trouvée(s)`;
+                            resultsInfo.style.color = 'var(--primary-blue)';
+                        } else {
+                            resultsInfo.innerHTML = '';
+                        }
+                    }
+                }
+
+                // Event listeners for live search
+                if (searchName) {
+                    searchName.addEventListener('input', applyFilters);
+                }
+                if (searchRank) {
+                    searchRank.addEventListener('change', applyFilters);
+                }
+                if (searchSort) {
+                    searchSort.addEventListener('change', applyFilters);
+                }
+
+                // Reset filters
+                if (btnReset) {
+                    btnReset.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        searchName.value = '';
+                        searchRank.value = '';
+                        searchSort.value = 'recent';
+                        applyFilters();
+                    });
+                }
+            });
+        </script>
 {% endblock %}
 

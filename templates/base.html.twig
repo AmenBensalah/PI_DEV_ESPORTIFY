@@ -54,11 +54,15 @@
                     <span>Équipes</span>
                 </a>
             {% endif %}
+            <a href="{{ path('app_recrutements_index') }}" class="nav-link">
+                <i class="fas fa-clipboard-list"></i>
+                <span>Recrutements</span>
+            </a>
             <a href="#" class="nav-link">
                 <i class="fas fa-trophy"></i>
                 <span>Tournois</span>
             </a>
-            <a href="#" class="nav-link">
+            <a href="{{ path('app_front_produit_index') }}" class="nav-link">
                 <i class="fas fa-shopping-cart"></i>
                 <span>Boutique</span>
             </a>
@@ -104,8 +108,219 @@
         {% block body %}{% endblock %}
     </main>
 
+    <!-- DEBUG MARKER -->
+    <div style="background:red; color:white; text-align:center; display:none;">CHATBOT TEMPLATE ACTIVE</div>
+
+    <!-- Chatbot Floating Button -->
+    <button id="chatbot-toggle" class="chatbot-btn" style="display: flex !important; position: fixed !important; bottom: 20px !important; right: 20px !important; z-index: 2147483647 !important; width: 70px !important; height: 70px !important; opacity: 1 !important; visibility: visible !important;">
+        <i class="fas fa-robot"></i>
+        <!-- Fallback text if icon fails -->
+        <span style="font-size: 10px; position: absolute; bottom: 12px; font-weight: bold;">CHAT</span>
+        <span class="pulse-ring"></span>
+    </button>
+
+    <!-- Chatbot Window -->
+    <div id="chatbot-window" class="chatbot-window">
+        <div class="chatbot-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="robot-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 800; font-size: 14px; color: #fff;">NEXUS_AI</div>
+                    <div style="font-size: 10px; color: var(--success-color); display: flex; align-items: center; gap: 4px;">
+                        <i class="fas fa-circle" style="font-size: 6px;"></i> EN LIGNE
+                    </div>
+                </div>
+            </div>
+            <button id="chatbot-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="chatbot-messages" class="chatbot-messages">
+            <div class="bot-msg">
+                Séquence d'accueil initialisée. Je suis Nexus_AI. Comment puis-je assister votre session aujourd'hui ?
+            </div>
+        </div>
+        <div class="chatbot-input-area">
+            <input type="text" id="chatbot-input" placeholder="Tapez un message...">
+            <button id="chatbot-send"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <style>
+        .chatbot-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-cyan));
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 10001 !important; /* Force on top */
+            display: flex !important; /* Force visible */
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(67, 97, 238, 0.4);
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .chatbot-btn:hover { transform: scale(1.1) rotate(10deg); }
+        .pulse-ring {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            opacity: 0.6;
+            animation: pulse 2s infinite;
+            z-index: -1;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.6; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+
+        .chatbot-window {
+            position: fixed;
+            bottom: 110px;
+            right: 30px;
+            width: 380px;
+            height: 500px;
+            background: #1b1e2e;
+            border-radius: 20px;
+            display: none;
+            flex-direction: column;
+            z-index: 10000;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: slideIn 0.4s ease;
+        }
+        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .chatbot-header {
+            padding: 20px;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .robot-avatar {
+            width: 35px; height: 35px; border-radius: 50%;
+            background: var(--primary-blue);
+            display: flex; align-items: center; justify-content: center; font-size: 16px;
+        }
+        #chatbot-close { background: none; border: none; color: #8d91a5; cursor: pointer; font-size: 18px; }
+
+        .chatbot-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .bot-msg, .user-msg {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 15px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .bot-msg { background: rgba(255,255,255,0.05); color: #fff; border-bottom-left-radius: 2px; align-self: flex-start; }
+        .user-msg { background: var(--primary-blue); color: white; border-bottom-right-radius: 2px; align-self: flex-end; }
+
+        .chatbot-input-area {
+            padding: 20px;
+            background: rgba(255,255,255,0.02);
+            display: flex; gap: 10px;
+        }
+        #chatbot-input {
+            flex: 1; background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px; padding: 10px 15px; color: #fff;
+        }
+        #chatbot-send {
+            width: 42px; height: 42px; border-radius: 10px;
+            background: var(--primary-pink); border: none; color: white; cursor: pointer;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.getElementById('chatbot-toggle');
+            const chatWindow = document.getElementById('chatbot-window');
+            const close = document.getElementById('chatbot-close');
+            const input = document.getElementById('chatbot-input');
+            const send = document.getElementById('chatbot-send');
+            const messages = document.getElementById('chatbot-messages');
+
+            let history = [];
+
+            toggle.onclick = () => {
+                chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex';
+                if(chatWindow.style.display === 'flex') input.focus();
+            };
+            close.onclick = () => chatWindow.style.display = 'none';
+
+            const addMessage = (content, role) => {
+                const div = document.createElement('div');
+                div.className = role === 'bot' ? 'bot-msg' : 'user-msg';
+                div.textContent = content;
+                messages.appendChild(div);
+                messages.scrollTop = messages.scrollHeight;
+                if(role !== 'system') history.push({ role, content });
+            };
+
+            const processChat = async () => {
+                const message = input.value.trim();
+                if(!message || input.disabled) return;
+                
+                input.disabled = true;
+                send.disabled = true;
+                addMessage(message, 'user');
+                input.value = '';
+
+                // Typing indicator (simple)
+                const loading = document.createElement('div');
+                loading.className = 'bot-msg';
+                loading.textContent = '...';
+                messages.appendChild(loading);
+
+                try {
+                    const response = await fetch('/api/chatbot', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            message, 
+                            history,
+                            page: document.title,
+                            url: window.location.href,
+                            context: "Page : " + document.title
+                        })
+                    });
+                    const data = await response.json();
+                    loading.remove();
+                    addMessage(data.response, 'bot');
+                } catch (e) {
+                    loading.textContent = "Désolé, la connexion avec le Nexus est instable. Vérifiez votre réseau ou réessayez dans un instant.";
+                } finally {
+                    input.disabled = false;
+                    send.disabled = false;
+                    input.focus();
+                }
+            };
+
+            send.onclick = processChat;
+            input.onkeypress = (e) => { if(e.key === 'Enter') processChat(); };
+        });
+    </script>
+
     {% block javascripts %}
         {% block importmap %}{{ importmap('app') }}{% endblock %}
     {% endblock %}
 </body>
 </html>
+

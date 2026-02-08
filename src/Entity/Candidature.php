@@ -29,7 +29,7 @@ class Candidature
     #[ORM\JoinColumn(nullable: false)]
     private ?Equipe $equipe = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'candidatures')]
     #[ORM\JoinColumn(nullable: true)]
     private ?User $user = null;
 
