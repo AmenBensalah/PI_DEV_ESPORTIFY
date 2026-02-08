@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ category }} Tournaments{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">{{ category }} Tournaments</h1>
+
+    <a href="{{ path('tournoi_index') }}" class="btn btn-secondary mb-4">← Back</a>
+
+    {% if tournois %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Tournament Type</th>
+                        <th>Game</th>
+                        <th>Status</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Prize</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tournoi in tournois %}
+                        <tr>
+                            <td><strong>{{ tournoi.name }}</strong></td>
+                            <td>
+                                <span class="badge bg-secondary">{{ tournoi.typeTournoi|upper }}</span>
+                            </td>
+                            <td>{{ tournoi.game }}</td>
+                            <td>
+                                {% if tournoi.status == 'planned' %}
+                                    <span class="badge bg-warning">Planned</span>
+                                {% elseif tournoi.status == 'ongoing' %}
+                                    <span class="badge bg-success">Ongoing</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Finished</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ tournoi.startDate|date('Y-m-d H:i') }}</td>
+                            <td>{{ tournoi.endDate|date('Y-m-d H:i') }}</td>
+                            <td>${{ tournoi.prizeWon }}</td>
+                            <td>
+                                <a href="{{ path('tournoi_show', {id: tournoi.idTournoi}) }}" class="btn btn-sm btn-info">View</a>
+                                {% if tournoi.currentStatus == 'planned' and (tournoi.remainingPlaces is null or tournoi.remainingPlaces > 0) %}
+                                    <a href="{{ path('tournoi_participate', {id: tournoi.idTournoi}) }}" class="btn btn-sm btn-primary">Rejoindre</a>
+                                {% endif %}
+                                {% if is_granted('ROLE_USER') %}
+                                    {% if app.user in tournoi.participants %}
+                                        <button class="btn btn-sm btn-outline-success" disabled>Inscrit</button>
+                                    {% else %}
+                                        <a href="{{ path('tournoi_participate', {id: tournoi.idTournoi}) }}" class="btn btn-sm btn-primary">Participer</a>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <strong>No {{ category }} tournaments found.</strong>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

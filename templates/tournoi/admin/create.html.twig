@@ -1,0 +1,76 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create Tournament{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">Create New Tournament</h1>
+
+    <form method="POST" class="card p-4">
+        <div class="mb-3">
+            <label for="name" class="form-label">Tournament Name</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="type_game" class="form-label">Game Type</label>
+                <select class="form-control" id="type_game" name="type_game" required>
+                    <option value="">-- Select --</option>
+                    <option value="FPS">FPS</option>
+                    <option value="Sports">Sports</option>
+                    <option value="Battle_royale">Battle Royale</option>
+                    <option value="Mind">Mind</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label for="type_tournoi" class="form-label">Tournament Type</label>
+                <select class="form-control" id="type_tournoi" name="type_tournoi" required>
+                    <option value="">-- Select --</option>
+                    <option value="solo">Solo</option>
+                    <option value="squad">Squad</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="game" class="form-label">Game</label>
+            <input type="text" class="form-control" id="game" name="game" placeholder="e.g., League of Legends, Counter-Strike 2" required>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="startDate" class="form-label">Start Date</label>
+                <input type="datetime-local" class="form-control" id="startDate" name="startDate" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="endDate" class="form-label">End Date</label>
+                <input type="datetime-local" class="form-control" id="endDate" name="endDate" required>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-control" id="status" name="status" required>
+                    <option value="planned">Planned</option>
+                    <option value="ongoing">Ongoing</option>
+                    <option value="finished">Finished</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label for="prize_won" class="form-label">Prize Pool ($)</label>
+                <input type="number" step="0.01" class="form-control" id="prize_won" name="prize_won" value="0" required>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Create Tournament</button>
+            <a href="{{ path('admin_tournoi_index') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

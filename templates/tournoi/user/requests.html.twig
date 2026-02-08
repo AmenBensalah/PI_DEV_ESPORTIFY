@@ -1,0 +1,72 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes demandes{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Demandes de participation</h1>
+        <a href="{{ path('tournoi_index') }}" class="btn btn-outline-secondary">Retour aux tournois</a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Tournoi</th>
+                        <th>Utilisateur</th>
+                        <th>Message</th>
+                        <th>Statut</th>
+                        <th>Cree le</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in requests %}
+                        <tr>
+                            <td>{{ r.id }}</td>
+                            <td>{{ r.tournoi.name }}</td>
+                            <td>
+                                {% if r.user %}
+                                    {{ r.user.username }} ({{ r.user.email }})
+                                {% elseif r.applicantName or r.applicantEmail %}
+                                    {{ r.applicantName|default('Anonyme') }}{% if r.applicantEmail %} ({{ r.applicantEmail }}){% endif %}
+                                {% else %}
+                                    <em class="text-muted">Anonyme</em>
+                                {% endif %}
+                            </td>
+                            <td>{{ r.message }}</td>
+                            <td>
+                                {% if r.status == 'en_attente' or r.status == 'pending' %}
+                                    <span class="badge bg-info">En attente</span>
+                                {% elseif r.status == 'approuvee' or r.status == 'approved' %}
+                                    <span class="badge bg-success">Approuvee</span>
+                                {% elseif r.status == 'rejetee' or r.status == 'rejected' %}
+                                    <span class="badge bg-danger">Rejetee</span>
+                                {% else %}
+                                    {{ r.status }}
+                                {% endif %}
+                            </td>
+                            <td>{{ r.createdAt|date('Y-m-d H:i') }}</td>
+                            <td>
+                                {% if r.status == 'en_attente' or r.status == 'pending' %}
+                                    <a href="{{ path('tournoi_participation_request_edit', {id: r.id}) }}" class="btn btn-sm btn-primary">Modifier</a>
+                                    <form method="POST" action="{{ path('tournoi_participation_request_delete', {id: r.id}) }}" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer cette demande ?')">Supprimer</button>
+                                    </form>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="7">Aucune demande trouvee.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Détails du Tournoi - Admin{% endblock %}
+{% block page_title %}Détails du Tournoi{% endblock %}
+
+{% block body %}
+<div style="max-width: 800px;">
+    <div class="stat-card">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 30px;">
+            <h2 style="font-family: 'Orbitron', sans-serif; margin: 0; color: #fff;">
+                {{ tournoi.name }}
+            </h2>
+            <div style="display: flex; gap: 10px;">
+                {% if tournoi.currentStatus == 'planned' %}
+                    <a href="{{ path('admin_tournoi_edit', {id: tournoi.idTournoi}) }}" class="btn btn-primary" style="padding: 10px 15px;">
+                        <i class="fas fa-edit"></i> Éditer
+                    </a>
+                {% endif %}
+                <form method="POST" action="{{ path('admin_tournoi_delete', {id: tournoi.idTournoi}) }}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce tournoi?');">
+                    <button type="submit" class="btn btn-danger" style="padding: 10px 15px;">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+            <div>
+                <h5 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Type de Jeu</h5>
+                <p style="margin: 0;">
+                    <span class="badge badge-info">{{ tournoi.typeGame }}</span>
+                </p>
+            </div>
+            <div>
+                <h5 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Type de Tournoi</h5>
+                <p style="margin: 0;">
+                    <span class="badge badge-success">{{ tournoi.typeTournoi|upper }}</span>
+                </p>
+            </div>
+            <div>
+                <h5 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Jeu</h5>
+                <p style="margin: 0; color: #fff;">{{ tournoi.game }}</p>
+            </div>
+            <div>
+                <h5 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Statut</h5>
+                <p style="margin: 0;">
+                    {% if tournoi.currentStatus == 'planned' %}
+                        <span class="badge badge-warning">Planifié</span>
+                    {% elseif tournoi.currentStatus == 'ongoing' %}
+                        <span class="badge badge-success">En cours</span>
+                    {% else %}
+                        <span class="badge badge-info">Terminé</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.05); margin-bottom: 30px;">
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+            <div>
+                <h5 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Date de Début</h5>
+                <p style="margin: 0; color: #fff;">{{ tournoi.startDate|date('d/m/Y à H:i') }}</p>
+            </div>
+            <div>
+                <h5 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Date de Fin</h5>
+                <p style="margin: 0; color: #fff;">{{ tournoi.endDate|date('d/m/Y à H:i') }}</p>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 30px;">
+            <h5 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Dotation</h5>
+            <p style="margin: 0; color: var(--primary-cyan); font-size: 24px; font-weight: bold;">${{ tournoi.prizeWon }}</p>
+        </div>
+
+        <div style="margin-bottom: 30px;">
+            <h5 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Places restantes</h5>
+            <p style="margin: 0; color: #fff; font-size: 18px; font-weight: bold;">
+                {% if tournoi.remainingPlaces is null %}
+                    ∞
+                {% else %}
+                    {{ tournoi.remainingPlaces }} / {{ tournoi.maxPlaces }}
+                {% endif %}
+            </p>
+        </div>
+
+        {% if tournoi.resultat %}
+            <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.05); margin-bottom: 30px;">
+            
+            <div style="background: rgba(76, 201, 240, 0.1); border-left: 4px solid var(--primary-cyan); padding: 20px; border-radius: 8px;">
+                <h4 style="color: var(--primary-cyan); margin-top: 0;">Résultats</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h5 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Classement</h5>
+                        <p style="margin: 0; color: #fff; font-size: 18px; font-weight: bold;">{{ tournoi.resultat.rank }}</p>
+                    </div>
+                    <div>
+                        <h5 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Score</h5>
+                        <p style="margin: 0; color: #fff; font-size: 18px; font-weight: bold;">{{ tournoi.resultat.score }}</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <div style="margin-top: 30px;">
+            <a href="{{ path('admin_tournoi_index') }}" class="btn" style="background: rgba(255,255,255,0.1); padding: 12px 20px; border-radius: 8px; text-decoration: none;">
+                <i class="fas fa-arrow-left"></i> Retour à la liste
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

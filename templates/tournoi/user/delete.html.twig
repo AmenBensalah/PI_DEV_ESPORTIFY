@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Delete Tournament{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">Delete Tournament</h1>
+
+    <div class="alert alert-danger" role="alert">
+        <h4 class="alert-heading">Are you sure?</h4>
+        <p>You are about to delete the tournament: <strong>{{ tournoi.name }}</strong></p>
+        <hr>
+        <p class="mb-0">This action cannot be undone.</p>
+    </div>
+
+    <form method="POST" action="{{ path('admin_tournoi_delete', {id: tournoi.idTournoi}) }}" class="d-flex gap-2">
+        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        <a href="{{ path('tournoi_show', {id: tournoi.idTournoi}) }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

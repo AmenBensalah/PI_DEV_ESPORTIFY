@@ -1,0 +1,144 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tournaments{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Tournaments</h1>
+        <a href="{{ path('tournoi_participation_requests') }}" class="btn btn-outline-primary">Mes demandes</a>
+    </div>
+
+    <!-- Advanced Search + Sort -->
+    <div class="card mb-4" style="padding:16px; background:#f5f7fb;">
+        <form method="GET" style="display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
+            <div style="flex:1; min-width:200px;">
+                <label class="form-label">Game name</label>
+                <input type="text" name="game" value="{{ filterGame|default('') }}" class="form-control" placeholder="ex: Valorant, Chess...">
+            </div>
+            <div style="min-width:160px;">
+                <label class="form-label">Type de Jeu</label>
+                <select name="type_game" class="form-control">
+                    <option value="">-- Tous --</option>
+                    <option value="FPS" {% if filterTypeGame == 'FPS' %}selected{% endif %}>FPS</option>
+                    <option value="Sports" {% if filterTypeGame == 'Sports' %}selected{% endif %}>Sports</option>
+                    <option value="Battle_royale" {% if filterTypeGame == 'Battle_royale' %}selected{% endif %}>Battle Royale</option>
+                    <option value="Mind" {% if filterTypeGame == 'Mind' %}selected{% endif %}>Mind</option>
+                </select>
+            </div>
+            <div style="min-width:160px;">
+                <label class="form-label">Type de Tournoi</label>
+                <select name="type_tournoi" class="form-control">
+                    <option value="">-- Tous --</option>
+                    <option value="solo" {% if filterTypeTournoi == 'solo' %}selected{% endif %}>Solo</option>
+                    <option value="squad" {% if filterTypeTournoi == 'squad' %}selected{% endif %}>Squad</option>
+                </select>
+            </div>
+            <div style="min-width:140px;">
+                <label class="form-label">Statut</label>
+                <select name="status" class="form-control">
+                    <option value="">-- Tous --</option>
+                    <option value="planned" {% if filterStatus == 'planned' %}selected{% endif %}>Planifie</option>
+                    <option value="ongoing" {% if filterStatus == 'ongoing' %}selected{% endif %}>En cours</option>
+                    <option value="finished" {% if filterStatus == 'finished' %}selected{% endif %}>Termine</option>
+                </select>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <button type="submit" class="btn btn-primary">Rechercher</button>
+                <a href="{{ path('tournoi_index') }}" class="btn btn-outline-secondary">Reinitialiser</a>
+            </div>
+            <div style="margin-left:auto; display:flex; gap:6px; align-items:center;">
+                <strong style="margin-right:6px;">Trier :</strong>
+                <a href="{{ path('tournoi_index', app.request.query.all | merge({'sort':'name','order':'asc'})) }}" class="btn btn-sm btn-light">Nom A->Z</a>
+                <a href="{{ path('tournoi_index', app.request.query.all | merge({'sort':'name','order':'desc'})) }}" class="btn btn-sm btn-light">Nom Z->A</a>
+                <a href="{{ path('tournoi_index', app.request.query.all | merge({'sort':'startDate','order':'asc'})) }}" class="btn btn-sm btn-light">Date up</a>
+                <a href="{{ path('tournoi_index', app.request.query.all | merge({'sort':'startDate','order':'desc'})) }}" class="btn btn-sm btn-light">Date down</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Filter by Category -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="btn-group" role="group">
+                <a href="{{ path('tournoi_index') }}" class="btn btn-outline-primary active">All</a>
+                <a href="{{ path('tournoi_by_category', {typeGame: 'FPS'}) }}" class="btn btn-outline-primary">FPS</a>
+                <a href="{{ path('tournoi_by_category', {typeGame: 'Sports'}) }}" class="btn btn-outline-primary">Sports</a>
+                <a href="{{ path('tournoi_by_category', {typeGame: 'Battle_royale'}) }}" class="btn btn-outline-primary">Battle Royale</a>
+                <a href="{{ path('tournoi_by_category', {typeGame: 'Mind'}) }}" class="btn btn-outline-primary">Mind</a>
+            </div>
+        </div>
+    </div>
+
+    {% if tournois %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Game Type</th>
+                        <th>Tournament Type</th>
+                        <th>Game</th>
+                        <th>Status</th>
+                        <th>Places restantes</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Prize</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tournoi in tournois %}
+                        <tr>
+                            <td><strong>{{ tournoi.name }}</strong></td>
+                            <td>
+                                <span class="badge bg-info">{{ tournoi.typeGame }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ tournoi.typeTournoi|upper }}</span>
+                            </td>
+                            <td>{{ tournoi.game }}</td>
+                            <td>
+                                {% if tournoi.currentStatus == 'planned' %}
+                                    <span class="badge bg-warning">Planifie</span>
+                                {% elseif tournoi.currentStatus == 'ongoing' %}
+                                    <span class="badge bg-success">En cours</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Termine</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if tournoi.remainingPlaces is null %}
+                                    inf
+                                {% else %}
+                                    {{ tournoi.remainingPlaces }} / {{ tournoi.maxPlaces }}
+                                {% endif %}
+                            </td>
+                            <td>{{ tournoi.startDate|date('Y-m-d H:i') }}</td>
+                            <td>{{ tournoi.endDate|date('Y-m-d H:i') }}</td>
+                            <td>${{ tournoi.prizeWon }}</td>
+                            <td>
+                                <a href="{{ path('tournoi_show', {id: tournoi.idTournoi}) }}" class="btn btn-sm btn-info">View</a>
+                                {% if tournoi.currentStatus == 'planned' and (tournoi.remainingPlaces is null or tournoi.remainingPlaces > 0) %}
+                                    <a href="{{ path('tournoi_participate', {id: tournoi.idTournoi}) }}" class="btn btn-sm btn-primary">Rejoindre</a>
+                                {% endif %}
+                                {% if is_granted('ROLE_USER') %}
+                                    {% if app.user in tournoi.participants %}
+                                        <button class="btn btn-sm btn-outline-success" disabled>Inscrit</button>
+                                    {% else %}
+                                        <a href="{{ path('tournoi_participate', {id: tournoi.idTournoi}) }}" class="btn btn-sm btn-primary">Participer</a>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <strong>No tournaments found.</strong>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

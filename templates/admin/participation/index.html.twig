@@ -1,0 +1,62 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Demandes de participation{% endblock %}
+{% block page_title %}Demandes de participation{% endblock %}
+
+{% block body %}
+<div class="card">
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Tournoi</th>
+                    <th>Utilisateur</th>
+                    <th>Message</th>
+                    <th>Statut</th>
+                    <th>Créé le</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in requests %}
+                    <tr>
+                        <td>{{ r.id }}</td>
+                        <td>{{ r.tournoi.name }}</td>
+                        <td>
+                            {% if r.user %}
+                                {{ r.user.username }} ({{ r.user.email }})
+                            {% else %}
+                                <em class="text-muted">Anonyme</em>
+                            {% endif %}
+                        </td>
+                        <td>{{ r.message }}</td>
+                        <td>
+                            {% if r.status == 'en_attente' or r.status == 'pending' %}
+                                <span class="badge badge-info">En attente</span>
+                            {% elseif r.status == 'approuvée' or r.status == 'approved' %}
+                                <span class="badge badge-success">Approuvée</span>
+                            {% elseif r.status == 'rejetée' or r.status == 'rejected' %}
+                                <span class="badge badge-danger">Rejetée</span>
+                            {% else %}
+                                {{ r.status }}
+                            {% endif %}
+                        </td>
+                        <td>{{ r.createdAt|date('Y-m-d H:i') }}</td>
+                        <td>
+                            {% if r.status == 'en_attente' or r.status == 'pending' %}
+                                <a href="{{ path('admin_participation_approve', {id: r.id}) }}" class="btn btn-sm btn-success">Approuver</a>
+                                <a href="{{ path('admin_participation_reject', {id: r.id}) }}" class="btn btn-sm btn-danger">Rejeter</a>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="7">Aucune demande trouvée.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

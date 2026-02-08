@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard - E-Sportify{% endblock %}</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-dark: #0f1015;
+            --bg-panel: #1b1e2e;
+            --primary-purple: #9d4edd;
+            --primary-pink: #f72585;
+            --primary-cyan: #4cc9f0;
+            --primary-blue: #4361ee;
+            --text-muted: #8d91a5;
+            --text-secondary: #6a6e80;
+            --radius-lg: 25px;
+            --radius-md: 15px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #fff;
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styling */
+        .admin-sidebar {
+            width: 280px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: var(--bg-panel);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            padding: 20px 0;
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .admin-brand {
+            padding: 0 40px;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+        }
+
+        .admin-brand div:first-child {
+            font-size: 18px;
+            font-weight: 800;
+            background: linear-gradient(45deg, var(--primary-blue), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .admin-brand div:last-child {
+            font-size: 10px;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+        }
+
+        .admin-nav {
+            padding: 0;
+            flex: 1;
+        }
+
+        .admin-nav-title {
+            padding: 10px 40px;
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        .admin-nav-link {
+            display: flex;
+            align-items: center;
+            padding: 14px 40px;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 15px;
+            border-left: 4px solid transparent;
+            position: relative;
+        }
+
+        .admin-nav-link:hover, 
+        .admin-nav-link.active {
+            color: #fff;
+            background: linear-gradient(90deg, rgba(157, 78, 221, 0.1), transparent);
+            border-left-color: var(--primary-purple);
+        }
+
+        .admin-nav-link.active::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary-purple);
+            box-shadow: 0 0 10px var(--primary-purple);
+        }
+
+        .admin-nav-link i {
+            width: 25px;
+            margin-right: 15px;
+            font-size: 18px;
+        }
+
+        .admin-sidebar-footer {
+            padding: 20px 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .admin-sidebar-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-sidebar-link:hover {
+            color: #fff;
+        }
+
+        .admin-sidebar-logout {
+            color: var(--primary-pink) !important;
+            font-weight: 600;
+        }
+
+        .admin-content {
+            margin-left: 280px;
+            padding: 40px;
+            min-height: 100vh;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .admin-header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 32px;
+            margin: 0;
+            color: #fff;
+        }
+
+        .admin-user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .admin-user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .admin-user-name {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        /* Card Styling */
+        .stat-card {
+            background: var(--bg-panel);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: none;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-gradient-purple {
+            background: linear-gradient(135deg, #c77dff 0%, #7b2cbf 100%);
+        }
+
+        .card-gradient-blue {
+            background: linear-gradient(135deg, #4cc9f0 0%, #4361ee 100%);
+        }
+
+        .stat-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card-title {
+            margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+
+        .stat-card-value {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-card-change {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .stat-card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: rgba(247, 37, 133, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-pink);
+            font-size: 24px;
+        }
+
+        /* Activity List */
+        .activity-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            flex-shrink: 0;
+            font-size: 14px;
+        }
+
+        .activity-icon.blue {
+            background: var(--primary-blue);
+        }
+
+        .activity-icon.pink {
+            background: var(--primary-pink);
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .activity-description {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .activity-time {
+            color: var(--text-secondary);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        /* Table Styles */
+        .admin-table-container {
+            background: var(--bg-panel);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .admin-table thead {
+            background: transparent;
+        }
+
+        .admin-table th {
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 500;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            text-align: left;
+        }
+
+        .admin-table td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            vertical-align: middle;
+        }
+
+        .admin-table tbody tr:hover {
+            background: rgba(157, 78, 221, 0.05);
+        }
+
+        /* Badge Styles */
+        .badge {
+            border-radius: 30px;
+            padding: 5px 15px;
+            font-weight: 500;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        .badge-success {
+            background: rgba(76, 201, 240, 0.2);
+            color: var(--primary-cyan);
+        }
+
+        .badge-warning {
+            background: rgba(247, 37, 133, 0.2);
+            color: var(--primary-pink);
+        }
+
+        .badge-info {
+            background: rgba(67, 97, 238, 0.2);
+            color: var(--primary-blue);
+        }
+
+        /* Button Styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #3549d4;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--primary-pink);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e61b7d;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                width: 200px;
+            }
+
+            .admin-content {
+                margin-left: 200px;
+                padding: 20px;
+            }
+
+            .admin-header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<aside class="admin-sidebar">
+    <div class="admin-brand">
+        <div>
+            <div style="font-size: 14px; font-weight: 700; color: var(--primary-blue);">🎮 E-SPORTIFY</div>
+            <div style="font-size: 10px; color: var(--text-secondary); letter-spacing: 2px; margin-top: 2px;">ADMIN PANEL</div>
+        </div>
+    </div>
+    <nav class="admin-nav">
+        <a href="{{ path('admin_dashboard') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_dashboard' %}active{% endif %}">
+            <i class="fas fa-chart-line"></i> Dashboard
+        </a>
+        <a href="{{ path('admin_tournoi_index') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_tournoi_index' %}active{% endif %}">
+            <i class="fas fa-trophy"></i> Tournois
+        </a>
+        <a href="{{ path('admin_tournoi_index') }}" class="admin-nav-link">
+            <i class="fas fa-users"></i> Équipes
+        </a>
+        <a href="{{ path('admin_participation_index') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_participation_index' %}active{% endif %}">
+            <i class="fas fa-user-group"></i> Participants
+        </a>
+        <a href="{{ path('admin_tournoi_index') }}" class="admin-nav-link">
+            <i class="fas fa-cog"></i> Paramètres
+        </a>
+    </nav>
+    <div class="admin-sidebar-footer">
+        <a href="/" class="admin-sidebar-link">
+            <i class="fas fa-globe"></i> Voir le Site
+        </a>
+    </div>
+</aside>
+
+<main class="admin-content">
+    <header class="admin-header">
+        <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+        <div class="admin-user-info">
+            <div class="admin-user-avatar">AD</div>
+            <span class="admin-user-name">Admin User</span>
+        </div>
+    </header>
+
+    {% block body %}{% endblock %}
+</main>
+
+</body>
+</html>

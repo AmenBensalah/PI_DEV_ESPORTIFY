@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Welcome to Tournament Manager{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="display-4 mb-4">🎮 Tournament Manager</h1>
+            <p class="lead mb-4">
+                Manage your esports tournaments with ease. Create tournaments, track results, and organize competitions in FPS, Sports, Battle Royale, and Mind games.
+            </p>
+            <div class="d-flex gap-3">
+                <a href="{{ path('tournoi_index') }}" class="btn btn-primary btn-lg">Voir les Tournois</a>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="alert alert-info">
+                <h4>Features:</h4>
+                <ul class="mb-0">
+                    <li>Create and manage tournaments</li>
+                    <li>Filter by game type and tournament style</li>
+                    <li>Track tournament results</li>
+                    <li>Admin panel for full control</li>
+                    <li>Solo and Squad tournament modes</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <hr class="my-5">
+
+    <div class="row mt-5">
+        <div class="col-md-3 text-center">
+            <h5>🔫 FPS Games</h5>
+            <p>Competitive first-person shooters</p>
+        </div>
+        <div class="col-md-3 text-center">
+            <h5>⚽ Sports Games</h5>
+            <p>Esports tournament competitions</p>
+        </div>
+        <div class="col-md-3 text-center">
+            <h5>🛡️ Battle Royale</h5>
+            <p>Last player standing competitions</p>
+        </div>
+        <div class="col-md-3 text-center">
+            <h5>🧠 Mind Games</h5>
+            <p>Strategic and puzzle competitions</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

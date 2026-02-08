@@ -1,0 +1,84 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}{{ category }} Tournois - Admin{% endblock %}
+{% block page_title %}Tournois {{ category }}{% endblock %}
+
+{% block body %}
+<div style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
+    <a href="{{ path('admin_tournoi_index') }}" class="btn" style="background: rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 8px; text-decoration: none;">
+        <i class="fas fa-arrow-left"></i> Retour
+    </a>
+</div>
+
+<!-- Sub-category Filter -->
+<div style="margin-bottom: 30px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+    <a href="{{ path('admin_tournoi_by_category', {typeGame: category}) }}" class="btn" style="background: var(--primary-blue); padding: 10px 15px; border-radius: 12px; text-align: center;">
+        Tous
+    </a>
+    <a href="{{ path('admin_tournoi_by_sub_category', {typeGame: category, typeTournoi: 'solo'}) }}" class="btn" style="background: rgba(67, 97, 238, 0.5); padding: 10px 15px; border-radius: 12px; text-align: center; cursor: pointer;">
+        Solo
+    </a>
+    <a href="{{ path('admin_tournoi_by_sub_category', {typeGame: category, typeTournoi: 'squad'}) }}" class="btn" style="background: rgba(67, 97, 238, 0.5); padding: 10px 15px; border-radius: 12px; text-align: center; cursor: pointer;">
+        Squad
+    </a>
+</div>
+
+{% if tournois %}
+    <div class="stat-card">
+        <div class="admin-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Type de Tournoi</th>
+                        <th>Jeu</th>
+                        <th>Statut</th>
+                        <th>Début</th>
+                        <th>Fin</th>
+                        <th>Prix</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tournoi in tournois %}
+                        <tr>
+                            <td style="font-weight: 600;">{{ tournoi.name }}</td>
+                            <td>
+                                <span class="badge badge-success">{{ tournoi.typeTournoi|upper }}</span>
+                            </td>
+                            <td>{{ tournoi.game }}</td>
+                            <td>
+                                {% if tournoi.status == 'planned' %}
+                                    <span class="badge badge-warning">Planifié</span>
+                                {% elseif tournoi.status == 'ongoing' %}
+                                    <span class="badge badge-success">En cours</span>
+                                {% else %}
+                                    <span class="badge badge-info">Terminé</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ tournoi.startDate|date('d/m/Y H:i') }}</td>
+                            <td>{{ tournoi.endDate|date('d/m/Y H:i') }}</td>
+                            <td>${{ tournoi.prizeWon }}</td>
+                            <td>
+                                <div style="display: flex; gap: 8px;">
+                                    <a href="{{ path('admin_tournoi_show', {id: tournoi.idTournoi}) }}" class="btn btn-primary" style="padding: 8px 12px; font-size: 12px;">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ path('admin_tournoi_edit', {id: tournoi.idTournoi}) }}" class="btn btn-primary" style="padding: 8px 12px; font-size: 12px; background: var(--primary-cyan); color: #000;">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% else %}
+    <div class="stat-card" style="text-align: center; padding: 40px;">
+        <i class="fas fa-inbox" style="font-size: 48px; color: var(--text-muted); margin-bottom: 15px; display: block;"></i>
+        <p style="color: var(--text-muted);">Aucun tournoi {{ category }} trouvé</p>
+    </div>
+{% endif %}
+{% endblock %}
