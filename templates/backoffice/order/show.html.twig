@@ -1,0 +1,49 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Commande #{{ commande.id }} - Admin{% endblock %}
+{% block page_title %}Commande #{{ commande.id }}{% endblock %}
+
+{% block body %}
+    <div class="stat-card" style="margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <div style="color: var(--text-muted); font-size: 13px;">Statut</div>
+                <div style="font-size: 20px; font-weight: 600;">
+                    <span class="badge">{{ commande.statut }}</span>
+                </div>
+            </div>
+            <div class="admin-actions">
+                <a href="{{ path('admin_order_edit', {'id': commande.id}) }}" class="btn btn-primary">Modifier</a>
+                <a href="{{ path('admin_order_index') }}" class="btn btn-secondary">Retour</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-table-container" style="margin-bottom: 24px;">
+        <div style="font-weight: 600; margin-bottom: 12px;">Produits</div>
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Produit</th>
+                    <th>Quantite</th>
+                    <th>Prix</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for ligne in commande.lignesCommande %}
+                <tr>
+                    <td>{{ ligne.produit.nom }}</td>
+                    <td>{{ ligne.quantite }}</td>
+                    <td>{{ ligne.prix / 100 }} EUR</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if commande.statut != 'cancelled' %}
+        <form action="{{ path('admin_order_cancel', {'id': commande.id}) }}" method="post">
+            <button type="submit" class="btn btn-danger">Annuler la commande</button>
+        </form>
+    {% endif %}
+{% endblock %}

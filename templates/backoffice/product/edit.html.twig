@@ -1,0 +1,53 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Modifier Produit - Admin{% endblock %}
+{% block page_title %}Modifier Produit{% endblock %}
+
+{% block body %}
+    <div class="stat-card">
+        <form method="post">
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;">
+                <div>
+                    <label>Nom</label>
+                    <input type="text" name="nom" value="{{ produit.nom }}" required class="form-control">
+                </div>
+
+                <div>
+                    <label>Prix (en cents)</label>
+                    <input type="number" name="prix" value="{{ produit.prix }}" required class="form-control">
+                </div>
+
+                <div>
+                    <label>Stock</label>
+                    <input type="number" name="stock" value="{{ produit.stock }}" required class="form-control">
+                </div>
+
+                <div>
+                    <label>Description</label>
+                    <input type="text" name="description" value="{{ produit.description }}" required class="form-control">
+                </div>
+
+                <div>
+                    <label>Image (URL)</label>
+                    <input type="text" name="image" value="{{ produit.image }}" required class="form-control">
+                </div>
+
+                <div>
+                    <label>Categorie</label>
+                    <input type="text" name="categorie" value="{{ produit.categorie }}" required class="form-control">
+                </div>
+            </div>
+
+            <div style="margin-top: 16px;">
+                <label>
+                    <input type="checkbox" name="active" {% if produit.active %}checked{% endif %}> Actif
+                </label>
+            </div>
+
+            <div class="admin-actions" style="margin-top: 16px;">
+                <button type="submit" class="btn btn-success">Enregistrer</button>
+                <a href="{{ path('admin_product_index') }}" class="btn btn-secondary">Retour</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

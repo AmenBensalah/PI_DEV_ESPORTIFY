@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="cart-page">
+        <div class="cart-shell single">
+            <div class="pro-card">
+                <h2>Paiement de votre commande</h2>
+
+                <div class="form-section-title">Informations client</div>
+                <div class="info-list">
+                    <div class="info-item">{{ commande.nom }}</div>
+                    <div class="info-item">{{ commande.prenom }}</div>
+                    <div class="info-item">{{ commande.numtel }}</div>
+                    <div class="info-item">{{ commande.quantite }}</div>
+                </div>
+
+                <div class="form-section-title" style="margin-top: 18px;">Informations adresse</div>
+                <div class="info-list">
+                    <div class="info-item">{{ commande.pays }}</div>
+                    <div class="info-item">{{ commande.gouvernerat }}</div>
+                    <div class="info-item">{{ commande.codePostal }}</div>
+                    <div class="info-item">{{ commande.adresse }}</div>
+                    <div class="info-item">{{ commande.adresseDetail }}</div>
+                </div>
+
+                <div class="form-section-title" style="margin-top: 18px;">Recapitulatif</div>
+                <ul class="cart-list">
+                    {% set total = 0 %}
+                    {% for ligne in commande.lignesCommande %}
+                        {% set total = total + (ligne.prix * ligne.quantite) %}
+                        <li class="cart-item">
+                            <span>{{ ligne.produit.nom }} x {{ ligne.quantite }}</span>
+                            <strong>{{ (ligne.prix * ligne.quantite) / 100 }} EUR</strong>
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                <div class="cart-total">Total a payer: {{ total / 100 }} EUR</div>
+
+                <div style="margin-top: 16px;">
+                    <div class="form-section-title">Proceder au paiement</div>
+                    <p style="color: #6b7280; font-size: 13px; margin: 6px 0 12px;">
+                        Cliquez sur le bouton ci-dessous pour finaliser votre paiement.
+                    </p>
+                    <form action="{{ path('front_payment_process', {id: commande.id}) }}" method="post" class="cart-actions">
+                        <button type="submit" class="pro-btn pro-btn-primary">
+                            Payer {{ total / 100 }} EUR
+                        </button>
+                        <a href="{{ path('front_order_cart') }}" class="pro-btn">Retour au panier</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

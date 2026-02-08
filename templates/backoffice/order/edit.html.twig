@@ -1,0 +1,51 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Modifier Commande #{{ commande.id }} - Admin{% endblock %}
+{% block page_title %}Modifier Commande{% endblock %}
+
+{% block body %}
+    <div class="stat-card">
+        <form method="post">
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;">
+                <div>
+                    <label>Nom</label>
+                    <input type="text" name="nom" value="{{ commande.nom ?? '' }}" required class="form-control">
+                </div>
+
+                <div>
+                    <label>Prenom</label>
+                    <input type="text" name="prenom" value="{{ commande.prenom ?? '' }}" required class="form-control">
+                </div>
+
+                <div>
+                    <label>Adresse</label>
+                    <input type="text" name="adresse" value="{{ commande.adresse ?? '' }}" required class="form-control">
+                </div>
+
+                <div>
+                    <label>Quantite</label>
+                    <input type="number" name="quantite" value="{{ commande.quantite ?? 1 }}" min="1" required class="form-control">
+                </div>
+
+                <div>
+                    <label>Num tel</label>
+                    <input type="number" name="numtel" value="{{ commande.numtel ?? '' }}" required class="form-control">
+                </div>
+
+                <div>
+                    <label>Statut</label>
+                    <select name="statut" class="form-control">
+                        {% for s in statuts %}
+                            <option value="{{ s }}" {% if commande.statut == s %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="admin-actions" style="margin-top: 16px;">
+                <button type="submit" class="btn btn-success">Enregistrer</button>
+                <a href="{{ path('admin_order_index') }}" class="btn btn-secondary">Retour</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="cart-page">
+        <h1>Informations de la commande #{{ commande.id }}</h1>
+
+        <div class="cart-shell">
+            <div class="pro-card">
+                <h2>Produits</h2>
+                <ul class="cart-list">
+                    {% for ligne in commande.lignesCommande %}
+                        <li class="cart-item">
+                            <span>{{ ligne.produit.nom }} x {{ ligne.quantite }}</span>
+                            <strong>{{ ligne.prix / 100 }} EUR</strong>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <div class="cart-total">Statut: {{ commande.statut }}</div>
+            </div>
+
+            <div class="pro-card">
+                <h2>Client</h2>
+                <p><strong>Nom:</strong> {{ commande.nom }}</p>
+                <p><strong>Prenom:</strong> {{ commande.prenom }}</p>
+                <p><strong>Telephone:</strong> {{ commande.numtel }}</p>
+                <p><strong>Quantite:</strong> {{ commande.quantite }}</p>
+                <hr>
+                <h2>Adresse</h2>
+                <p><strong>Pays:</strong> {{ commande.pays }}</p>
+                <p><strong>Gouvernerat:</strong> {{ commande.gouvernerat }}</p>
+                <p><strong>Code postal:</strong> {{ commande.codePostal }}</p>
+                <p><strong>Adresse:</strong> {{ commande.adresse }}</p>
+                <p><strong>Adresse exacte:</strong> {{ commande.adresseDetail }}</p>
+
+                <div class="cart-actions">
+                    <a class="pro-link" href="{{ path('front_order_history') }}">Retour a mes commandes</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard{% endblock %}</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-dark: #0f1015;
+            --bg-panel: #1b1e2e;
+            --primary-purple: #9d4edd;
+            --primary-pink: #f72585;
+            --primary-cyan: #4cc9f0;
+            --primary-blue: #4361ee;
+            --text-muted: #8d91a5;
+            --text-secondary: #a7acbf;
+            --radius-lg: 25px;
+            --radius-md: 15px;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #fff;
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+            overflow-x: hidden;
+        }
+
+        .admin-sidebar {
+            width: 280px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: var(--bg-panel);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            padding: 20px 0;
+        }
+
+        .admin-brand {
+            padding: 0 40px;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-nav {
+            padding: 0;
+            flex: 1;
+        }
+
+        .admin-nav-title {
+            padding: 10px 40px;
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        .admin-nav-link {
+            display: flex;
+            align-items: center;
+            padding: 14px 40px;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 15px;
+            border-left: 4px solid transparent;
+            position: relative;
+        }
+
+        .admin-nav-link:hover,
+        .admin-nav-link.active {
+            color: #fff;
+            background: linear-gradient(90deg, rgba(157, 78, 221, 0.12), transparent);
+            border-left-color: var(--primary-purple);
+        }
+
+        .admin-nav-link.active::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary-purple);
+            box-shadow: 0 0 10px var(--primary-purple);
+        }
+
+        .admin-nav-link i {
+            width: 25px;
+            margin-right: 15px;
+            font-size: 18px;
+        }
+
+        .admin-content {
+            margin-left: 280px;
+            padding: 40px;
+            min-height: 100vh;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .admin-header-title {
+            font-family: "Orbitron", sans-serif;
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .stat-card {
+            background: var(--bg-panel);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: none;
+        }
+
+        .card-gradient-purple {
+            background: linear-gradient(135deg, #c77dff 0%, #7b2cbf 100%);
+        }
+
+        .card-gradient-blue {
+            background: linear-gradient(135deg, #4cc9f0 0%, #4361ee 100%);
+        }
+
+        .admin-table-container {
+            background: var(--bg-panel);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            border: none;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .admin-table th {
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 500;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            text-align: left;
+        }
+
+        .admin-table td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            vertical-align: middle;
+        }
+
+        .badge {
+            border-radius: 30px;
+            padding: 5px 15px;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .form-control,
+        input[type="text"],
+        input[type="number"],
+        input[type="email"],
+        input[type="password"],
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.04);
+            color: #fff;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus,
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-purple);
+            box-shadow: 0 0 0 4px rgba(157, 78, 221, 0.25);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            display: inline-block;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 999px;
+            padding: 10px 18px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-blue);
+            color: #fff;
+            box-shadow: 0 10px 20px rgba(67, 97, 238, 0.35);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        .btn-success {
+            background: var(--primary-cyan);
+            color: #06202b;
+        }
+
+        .btn-danger {
+            background: var(--primary-pink);
+            color: #fff;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .mb-3 {
+            margin-bottom: 14px;
+        }
+
+        .admin-link {
+            color: var(--primary-cyan);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .admin-link:hover {
+            text-decoration: underline;
+        }
+
+        .admin-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .flash {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 12px 16px;
+            border-radius: 14px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .flash.success { border-color: rgba(76, 201, 240, 0.5); }
+        .flash.error { border-color: rgba(247, 37, 133, 0.5); }
+
+        @media (max-width: 1000px) {
+            .admin-sidebar {
+                position: static;
+                width: 100%;
+                height: auto;
+                border-radius: 0;
+            }
+
+            .admin-content {
+                margin-left: 0;
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<aside class="admin-sidebar">
+    <div class="admin-brand">
+        <img src="{{ asset('images/logo3.png') }}" alt="Logo" style="height: 40px; width: 40px; border-radius: 8px;">
+        <div>
+            <div style="font-size: 18px; font-weight: 800; background: linear-gradient(45deg, var(--primary-blue), #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">E-SPORTIFY</div>
+            <div style="font-size: 10px; color: var(--text-secondary); letter-spacing: 2px;">ADMIN PANEL</div>
+        </div>
+    </div>
+
+    <nav class="admin-nav">
+        <div class="admin-nav-title">Menu</div>
+        <a href="{{ path('admin_dashboard') }}" class="admin-nav-link {% if app.request.attributes.get('_route') == 'admin_dashboard' %}active{% endif %}">
+            <i class="fas fa-chart-line"></i> Dashboard
+        </a>
+        <a href="{{ path('admin_order_index') }}" class="admin-nav-link {% if app.request.attributes.get('_route') starts with 'admin_order' %}active{% endif %}">
+            <i class="fas fa-receipt"></i> Commandes
+        </a>
+        <a href="{{ path('admin_product_index') }}" class="admin-nav-link {% if app.request.attributes.get('_route') starts with 'admin_product' %}active{% endif %}">
+            <i class="fas fa-shopping-bag"></i> Produits
+        </a>
+        <a href="{{ path('admin_payment_index') }}" class="admin-nav-link {% if app.request.attributes.get('_route') starts with 'admin_payment' %}active{% endif %}">
+            <i class="fas fa-credit-card"></i> Paiements
+        </a>
+    </nav>
+
+    <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.05);">
+        <a href="{{ path('front_product_list') }}" style="display: block; color: var(--text-secondary); text-decoration: none; margin-bottom: 15px; font-size: 14px;">
+            <i class="fas fa-globe" style="margin-right: 10px;"></i> Voir le Site
+        </a>
+        <a href="{{ path('app_logout') }}" style="display: block; color: var(--primary-pink); text-decoration: none; font-size: 14px; font-weight: 600;">
+            <i class="fas fa-sign-out-alt" style="margin-right: 10px;"></i> Deconnexion
+        </a>
+    </div>
+</aside>
+
+<main class="admin-content">
+    <header class="admin-header">
+        <h1 class="admin-header-title">{% block page_title %}Dashboard{% endblock %}</h1>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary-blue); display: flex; align-items: center; justify-content: center; font-weight: bold;">AD</div>
+                <span style="font-weight: 600;">Admin User</span>
+            </div>
+        </div>
+    </header>
+
+    {% for type, messages in app.flashes %}
+        <div class="flash {{ type }}">
+            {% for message in messages %}
+                <div>{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+
+    {% block body %}{% endblock %}
+</main>
+
+<script>
+    const initAdminTable = (tableKey) => {
+        const input = document.querySelector(`[data-search-input="${tableKey}"]`);
+        const select = document.querySelector(`[data-sort-select="${tableKey}"]`);
+        const table = document.querySelector(`table[data-table="${tableKey}"]`);
+        if (!table) return;
+
+        const getRows = () => Array.from(table.querySelectorAll('tbody tr[data-search]'));
+
+        const applyFilter = () => {
+            const q = (input?.value || '').trim().toLowerCase();
+            getRows().forEach((row) => {
+                const hay = (row.getAttribute('data-search') || '').toLowerCase();
+                row.style.display = hay.includes(q) ? '' : 'none';
+            });
+        };
+
+        const applySort = () => {
+            const value = select?.value || '';
+            if (!value) return;
+            const [key, dir] = value.split(':');
+            const rows = getRows();
+            rows.sort((a, b) => {
+                const av = a.getAttribute(`data-${key}`) || '';
+                const bv = b.getAttribute(`data-${key}`) || '';
+                const an = parseFloat(av);
+                const bn = parseFloat(bv);
+                const isNum = !Number.isNaN(an) && !Number.isNaN(bn);
+                let cmp = 0;
+                if (isNum) {
+                    cmp = an - bn;
+                } else {
+                    cmp = av.localeCompare(bv, 'fr', { numeric: true, sensitivity: 'base' });
+                }
+                return dir === 'desc' ? -cmp : cmp;
+            });
+            const tbody = table.querySelector('tbody');
+            rows.forEach((r) => tbody.appendChild(r));
+        };
+
+        input?.addEventListener('input', () => {
+            applyFilter();
+        });
+        select?.addEventListener('change', () => {
+            applySort();
+        });
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        ['orders', 'products', 'payments'].forEach(initAdminTable);
+    });
+</script>
+</body>
+</html>

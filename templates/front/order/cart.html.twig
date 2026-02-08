@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="cart-page">
+        
+
+        {% if commande and commande.lignesCommande|length > 0 %}
+            <div class="cart-shell single">
+                <div class="pro-card">
+                    <h2>Informations client</h2>
+                    <form action="{{ path('front_order_step1') }}" method="post">
+                        <div class="form-rows">
+                            <div class="form-row">
+                                <label class="pro-label" for="nom">Nom</label>
+                                <input id="nom" name="nom" class="pro-input" value="{{ commande.nom ?? '' }}" placeholder="Nom">
+                            </div>
+
+                            <div class="form-row">
+                                <label class="pro-label" for="prenom">Prenom</label>
+                                <input id="prenom" name="prenom" class="pro-input" value="{{ commande.prenom ?? '' }}" placeholder="Prenom">
+                            </div>
+
+                            <div class="form-row">
+                                <label class="pro-label" for="quantite">Quantite totale</label>
+                                <input id="quantite" name="quantite" class="pro-input" value="{{ commande.quantite ?? total_quantite }}" placeholder="Quantite totale">
+                            </div>
+
+                            <div class="form-row">
+                                <label class="pro-label" for="numtel">Telephone</label>
+                                <input id="numtel" name="numtel" class="pro-input" value="{{ commande.numtel ?? '' }}" placeholder="Telephone">
+                            </div>
+                        </div>
+
+                        <div class="cart-actions">
+                            <button type="submit" class="pro-btn pro-btn-primary">Continuer</button>
+                        </div>
+                    </form>
+
+                    <div class="cart-actions space">
+                        <form action="{{ path('front_order_cancel') }}" method="post" class="cart-actions" style="margin: 0;">
+                            <button type="submit" class="pro-btn pro-btn-danger">Supprimer la commande</button>
+                        </form>
+                        <div class="cart-actions">
+                            <a class="pro-link" href="{{ path('front_product_list') }}">Retour a la boutique</a>
+                            <a class="pro-link" href="{{ path('front_order_cart_details') }}">Voir panier</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="pro-card">
+                <p>Votre panier est vide.</p>
+                <a class="pro-link" href="{{ path('front_product_list') }}">Retour a la boutique</a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

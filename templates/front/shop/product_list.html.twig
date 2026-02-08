@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Boutique</h1>
+    <div class="product-list">
+        {% for produit in produits %}
+            <div class="product-card" style="border: 1px solid #ccc; padding: 10px; margin: 10px;">
+                <h3>{{ produit.nom }}</h3>
+                <p>Prix: {{ produit.prix / 100 }} €</p>
+                <form action="{{ path('front_order_add_product', {'id': produit.id}) }}" method="post">
+                    <input type="number" name="quantite" value="1" min="1" style="width: 50px;">
+                    <button type="submit">Ajouter au panier</button>
+                </form>
+            </div>
+        {% else %}
+            <p>Aucun produit disponible.</p>
+        {% endfor %}
+    </div>
+    
+    <div class="cart-actions">
+        <a class="pro-link" href="{{ path('front_order_history') }}">Mes commandes</a>
+    </div>
+{% endblock %}

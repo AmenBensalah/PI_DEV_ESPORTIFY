@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1>Resultat du Paiement</h1>
+
+        {% if success and payment %}
+            <div class="alert alert-success">
+                <h4>Paiement accepte.</h4>
+                <p>Votre commande #{{ payment.commande.id }} est validee.</p>
+                <p>Montant paye: <strong>{{ payment.amount }} EUR</strong></p>
+            </div>
+        {% else %}
+            <div class="alert alert-danger">
+                <h4>Erreur lors du paiement</h4>
+                <p>{{ error|default('Une erreur est survenue lors du traitement de votre paiement.') }}</p>
+            </div>
+        {% endif %}
+
+        <a href="{{ path('front_product_list') }}" class="pro-btn pro-btn-primary">Retour a la boutique</a>
+    </div>
+{% endblock %}

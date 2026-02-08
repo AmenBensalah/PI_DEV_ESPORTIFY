@@ -1,0 +1,124 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Commandes - Admin{% endblock %}
+{% block page_title %}Commandes{% endblock %}
+
+{% block body %}
+    <div class="stat-card" style="margin-bottom: 24px;">
+        <div class="admin-actions" style="gap: 12px;">
+            <div style="flex: 1; min-width: 220px;">
+                <label>Recherche rapide</label>
+                <input class="form-control" placeholder="id, nom, prenom, statut..." data-search-input="orders">
+            </div>
+            <div style="min-width: 200px;">
+                <label>Trier par</label>
+                <select class="form-control" data-sort-select="orders">
+                    <option value="">Aucun</option>
+                    <option value="id:desc">Id (desc)</option>
+                    <option value="id:asc">Id (asc)</option>
+                    <option value="nom:asc">Nom (A-Z)</option>
+                    <option value="nom:desc">Nom (Z-A)</option>
+                    <option value="prenom:asc">Prenom (A-Z)</option>
+                    <option value="prenom:desc">Prenom (Z-A)</option>
+                    <option value="statut:asc">Statut (A-Z)</option>
+                    <option value="statut:desc">Statut (Z-A)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    {% if commande_counts is not empty %}
+        <div class="stat-card" style="margin-bottom: 24px;">
+            <div style="font-weight: 600; margin-bottom: 12px;">Nombre de commandes par statut</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px;">
+                {% for statut, total in commande_counts %}
+                    <div style="background: rgba(255,255,255,0.04); border-radius: 14px; padding: 16px; border: 1px solid rgba(255,255,255,0.06);">
+                        <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px;">{{ statut }}</div>
+                        <div style="font-size: 28px; font-weight: 700; margin-top: 6px;">{{ total }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    {% if commandes_recherchees is not empty %}
+        <div class="admin-table-container" style="margin-bottom: 24px;">
+            <div style="font-weight: 600; margin-bottom: 12px;">Resultat de recherche</div>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Nom</th>
+                        <th>Prenom</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for commande in commandes_recherchees %}
+                    <tr>
+                        <td>{{ commande.id }}</td>
+                        <td>{{ commande.nom }}</td>
+                        <td>{{ commande.prenom }}</td>
+                        <td><span class="badge">{{ commande.statut }}</span></td>
+                    <td class="admin-actions">
+                        <a class="admin-link" href="{{ path('admin_order_show', {'id': commande.id}) }}">Voir</a>
+                        <a class="admin-link" href="{{ path('admin_order_edit', {'id': commande.id}) }}">Modifier</a>
+                        {% if commande.statut == 'cancelled' %}
+                            <form action="{{ path('admin_order_delete', {'id': commande.id}) }}" method="post" style="display: inline;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete_order' ~ commande.id) }}">
+                                <button type="submit" class="btn btn-danger" style="padding: 6px 12px;">Supprimer</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    <div class="admin-table-container">
+        <table class="admin-table" data-table="orders">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Nom</th>
+                    <th>Prenom</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for commande in commandes %}
+                <tr
+                    data-search="{{ commande.id }} {{ commande.nom }} {{ commande.prenom }} {{ commande.statut }}"
+                    data-id="{{ commande.id }}"
+                    data-nom="{{ commande.nom }}"
+                    data-prenom="{{ commande.prenom }}"
+                    data-statut="{{ commande.statut }}"
+                >
+                    <td>{{ commande.id }}</td>
+                    <td>{{ commande.nom }}</td>
+                    <td>{{ commande.prenom }}</td>
+                    <td><span class="badge">{{ commande.statut }}</span></td>
+                    <td class="admin-actions">
+                        <a class="admin-link" href="{{ path('admin_order_show', {'id': commande.id}) }}">Voir</a>
+                        <a class="admin-link" href="{{ path('admin_order_edit', {'id': commande.id}) }}">Modifier</a>
+                        {% if commande.statut == 'cancelled' %}
+                            <form action="{{ path('admin_order_delete', {'id': commande.id}) }}" method="post" style="display: inline;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete_order' ~ commande.id) }}">
+                                <button type="submit" class="btn btn-danger" style="padding: 6px 12px;">Supprimer</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5">Aucune commande</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
