@@ -7,14 +7,16 @@ use App\Form\PostType;
 use App\Repository\PostRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/admin/posts')]
+#[Route('/fil/admin/posts')]
 class AdminPostController extends AbstractController
 {
-    #[Route('/', name: 'admin_post_index')]
+    #[Route('/', name: 'fil_admin_post_index')]
     public function index(PostRepository $postRepository): Response
     {
         return $this->render('admin/post/index.html.twig', [
@@ -22,7 +24,7 @@ class AdminPostController extends AbstractController
         ]);
     }
 
-    #[Route('/new', name: 'admin_post_new')]
+    #[Route('/new', name: 'fil_admin_post_new')]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $post = new Post();
@@ -37,10 +39,34 @@ class AdminPostController extends AbstractController
                 $post->setMediaType('text');
             }
 
+            /** @var UploadedFile|null $uploadedFile */
+            $uploadedFile = $form->get('mediaFile')->getData();
+            if ($uploadedFile) {
+                $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+
+                $extension = $uploadedFile->guessExtension() ?: $uploadedFile->getClientOriginalExtension();
+                $filename = bin2hex(random_bytes(12)) . ($extension ? '.' . $extension : '');
+
+                try {
+                    $uploadedFile->move($uploadDir, $filename);
+                    $post->setMediaFilename($filename);
+
+                    if (in_array($post->getMediaType(), ['text', 'link'], true)) {
+                        $mimeType = $uploadedFile->getMimeType() ?? '';
+                        $post->setMediaType(str_starts_with($mimeType, 'video/') ? 'video' : 'image');
+                    }
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'Impossible d\'uploader le fichier.');
+                }
+            }
+
             $entityManager->persist($post);
             $entityManager->flush();
 
-            return $this->redirectToRoute('admin_post_index');
+            return $this->redirectToRoute('fil_admin_post_index');
         }
 
         return $this->render('admin/post/new.html.twig', [
@@ -48,16 +74,40 @@ class AdminPostController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'admin_post_edit')]
+    #[Route('/{id}/edit', name: 'fil_admin_post_edit')]
     public function edit(Post $post, Request $request, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(PostType::class, $post);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            /** @var UploadedFile|null $uploadedFile */
+            $uploadedFile = $form->get('mediaFile')->getData();
+            if ($uploadedFile) {
+                $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+
+                $extension = $uploadedFile->guessExtension() ?: $uploadedFile->getClientOriginalExtension();
+                $filename = bin2hex(random_bytes(12)) . ($extension ? '.' . $extension : '');
+
+                try {
+                    $uploadedFile->move($uploadDir, $filename);
+                    $post->setMediaFilename($filename);
+
+                    if (in_array($post->getMediaType(), ['text', 'link'], true)) {
+                        $mimeType = $uploadedFile->getMimeType() ?? '';
+                        $post->setMediaType(str_starts_with($mimeType, 'video/') ? 'video' : 'image');
+                    }
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'Impossible d\'uploader le fichier.');
+                }
+            }
+
             $entityManager->flush();
 
-            return $this->redirectToRoute('admin_post_index');
+            return $this->redirectToRoute('fil_admin_post_index');
         }
 
         return $this->render('admin/post/edit.html.twig', [
@@ -66,7 +116,7 @@ class AdminPostController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/delete', name: 'admin_post_delete', methods: ['POST'])]
+    #[Route('/{id}/delete', name: 'fil_admin_post_delete', methods: ['POST'])]
     public function delete(Post $post, Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete_post_' . $post->getId(), $request->request->get('_token'))) {
@@ -74,6 +124,6 @@ class AdminPostController extends AbstractController
             $entityManager->flush();
         }
 
-        return $this->redirectToRoute('admin_post_index');
+        return $this->redirectToRoute('fil_admin_post_index');
     }
 }

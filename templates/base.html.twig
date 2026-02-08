@@ -116,5 +116,277 @@
 </div>
 
 <script src="{{ asset('js/app.js') }}"></script>
+<script>
+(() => {
+    const setup = (root) => {
+        const contentInput = root.querySelector('[data-content]');
+        const mediaTypeInput = root.querySelector('[data-media-type]');
+        const mediaFilenameInput = root.querySelector('[data-media-filename]');
+        const mediaFileInput = root.querySelector('[data-media-file]');
+        const mediaPreview = root.querySelector('[data-media-preview]');
+        const buttons = root.querySelectorAll('[data-media-button]');
+
+        if (!contentInput || !mediaTypeInput || !mediaFilenameInput) {
+            return;
+        }
+
+        const urlRegex = /(https?:\/\/[^\s]+)/i;
+        const setMediaType = (type) => { mediaTypeInput.value = type; };
+
+        const clearMedia = () => {
+            if (mediaTypeInput) {
+                mediaTypeInput.value = '';
+            }
+            if (mediaFilenameInput) {
+                mediaFilenameInput.value = '';
+            }
+            if (mediaFileInput) {
+                mediaFileInput.value = '';
+            }
+            if (mediaPreview) {
+                mediaPreview.style.display = 'none';
+                mediaPreview.innerHTML = '';
+            }
+        };
+
+        const setPreview = (file) => {
+            if (!mediaPreview) {
+                return;
+            }
+            if (!file) {
+                mediaPreview.style.display = 'none';
+                mediaPreview.innerHTML = '';
+                return;
+            }
+            const mime = file.type || '';
+            const url = URL.createObjectURL(file);
+            if (mime.startsWith('video/')) {
+                mediaPreview.innerHTML = `<video controls src="${url}"></video>`;
+            } else if (mime.startsWith('image/')) {
+                mediaPreview.innerHTML = `<img src="${url}" alt="aperçu">`;
+            } else {
+                mediaPreview.innerHTML = '';
+            }
+            if (mediaPreview.innerHTML) {
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'media-remove-btn';
+                removeBtn.textContent = 'Retirer';
+                removeBtn.addEventListener('click', clearMedia);
+                mediaPreview.appendChild(removeBtn);
+            }
+            mediaPreview.style.display = 'block';
+        };
+
+        const detectLink = () => {
+            if (mediaFileInput && mediaFileInput.files && mediaFileInput.files.length > 0) {
+                return;
+            }
+            const match = contentInput.value.match(urlRegex);
+            if (match) {
+                setMediaType('link');
+                mediaFilenameInput.value = match[1];
+            }
+        };
+
+        contentInput.addEventListener('input', detectLink);
+        detectLink();
+
+        buttons.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const type = btn.getAttribute('data-media-button');
+                if (type === 'link') {
+                    setMediaType('link');
+                    detectLink();
+                    contentInput.focus();
+                    return;
+                }
+                setMediaType(type);
+                if (mediaFileInput) {
+                    mediaFileInput.click();
+                }
+            });
+        });
+
+        if (mediaFileInput) {
+            mediaFileInput.addEventListener('change', () => {
+                if (mediaFileInput.files && mediaFileInput.files.length > 0) {
+                    const file = mediaFileInput.files[0];
+                    const mime = file.type || '';
+                    setMediaType(mime.startsWith('video/') ? 'video' : 'image');
+                    mediaFilenameInput.value = '';
+                    setPreview(file);
+                } else {
+                    setPreview(null);
+                }
+            });
+        }
+    };
+
+    document.querySelectorAll('[data-composer-front]').forEach(setup);
+
+    const formatNow = () => {
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    };
+
+    const buildPostCard = ({ content, mediaType, mediaUrl, mediaFilename, createdAt }) => {
+        const article = document.createElement('article');
+        article.className = 'glass-card post-card';
+
+        const header = document.createElement('div');
+        header.className = 'post-header';
+        header.innerHTML = `
+            <div class="avatar">U</div>
+            <div class="post-meta">
+                <div class="post-author">Vous</div>
+                <div class="post-time">${createdAt || formatNow()}</div>
+            </div>
+        `;
+        article.appendChild(header);
+
+        if (content) {
+            const contentEl = document.createElement('div');
+            contentEl.className = 'post-content';
+            contentEl.textContent = content;
+            article.appendChild(contentEl);
+        }
+
+        const linkLabel = mediaFilename || mediaUrl;
+        if (mediaType && (mediaUrl || linkLabel)) {
+            const mediaWrap = document.createElement('div');
+            mediaWrap.className = 'post-media';
+            if (mediaType === 'video') {
+                mediaWrap.innerHTML = `<video controls><source src="${mediaUrl}"></video>`;
+            } else if (mediaType === 'image') {
+                mediaWrap.innerHTML = `<img src="${mediaUrl}" alt="media">`;
+            } else if (mediaType === 'link') {
+                mediaWrap.innerHTML = `<div class="media-placeholder">${linkLabel || ''}</div>`;
+            }
+            article.appendChild(mediaWrap);
+        }
+
+        const actions = document.createElement('div');
+        actions.className = 'post-actions';
+        actions.innerHTML = `
+            <div class="reaction-row">
+                <button class="reaction-pill" type="button"><i class="fa-regular fa-heart"></i> J'aime</button>
+                <button class="reaction-pill" type="button"><i class="fa-regular fa-comment"></i> Commenter</button>
+                <button class="reaction-pill" type="button"><i class="fa-solid fa-share"></i> Partager</button>
+            </div>
+            <div class="reaction-row">
+                <button class="reaction-pill" type="button"><i class="fa-regular fa-bookmark"></i> Sauvegarder</button>
+            </div>
+        `;
+        article.appendChild(actions);
+
+        const commentBox = document.createElement('div');
+        commentBox.className = 'comment-box';
+        commentBox.innerHTML = `
+            <input class="comment-input" placeholder="Ajouter un commentaire..." />
+            <button class="comment-send" type="button">Envoyer</button>
+        `;
+        article.appendChild(commentBox);
+
+        return article;
+    };
+
+    document.querySelectorAll('[data-publish-button]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+            const composer = btn.closest('[data-composer-front]');
+            const list = document.getElementById('post-list');
+            if (!composer || !list) {
+                return;
+            }
+
+            const postUrl = composer.getAttribute('data-post-url');
+            const csrfToken = composer.getAttribute('data-csrf-token') || '';
+            const contentInput = composer.querySelector('[data-content]');
+            const mediaTypeInput = composer.querySelector('[data-media-type]');
+            const mediaFilenameInput = composer.querySelector('[data-media-filename]');
+            const mediaFileInput = composer.querySelector('[data-media-file]');
+            const mediaPreview = composer.querySelector('[data-media-preview]');
+
+            const content = contentInput ? contentInput.value.trim() : '';
+            let mediaType = mediaTypeInput ? mediaTypeInput.value : '';
+            let mediaUrl = mediaFilenameInput ? mediaFilenameInput.value : '';
+
+            if (mediaFileInput && mediaFileInput.files && mediaFileInput.files.length > 0) {
+                const file = mediaFileInput.files[0];
+                mediaType = (file.type || '').startsWith('video/') ? 'video' : 'image';
+                mediaUrl = URL.createObjectURL(file);
+            }
+
+            if (!content && !mediaUrl) {
+                return;
+            }
+
+            if (!postUrl) {
+                return;
+            }
+
+            const payload = new FormData();
+            payload.append('_token', csrfToken);
+            payload.append('content', content);
+            payload.append('mediaType', mediaType || 'text');
+            if (mediaFilenameInput && mediaFilenameInput.value) {
+                payload.append('mediaFilename', mediaFilenameInput.value);
+            }
+            if (mediaFileInput && mediaFileInput.files && mediaFileInput.files.length > 0) {
+                payload.append('mediaFile', mediaFileInput.files[0]);
+            }
+
+            btn.disabled = true;
+            try {
+                const response = await fetch(postUrl, {
+                    method: 'POST',
+                    body: payload,
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    console.error(data.error || 'Erreur lors de la publication.');
+                    btn.disabled = false;
+                    return;
+                }
+
+                const card = buildPostCard({
+                    content: data.content,
+                    mediaType: data.mediaType,
+                    mediaUrl: data.mediaUrl,
+                    mediaFilename: data.mediaFilename,
+                    createdAt: data.createdAt,
+                });
+                const empty = document.getElementById('post-empty');
+                if (empty) {
+                    empty.remove();
+                }
+                list.prepend(card);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+            }
+
+            if (contentInput) {
+                contentInput.value = '';
+            }
+            if (mediaTypeInput) {
+                mediaTypeInput.value = '';
+            }
+            if (mediaFilenameInput) {
+                mediaFilenameInput.value = '';
+            }
+            if (mediaFileInput) {
+                mediaFileInput.value = '';
+            }
+            if (mediaPreview) {
+                mediaPreview.style.display = 'none';
+                mediaPreview.innerHTML = '';
+            }
+        });
+    });
+})();
+</script>
 </body>
 </html>

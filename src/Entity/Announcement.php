@@ -27,6 +27,12 @@ class Announcement
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $link = null;
 
+    #[ORM\Column(length: 255)]
+    private string $mediaType = 'text';
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $mediaFilename = null;
+
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
@@ -79,6 +85,30 @@ class Announcement
     public function setLink(?string $link): static
     {
         $this->link = $link;
+
+        return $this;
+    }
+
+    public function getMediaType(): string
+    {
+        return $this->mediaType;
+    }
+
+    public function setMediaType(string $mediaType): static
+    {
+        $this->mediaType = $mediaType;
+
+        return $this;
+    }
+
+    public function getMediaFilename(): ?string
+    {
+        return $this->mediaFilename;
+    }
+
+    public function setMediaFilename(?string $mediaFilename): static
+    {
+        $this->mediaFilename = $mediaFilename;
 
         return $this;
     }

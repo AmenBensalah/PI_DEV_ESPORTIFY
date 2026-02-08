@@ -10,7 +10,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class AdminDashboardController extends AbstractController
 {
-    #[Route('/admin', name: 'admin_dashboard')]
+    #[Route('/fil/admin', name: 'fil_admin_dashboard')]
     public function index(PostRepository $postRepository, AnnouncementRepository $announcementRepository): Response
     {
         return $this->render('admin/dashboard.html.twig', [

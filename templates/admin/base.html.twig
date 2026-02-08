@@ -16,22 +16,228 @@
 <body>
 <div class="background"></div>
 
-<header class="admin-topbar">
-    <div class="admin-brand">
-        <span class="brand">E-SPORTIFY</span>
-        <span class="admin-chip">ADMIN</span>
-    </div>
-    <nav class="admin-nav">
-        <a href="{{ path('admin_dashboard') }}" class="admin-link">Dashboard</a>
-        <a href="{{ path('admin_post_index') }}" class="admin-link">Publications</a>
-        <a href="{{ path('admin_announcement_index') }}" class="admin-link">Annonces</a>
-        <a href="{{ path('home') }}" class="admin-link">Retour site</a>
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+    <button id="sidebar-toggle" class="sidebar-toggle" title="Ouvrir / Fermer" aria-label="Ouvrir / Fermer">
+        <i class="fa-solid fa-bars"></i>
+        <span class="link-text">Menu</span>
+    </button>
+    <nav class="sidebar-nav">
+        <a href="{{ path('fil_admin_post_index') }}"
+           class="sidebar-link {{ app.request.attributes.get('_route') starts with 'fil_admin_post' ? 'active' : '' }}">
+            <i class="fa-solid fa-newspaper"></i>
+            <span class="link-text">Gestion fil d'actualité</span>
+        </a>
+
+        <a href="{{ path('fil_admin_announcement_index') }}"
+           class="sidebar-link {{ app.request.attributes.get('_route') starts with 'fil_admin_announcement' ? 'active' : '' }}">
+            <i class="fa-solid fa-bullhorn"></i>
+            <span class="link-text">Gestion annonces</span>
+        </a>
+
+        <a href="#"
+           class="sidebar-link">
+            <i class="fa-solid fa-users"></i>
+            <span class="link-text">Gestion équipes</span>
+        </a>
+
+        <a href="#"
+           class="sidebar-link">
+            <i class="fa-solid fa-user-gear"></i>
+            <span class="link-text">Gestion comptes</span>
+        </a>
+
+        <a href="#"
+           class="sidebar-link">
+            <i class="fa-solid fa-store"></i>
+            <span class="link-text">Gestion boutique</span>
+        </a>
+
+        <a href="#"
+           class="sidebar-link">
+            <i class="fa-solid fa-trophy"></i>
+            <span class="link-text">Gestion tournoi</span>
+        </a>
     </nav>
-</header>
 
-<main class="admin-container">
-    {% block admin_body %}{% endblock %}
-</main>
+    <div class="sidebar-footer">
+        <button id="theme-toggle" class="theme-toggle-btn" title="Changer le thème" aria-label="Changer le thème">
+            <svg id="theme-icon" viewBox="0 0 24 24" class="icon">
+                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+            </svg>
+        </button>
+    </div>
+</aside>
 
+<!-- MAIN WRAPPER -->
+<div class="main-wrapper">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <img src="{{ asset('images/logo-esportify.png') }}" class="logo" alt="E-sportify">
+            <span class="brand">E-SPORTIFY</span>
+        </div>
+
+        <div class="topbar-center">
+            <input type="text" placeholder="Rechercher joueurs, équipes, tournois..." class="search-input">
+        </div>
+
+        <div class="topbar-right">
+            <a class="admin-link-btn topbar-action" href="{{ path('fil_admin_dashboard') }}">Dashboard</a>
+            <a class="admin-link-btn topbar-action" href="{{ path('fil_home') }}">Retour site</a>
+        </div>
+
+        <div class="topbar-dragon">
+            <img src="{{ asset('images/dragon.png') }}" alt="Dragon" class="dragon-bottom-right">
+        </div>
+    </header>
+
+    <!-- CONTENT -->
+    <main class="content">
+        <div class="admin-container">
+            {% block admin_body %}{% endblock %}
+        </div>
+    </main>
+
+</div>
+
+<script src="{{ asset('js/app.js') }}"></script>
+<script>
+(() => {
+    const init = (setupFn) => {
+        document.querySelectorAll('form[data-composer]').forEach(setupFn);
+    };
+
+    if (window.setupAdminComposer) {
+        init(window.setupAdminComposer);
+        return;
+    }
+
+    const fallbackSetup = (form) => {
+        const contentInput = form.querySelector('[data-content]');
+        const mediaTypeInput = form.querySelector('[data-media-type]');
+        const mediaFilenameInput = form.querySelector('[data-media-filename]');
+        const linkInput = form.querySelector('[data-link]');
+        const mediaFileInput = form.querySelector('[data-media-file]');
+        const mediaPreview = form.querySelector('[data-media-preview]');
+        const buttons = form.querySelectorAll('[data-media-button]');
+
+        if (!contentInput || !mediaTypeInput || !mediaFilenameInput) {
+            return;
+        }
+
+        const urlRegex = /(https?:\/\/[^\s]+)/i;
+        const setMediaType = (type) => { mediaTypeInput.value = type; };
+
+        const clearMedia = () => {
+            if (mediaTypeInput) {
+                mediaTypeInput.value = '';
+            }
+            if (mediaFilenameInput) {
+                mediaFilenameInput.value = '';
+            }
+            if (mediaFileInput) {
+                mediaFileInput.value = '';
+            }
+            if (mediaPreview) {
+                mediaPreview.style.display = 'none';
+                mediaPreview.innerHTML = '';
+            }
+        };
+
+        const setPreview = (file) => {
+            if (!mediaPreview) {
+                return;
+            }
+
+            if (!file) {
+                mediaPreview.style.display = 'none';
+                mediaPreview.innerHTML = '';
+                return;
+            }
+
+            const mime = file.type || '';
+            const url = URL.createObjectURL(file);
+
+            if (mime.startsWith('video/')) {
+                mediaPreview.innerHTML = `<video controls src="${url}"></video>`;
+            } else if (mime.startsWith('image/')) {
+                mediaPreview.innerHTML = `<img src="${url}" alt="aperçu">`;
+            } else {
+                mediaPreview.innerHTML = '';
+            }
+
+            if (mediaPreview.innerHTML) {
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'media-remove-btn';
+                removeBtn.textContent = 'Retirer';
+                removeBtn.addEventListener('click', clearMedia);
+                mediaPreview.appendChild(removeBtn);
+            }
+
+            mediaPreview.style.display = 'block';
+        };
+
+        const detectLink = () => {
+            if (mediaFileInput && mediaFileInput.files && mediaFileInput.files.length > 0) {
+                return;
+            }
+            const match = contentInput.value.match(urlRegex);
+            if (match) {
+                setMediaType('link');
+                mediaFilenameInput.value = match[1];
+                if (linkInput) {
+                    linkInput.value = match[1];
+                }
+            }
+        };
+
+        contentInput.addEventListener('input', detectLink);
+        detectLink();
+
+        buttons.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const type = btn.getAttribute('data-media-button');
+                if (type === 'link') {
+                    setMediaType('link');
+                    detectLink();
+                    contentInput.focus();
+                    return;
+                }
+                setMediaType(type);
+                if (mediaFileInput) {
+                    mediaFileInput.click();
+                }
+            });
+        });
+
+        if (mediaFileInput) {
+            mediaFileInput.addEventListener('change', () => {
+                if (mediaFileInput.files && mediaFileInput.files.length > 0) {
+                    const file = mediaFileInput.files[0];
+                    const mime = file.type || '';
+                    setMediaType(mime.startsWith('video/') ? 'video' : 'image');
+                    mediaFilenameInput.value = '';
+                    setPreview(file);
+                } else {
+                    setPreview(null);
+                }
+            });
+        }
+
+        if (mediaPreview && mediaPreview.innerHTML.trim() !== '') {
+            mediaPreview.style.display = 'block';
+            const existingRemove = mediaPreview.querySelector('.media-remove-btn');
+            if (existingRemove) {
+                existingRemove.addEventListener('click', clearMedia);
+            }
+        }
+    };
+
+    init(fallbackSetup);
+})();
+</script>
 </body>
 </html>

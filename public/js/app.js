@@ -50,3 +50,136 @@ if (sidebar && sidebarToggle) {
 // ────────────────────────────────────────────────
 // Animation curseur sidebar (hover = expand)
 // ────────────────────────────────────────────────
+
+// --------------------------------------------------
+// Admin composer (posts/annonces)
+// --------------------------------------------------
+function setupAdminComposer(form) {
+    const contentInput = form.querySelector('[data-content]');
+    const mediaTypeInput = form.querySelector('[data-media-type]');
+    const mediaFilenameInput = form.querySelector('[data-media-filename]');
+    const linkInput = form.querySelector('[data-link]');
+    const mediaFileInput = form.querySelector('[data-media-file]');
+    const mediaPreview = form.querySelector('[data-media-preview]');
+    const buttons = form.querySelectorAll('[data-media-button]');
+
+    if (!contentInput || !mediaTypeInput || !mediaFilenameInput) {
+        return;
+    }
+
+    const urlRegex = /(https?:\/\/[^\s]+)/i;
+
+    const setMediaType = (type) => {
+        mediaTypeInput.value = type;
+    };
+
+    const clearMedia = () => {
+        if (mediaTypeInput) {
+            mediaTypeInput.value = '';
+        }
+        if (mediaFilenameInput) {
+            mediaFilenameInput.value = '';
+        }
+        if (mediaFileInput) {
+            mediaFileInput.value = '';
+        }
+        if (mediaPreview) {
+            mediaPreview.style.display = 'none';
+            mediaPreview.innerHTML = '';
+        }
+    };
+
+    const setPreview = (file) => {
+        if (!mediaPreview) {
+            return;
+        }
+
+        if (!file) {
+            mediaPreview.style.display = 'none';
+            mediaPreview.innerHTML = '';
+            return;
+        }
+
+        const mime = file.type || '';
+        const url = URL.createObjectURL(file);
+
+        if (mime.startsWith('video/')) {
+            mediaPreview.innerHTML = `<video controls src="${url}"></video>`;
+        } else if (mime.startsWith('image/')) {
+            mediaPreview.innerHTML = `<img src="${url}" alt="aperçu">`;
+        } else {
+            mediaPreview.innerHTML = '';
+        }
+
+        if (mediaPreview.innerHTML) {
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'media-remove-btn';
+            removeBtn.textContent = 'Retirer';
+            removeBtn.addEventListener('click', clearMedia);
+            mediaPreview.appendChild(removeBtn);
+        }
+
+        mediaPreview.style.display = 'block';
+    };
+
+    const detectLink = () => {
+        if (mediaFileInput && mediaFileInput.files && mediaFileInput.files.length > 0) {
+            return;
+        }
+        const match = contentInput.value.match(urlRegex);
+        if (match) {
+            setMediaType('link');
+            mediaFilenameInput.value = match[1];
+            if (linkInput) {
+                linkInput.value = match[1];
+            }
+        }
+    };
+
+    contentInput.addEventListener('input', detectLink);
+    detectLink();
+
+    buttons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const type = btn.getAttribute('data-media-button');
+            if (type === 'link') {
+                setMediaType('link');
+                detectLink();
+                contentInput.focus();
+                return;
+            }
+
+            setMediaType(type);
+            if (mediaFileInput) {
+                mediaFileInput.click();
+            }
+        });
+    });
+
+    if (mediaFileInput) {
+        mediaFileInput.addEventListener('change', () => {
+            if (mediaFileInput.files && mediaFileInput.files.length > 0) {
+                const file = mediaFileInput.files[0];
+                const mime = file.type || '';
+                setMediaType(mime.startsWith('video/') ? 'video' : 'image');
+                mediaFilenameInput.value = '';
+                setPreview(file);
+            } else {
+                setPreview(null);
+            }
+        });
+    }
+
+    if (mediaPreview && mediaPreview.innerHTML.trim() !== '') {
+        mediaPreview.style.display = 'block';
+        const existingRemove = mediaPreview.querySelector('.media-remove-btn');
+        if (existingRemove) {
+            existingRemove.addEventListener('click', clearMedia);
+        }
+    }
+}
+
+window.setupAdminComposer = setupAdminComposer;
+document.querySelectorAll('form[data-composer]').forEach(setupAdminComposer);
+document.querySelectorAll('[data-composer-front]').forEach(setupAdminComposer);
