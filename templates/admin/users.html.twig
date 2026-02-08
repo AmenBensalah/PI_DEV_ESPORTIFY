@@ -1,0 +1,126 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Utilisateurs - Admin{% endblock %}
+{% block page_title %}Gestion des Utilisateurs{% endblock %}
+
+{% block body %}
+    <!-- Search and Actions Banner -->
+    <div style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; gap: 20px;">
+        <div style="position: relative; flex: 1; max-width: 500px;">
+            <i class="fas fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+            <input type="text" id="live-search-users" placeholder="Rechercher par nom, email ou rôle..." 
+                   style="width: 100%; padding: 12px 15px 12px 45px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); color: #fff; font-size: 14px; outline: none; transition: 0.3s;"
+                   onfocus="this.style.borderColor='var(--primary-blue)'; this.style.background='rgba(255,255,255,0.06)'; this.style.boxShadow='0 0 15px rgba(67, 97, 238, 0.2)';"
+                   onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.background='rgba(255,255,255,0.03)'; this.style.boxShadow='none';">
+        </div>
+        <button class="btn-gradient" onclick="alert('Fonctionnalité d\'ajout utilisateur à venir !')" style="padding: 12px 25px;">
+            <i class="fas fa-plus"></i> Ajouter un Utilisateur
+        </button>
+    </div>
+
+    <div class="admin-table-container">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                    <th>Statut</th>
+                    <th>Date d'inscription</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="users-tbody">
+                {% for user in users %}
+                    <tr class="user-row" 
+                        data-nom="{{ user.nom|lower }}" 
+                        data-email="{{ user.email|lower }}"
+                        data-role="{{ user.role.value|lower }}">
+                        <td>#{{ user.id }}</td>
+                        <td>
+                            <div class="user-avatar-small">
+                                <div class="avatar-circle">{{ user.nom|first|upper }}</div>
+                                <span>{{ user.nom }}</span>
+                            </div>
+                        </td>
+                        <td>{{ user.email }}</td>
+                        <td><span class="badge badge-{{ user.role.value == 'ADMIN' ? 'admin' : (user.role.value == 'MANAGER' ? 'manager' : 'joueur') }}">{{ user.role.value }}</span></td>
+                        <td><span class="status-active">Active</span></td>
+                        <td>{{ user.dateInscription ? user.dateInscription|date('d/m/Y') : 'N/A' }}</td>
+                        <td>
+                            <button class="btn-icon"><i class="fas fa-edit"></i></button>
+                            <button class="btn-icon"><i class="fas fa-ban" style="color: var(--primary-pink);"></i></button>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr id="no-users-default">
+                        <td colspan="7" style="text-align: center; padding: 30px;">Aucun utilisateur trouvé</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('live-search-users');
+            const tbody = document.getElementById('users-tbody');
+
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    const searchTerm = e.target.value.toLowerCase().trim();
+                    const rows = document.querySelectorAll('.user-row');
+                    let visibleCount = 0;
+
+                    rows.forEach(row => {
+                        const nom = row.dataset.nom || '';
+                        const email = row.dataset.email || '';
+                        const role = row.dataset.role || '';
+
+                        if (nom.includes(searchTerm) || email.includes(searchTerm) || role.includes(searchTerm)) {
+                            row.style.display = '';
+                            visibleCount++;
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+
+                    // Handle empty state
+                    const defaultNoResults = document.getElementById('no-users-default');
+                    let noResultsRow = document.getElementById('no-results-search');
+
+                    if (defaultNoResults) {
+                        defaultNoResults.style.display = 'none';
+                    }
+
+                    if (visibleCount === 0 && searchTerm !== '') {
+                        if (!noResultsRow) {
+                            noResultsRow = document.createElement('tr');
+                            noResultsRow.id = 'no-results-search';
+                            noResultsRow.innerHTML = `
+                                <td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                                    <i class="fas fa-ghost" style="font-size: 48px; opacity: 0.3; display: block; margin-bottom: 15px;"></i>
+                                    Aucun utilisateur ne correspond à "${e.target.value}"
+                                </td>
+                            `;
+                            tbody.appendChild(noResultsRow);
+                        } else {
+                            noResultsRow.style.display = '';
+                            noResultsRow.querySelector('td').innerHTML = `
+                                <i class="fas fa-ghost" style="font-size: 48px; opacity: 0.3; display: block; margin-bottom: 15px;"></i>
+                                Aucun utilisateur ne correspond à "${e.target.value}"
+                            `;
+                        }
+                    } else if (noResultsRow) {
+                        noResultsRow.style.display = 'none';
+                    }
+
+                    if (visibleCount === 0 && searchTerm === '' && defaultNoResults) {
+                        defaultNoResults.style.display = '';
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}

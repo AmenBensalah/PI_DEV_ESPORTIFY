@@ -1,0 +1,73 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Produits - Admin{% endblock %}
+{% block page_title %}Produits{% endblock %}
+
+{% block body %}
+    <div class="admin-actions" style="margin-bottom: 16px;">
+        <a href="{{ path('admin_product_new') }}" class="btn btn-primary">Nouveau Produit</a>
+    </div>
+    <div class="stat-card" style="margin-bottom: 24px;">
+        <div class="admin-actions" style="gap: 12px;">
+            <div style="flex: 1; min-width: 220px;">
+                <label>Recherche rapide</label>
+                <input class="form-control" placeholder="id, nom, prix, stock..." data-search-input="products">
+            </div>
+            <div style="min-width: 200px;">
+                <label>Trier par</label>
+                <select class="form-control" data-sort-select="products">
+                    <option value="">Aucun</option>
+                    <option value="id:desc">Id (desc)</option>
+                    <option value="id:asc">Id (asc)</option>
+                    <option value="nom:asc">Nom (A-Z)</option>
+                    <option value="nom:desc">Nom (Z-A)</option>
+                    <option value="prix:asc">Prix (asc)</option>
+                    <option value="prix:desc">Prix (desc)</option>
+                    <option value="stock:asc">Stock (asc)</option>
+                    <option value="stock:desc">Stock (desc)</option>
+                    <option value="active:asc">Actif (A-Z)</option>
+                    <option value="active:desc">Actif (Z-A)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="admin-table-container">
+        <table class="admin-table" data-table="products">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Nom</th>
+                    <th>Prix</th>
+                    <th>Stock</th>
+                    <th>Actif</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for produit in produits %}
+                <tr
+                    data-search="{{ produit.id }} {{ produit.nom }} {{ produit.prix }} {{ produit.stock }} {{ produit.active ? 'Oui' : 'Non' }}"
+                    data-id="{{ produit.id }}"
+                    data-nom="{{ produit.nom }}"
+                    data-prix="{{ produit.prix }}"
+                    data-stock="{{ produit.stock }}"
+                    data-active="{{ produit.active ? 'Oui' : 'Non' }}"
+                >
+                    <td>{{ produit.id }}</td>
+                    <td>{{ produit.nom }}</td>
+                    <td>{{ produit.prix / 100 }} EUR</td>
+                    <td>{{ produit.stock }}</td>
+                    <td>{{ produit.active ? 'Oui' : 'Non' }}</td>
+                    <td class="admin-actions">
+                        <a class="admin-link" href="{{ path('admin_product_edit', {'id': produit.id}) }}">Modifier</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6">Aucun produit trouve</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

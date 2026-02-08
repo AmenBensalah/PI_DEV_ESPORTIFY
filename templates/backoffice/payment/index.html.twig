@@ -1,0 +1,63 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Paiements - Admin{% endblock %}
+{% block page_title %}Paiements{% endblock %}
+
+{% block body %}
+    <div class="stat-card" style="margin-bottom: 24px;">
+        <div class="admin-actions" style="gap: 12px;">
+            <div style="flex: 1; min-width: 220px;">
+                <label>Recherche rapide</label>
+                <input class="form-control" placeholder="id, commande, statut..." data-search-input="payments">
+            </div>
+            <div style="min-width: 200px;">
+                <label>Trier par</label>
+                <select class="form-control" data-sort-select="payments">
+                    <option value="">Aucun</option>
+                    <option value="id:desc">Id (desc)</option>
+                    <option value="id:asc">Id (asc)</option>
+                    <option value="montant:asc">Montant (asc)</option>
+                    <option value="montant:desc">Montant (desc)</option>
+                    <option value="statut:asc">Statut (A-Z)</option>
+                    <option value="statut:desc">Statut (Z-A)</option>
+                    <option value="date:asc">Date (asc)</option>
+                    <option value="date:desc">Date (desc)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="admin-table-container">
+        <table class="admin-table" data-table="payments">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Commande Id</th>
+                    <th>Montant</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for payment in payments %}
+                <tr
+                    data-search="{{ payment.id }} {{ payment.commande.id }} {{ payment.amount }} {{ payment.status }} {{ payment.createdAt|date('Y-m-d H:i') }}"
+                    data-id="{{ payment.id }}"
+                    data-montant="{{ payment.amount }}"
+                    data-statut="{{ payment.status }}"
+                    data-date="{{ payment.createdAt ? payment.createdAt|date('YmdHis') : '' }}"
+                >
+                    <td>{{ payment.id }}</td>
+                    <td>{{ payment.commande.id }}</td>
+                    <td>{{ payment.amount / 100 }} EUR</td>
+                    <td><span class="badge">{{ payment.status }}</span></td>
+                    <td>{{ payment.createdAt|date('d/m/Y H:i') }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5">Aucun paiement</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

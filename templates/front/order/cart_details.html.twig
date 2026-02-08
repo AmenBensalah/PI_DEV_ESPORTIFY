@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="cart-page">
+        <h1>Votre Panier</h1>
+
+        {% if commande and commande.lignesCommande|length > 0 %}
+            <div class="pro-card" style="max-width: 980px; margin: 0 auto;">
+                <h2>Resume de la commande</h2>
+                <div class="cart-actions" style="margin-top: 8px;">
+                    <input id="cart_search" class="form-control" placeholder="Rechercher un produit..." style="max-width: 320px;">
+                </div>
+                <ul class="cart-list">
+                    {% for ligne in commande.lignesCommande %}
+                        <li class="cart-item" data-search="{{ ligne.produit.nom }} {{ ligne.quantite }}">
+                            <span>{{ ligne.produit.nom }} x {{ ligne.quantite }}</span>
+                            <strong>{{ ligne.prix / 100 }} EUR</strong>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <div class="cart-total">Quantite totale: {{ total_quantite }}</div>
+                <div class="cart-actions">
+                    <a class="pro-btn pro-btn-primary" href="{{ path('front_order_cart') }}">Passer commande</a>
+                    <a class="pro-link" href="{{ path('front_order_cart') }}">Retour aux informations</a>
+                    <a class="pro-link" href="{{ path('app_front_produit_index') }}">Retour a la boutique</a>
+                </div>
+            </div>
+        {% else %}
+            <div class="pro-card">
+                <p>Votre panier est vide.</p>
+                <a class="pro-link" href="{{ path('app_front_produit_index') }}">Retour a la boutique</a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

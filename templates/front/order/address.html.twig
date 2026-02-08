@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="cart-page">
+        <div class="cart-shell single">
+            <div class="pro-card">
+                <h2>Adresse de livraison</h2>
+                <form action="{{ path('front_order_step2') }}" method="post">
+                    <div class="form-rows">
+                        <div class="form-row">
+                            <label class="pro-label" for="pays">Pays</label>
+                            <input id="pays" name="pays" class="pro-input" value="{{ commande.pays ?? '' }}" placeholder="Pays">
+                        </div>
+                        <div class="form-row">
+                            <label class="pro-label" for="gouvernerat">Gouvernerat</label>
+                            <input id="gouvernerat" name="gouvernerat" class="pro-input" value="{{ commande.gouvernerat ?? '' }}" placeholder="Gouvernerat">
+                        </div>
+                        <div class="form-row">
+                            <label class="pro-label" for="code_postal">Code postal</label>
+                            <input id="code_postal" name="code_postal" class="pro-input" value="{{ commande.codePostal ?? '' }}" placeholder="Code postal">
+                        </div>
+                        <div class="form-row">
+                            <label class="pro-label" for="adresse">Adresse</label>
+                            <input id="adresse" name="adresse" class="pro-input" value="{{ commande.adresse ?? '' }}" placeholder="Adresse">
+                        </div>
+                        <div class="form-row">
+                            <label class="pro-label" for="adresse_detail">Adresse exacte / description</label>
+                            <input id="adresse_detail" name="adresse_detail" class="pro-input" value="{{ commande.adresseDetail ?? '' }}" placeholder="Adresse exacte">
+                        </div>
+                    </div>
+
+                    <div class="cart-actions">
+                        <button type="submit" class="pro-btn pro-btn-primary">Aller au paiement</button>
+                        <a class="pro-link" href="{{ path('front_order_cart') }}">Retour</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

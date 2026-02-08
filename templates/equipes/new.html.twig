@@ -1,0 +1,143 @@
+﻿{% extends 'equipes/base.html.twig' %}
+
+{% block title %}Créer une Équipe — E-Sportify{% endblock %}
+
+{% block body %}
+    <div class="page-header animate__animated animate__fadeIn">
+        <div class="page-icon">
+            <i class="fas fa-shield-alt"></i>
+        </div>
+        <h1 class="page-title">CRÉER MON ÉQUIPE</h1>
+        <p class="page-subtitle">Formez votre équipe e-sport et dominez la compétition !</p>
+    </div>
+
+    <div id="create-team-section" class="form-container animate__animated animate__fadeInUp">
+        <div class="form-card">
+            <div class="form-header">
+                <h2 class="section-heading"><i class="fas fa-plus-circle"></i> Nouvelle Équipe</h2>
+                <p class="form-subtitle">Remplissez les informations de votre équipe</p>
+            </div>
+
+            <form id="createTeamForm" 
+                  data-api-url="{{ path('app_equipes_api_create') }}" 
+                  data-index-url="{{ path('app_equipes_index') }}"
+                  onsubmit="return createTeam(event)">
+                
+                {# SÉLECTION DU LOGO #}
+                <div class="logo-upload-section">
+                    <div class="logo-preview-container" id="logoPreviewContainer">
+                        <img id="logoPreview" src="{{ asset('images/default-team.png') }}" alt="Aperçu Logo">
+                        <div class="upload-overlay" id="uploadOverlay">
+                            <i class="fas fa-camera"></i>
+                            <span>Changer</span>
+                        </div>
+                        <input type="file" id="logoInput" name="logo" accept="image/*" onchange="previewLogo(this)">
+                    </div>
+                    <p class="logo-help">Cliquez sur l'icône pour uploader votre logo d'équipe</p>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-column">
+                        <div class="form-group">
+                            <label class="form-label"><i class="fas fa-users"></i> Nom de l'Équipe <span class="required">*</span></label>
+                            <input type="text" class="form-input" id="teamName" name="nomEquipe" placeholder="Ex: Phoenix Warriors">
+                        </div>
+ 
+                        <div class="form-group">
+                            <label class="form-label"><i class="fas fa-calendar-alt"></i> Date de Création <small>(automatique)</small></label>
+                            <input type="date" class="form-input" id="teamDate" name="dateCreation" readonly>
+                        </div>
+ 
+                        <div class="form-group">
+                            <label class="form-label"><i class="fas fa-user-friends"></i> Nombre Max de Membres <span class="required">*</span></label>
+                            <input type="number" class="form-input" id="teamMaxMembers" name="maxMembers" placeholder="Ex: 5" value="5">
+                            <small class="form-help">Minimum 2, Maximum 50 membres</small>
+                        </div>
+                    </div>
+ 
+                    <div class="form-column">
+                        <div class="form-group">
+                            <label class="form-label"><i class="fas fa-tag"></i> Tag de l'Équipe <span class="required">*</span></label>
+                            <input type="text" class="form-input" id="teamTag" name="tag" placeholder="Ex: PHX" 
+                                   oninput="this.value = this.value.toUpperCase()" style="text-transform: uppercase;">
+                            <small class="form-help">2-6 caractères (affiché comme [TAG] à côté du nom)</small>
+                        </div>
+ 
+                        <div class="form-group">
+                            <label class="form-label"><i class="fas fa-medal"></i> Classement <span class="required">*</span></label>
+                            <select class="form-select" id="teamClassement" name="classement">
+                                <option value="">Sélectionner un classement...</option>
+                                <option value="Bronze">Bronze</option>
+                                <option value="Argent">Argent</option>
+                                <option value="Or">Or</option>
+                                <option value="Platine">Platine</option>
+                                <option value="Diamant">Diamant</option>
+                                <option value="Master">Master</option>
+                                <option value="Challenger">Challenger</option>
+                            </select>
+                        </div>
+ 
+                        <div class="form-group">
+                            <label class="form-label"><i class="fas fa-globe"></i> Région</label>
+                            <select class="form-select" id="teamRegion" name="region">
+                                <option value="">Sélectionner une région...</option>
+                                <option value="Asia">Asia</option>
+                                <option value="Europe">Europe</option>
+                                <option value="Middle East">Middle East</option>
+                                <option value="North America">North America</option>
+                                <option value="South America">South America</option>
+                                <option value="Oceania">Oceania</option>
+                                <option value="Africa">Africa</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+ 
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-lock"></i> Visibilité de l'Équipe</label>
+                    <div class="toggle-container">
+                        <div>
+                            <div class="toggle-label" id="visibilityLabel">Équipe Publique</div>
+                            <div class="toggle-description" id="visibilityDescription">Tout le monde peut voir et demander à rejoindre votre équipe</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="teamPrivate" name="isPrivate" onchange="updateVisibilityLabel()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+ 
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-align-left"></i> Description</label>
+                    <textarea class="form-textarea" id="teamDescription" name="description" placeholder="Décrivez votre équipe..."></textarea>
+                </div>
+                <div class="form-actions centered">
+                    <a href="{{ path('app_equipes_index') }}" class="btn-outline" style="text-decoration:none;"> <i class="fas fa-arrow-left"></i> Annuler</a>
+                    <button type="submit" class="btn-gradient"><i class="fas fa-check-circle"></i> Créer Mon Équipe</button>
+                </div>
+            </form>
+
+            <script>
+                function updateVisibilityLabel() {
+                    const checkbox = document.getElementById('teamPrivate');
+                    const label = document.getElementById('visibilityLabel');
+                    const desc = document.getElementById('visibilityDescription');
+                    if (checkbox.checked) {
+                        label.textContent = "Équipe Privée";
+                        desc.textContent = "Seulement sur invitation ou lien direct";
+                    } else {
+                        label.textContent = "Équipe Publique";
+                        desc.textContent = "Tout le monde peut voir et demander à rejoindre votre équipe";
+                    }
+                }
+                
+                // Set today's date
+                const teamDateInput = document.getElementById('teamDate');
+                if (teamDateInput) {
+                    teamDateInput.valueAsDate = new Date();
+                }
+            </script>
+        </div>
+    </div>
+    
+{% endblock %}

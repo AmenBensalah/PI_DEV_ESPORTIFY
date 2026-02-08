@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="cart-page">
+        <h1>Mes commandes</h1>
+
+        {% if commandes is empty %}
+            <div class="pro-card">
+                <p>Aucune commande disponible pour ce navigateur.</p>
+                <a class="pro-link" href="{{ path('app_front_produit_index') }}">Retour a la boutique</a>
+            </div>
+        {% else %}
+            <div class="pro-card">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Numero</th>
+                            <th>Statut</th>
+                            <th>Nom</th>
+                            <th>Prenom</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for commande in commandes %}
+                        <tr>
+                            <td>#{{ commande.id }}</td>
+                            <td>{{ commande.statut }}</td>
+                            <td>{{ commande.nom }}</td>
+                            <td>{{ commande.prenom }}</td>
+                            <td>
+                                <a class="pro-link" href="{{ path('front_order_show', {'id': commande.id}) }}">Voir</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -1,0 +1,141 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Modifier Utilisateur - Admin{% endblock %}
+
+{% block body %}
+<div class="profile-container">
+    <div class="page-header">
+        <h1>Modifier Utilisateur</h1>
+        <p>Modifiez les informations du compte</p>
+    </div>
+
+    <div class="profile-content">
+        <div class="profile-card">
+            {{ include('admin/user/_form.html.twig', {'button_label': 'Enregistrer'}) }}
+
+            <div class="profile-actions" style="margin-top: 2rem;">
+                <a href="{{ path('admin_users') }}" class="btn-outline" style="text-decoration: none;">
+                    <i class="fas fa-arrow-left"></i> Retour à la liste
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .profile-container {
+        padding: 0;
+    }
+
+    .profile-content {
+        padding: 2rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .profile-card {
+        background: linear-gradient(135deg, rgba(27, 30, 46, 0.8) 0%, rgba(157, 78, 221, 0.05) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 2rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #aaa;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        color: white;
+        font-family: 'Poppins', sans-serif;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #9d4edd;
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 0 3px rgba(157, 78, 221, 0.1);
+    }
+
+    .form-group input::placeholder {
+        color: #777;
+    }
+
+    .form-group select {
+        cursor: pointer;
+    }
+
+    .form-group select option {
+        background: #1b1e2e;
+        color: white;
+    }
+
+    .profile-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-outline {
+        padding: 12px 24px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        color: #fff;
+        background: transparent;
+        font-weight: 600;
+        font-family: 'Rajdhani', sans-serif;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-outline:hover {
+        border-color: #9d4edd;
+        background: rgba(157, 78, 221, 0.1);
+    }
+
+    .btn-gradient {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #9d4edd 0%, #4cc9f0 100%);
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-gradient:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(157, 78, 221, 0.4);
+    }
+</style>
+{% endblock %}

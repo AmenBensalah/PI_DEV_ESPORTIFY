@@ -1,0 +1,478 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Mon Profil - Admin{% endblock %}
+
+{% block body %}
+<div class="profile-container">
+    <div class="page-header">
+        <h1>Mon Profil</h1>
+        <p>Gérez votre profil administrateur</p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% if app.flashes %}
+        {% for type, messages in app.flashes %}
+            {% for message in messages %}
+                <div style="margin: 1rem 2rem; padding: 1rem; border-radius: 8px; background: {% if type == 'success' %}rgba(0, 208, 132, 0.2){% else %}rgba(255, 71, 87, 0.2){% endif %}; border-left: 4px solid {% if type == 'success' %}#00d084{% else %}#ff4757{% endif %}; color: {% if type == 'success' %}#00d084{% else %}#ff4757{% endif %};">
+                    <i class="fas fa-{% if type == 'success' %}check-circle{% else %}exclamation-circle{% endif %}"></i> {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+    {% endif %}
+
+    <div class="profile-content">
+        <div class="profile-card">
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <div class="avatar-circle" style="width: 100px; height: 100px; font-size: 40px;">
+                        {{ user.nom|first|upper }}
+                    </div>
+                </div>
+                <div class="profile-info">
+                    <h2>{{ user.nom }}</h2>
+                    <div class="role-badge">
+                        <i class="fas fa-crown"></i> Administrateur
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Details -->
+            <div class="profile-details">
+                <div class="detail-row">
+                    <div class="detail-label">Email</div>
+                    <div class="detail-value">{{ user.email }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Pseudo</div>
+                    <div class="detail-value">{{ user.pseudo ? user.pseudo : 'Non défini' }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Rôle</div>
+                    <div class="detail-value">
+                        <span class="badge badge-admin">
+                            <i class="fas fa-shield-alt"></i> ADMIN
+                        </span>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Membre depuis</div>
+                    <div class="detail-value">Février 2026</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="profile-actions">
+                <a href="{{ path('admin_dashboard') }}" class="btn-outline" style="text-decoration: none;">
+                    <i class="fas fa-arrow-left"></i> Retour au Dashboard
+                </a>
+                <button onclick="toggleEditMode()" class="btn-gradient" style="border: none; cursor: pointer; font-family: 'Rajdhani', sans-serif;">
+                    <i class="fas fa-edit"></i> Modifier le Profil
+                </button>
+            </div>
+        </div>
+
+        <!-- Edit Form -->
+        <div class="edit-form">
+            <div style="margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                <h3 style="margin: 0; font-family: 'Orbitron', sans-serif; font-size: 1.3rem;">Modifier Mon Profil</h3>
+            </div>
+
+            {{ form_start(form, {'attr': {'class': 'edit-form-body'}}) }}
+
+            <div class="form-group">
+                {{ form_label(form.email) }}
+                {{ form_widget(form.email, {'attr': {'placeholder': 'Email...'}}) }}
+                {{ form_errors(form.email) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.nom) }}
+                {{ form_widget(form.nom, {'attr': {'placeholder': 'Nom complet...'}}) }}
+                {{ form_errors(form.nom) }}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.pseudo) }}
+                {{ form_widget(form.pseudo, {'attr': {'placeholder': 'Pseudo...'}}) }}
+                {{ form_errors(form.pseudo) }}
+            </div>
+
+            {% if form.role is defined %}
+            <div class="form-group-role">
+                {{ form_label(form.role, null, {'label_attr': {'class': 'role-label'}}) }}
+                <div class="role-select-wrapper">
+                    {{ form_widget(form.role, {'attr': {'class': 'professional-select'}}) }}
+                    <i class="fas fa-chevron-down role-select-icon"></i>
+                </div>
+                {{ form_errors(form.role) }}
+            </div>
+            {% endif %}
+
+            <div class="form-group">
+                {{ form_label(form.plainPassword) }}
+                {{ form_widget(form.plainPassword, {'attr': {'placeholder': 'Laisser vide pour conserver le mot de passe actuel'}}) }}
+                {{ form_errors(form.plainPassword) }}
+            </div>
+
+            <div class="form-actions">
+                <button type="button" onclick="toggleEditMode()" class="btn-cancel">
+                    <i class="fas fa-times"></i> Annuler
+                </button>
+                <button type="submit" class="btn-submit" style="border: none; cursor: pointer;">
+                    <i class="fas fa-save"></i> Enregistrer les modifications
+                </button>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+
+<style>
+    .profile-container {
+        padding: 0;
+    }
+
+    .profile-content {
+        padding: 2rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .profile-card {
+        background: linear-gradient(135deg, rgba(27, 30, 46, 0.8) 0%, rgba(157, 78, 221, 0.05) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 2rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .profile-avatar {
+        flex-shrink: 0;
+    }
+
+    .avatar-circle {
+        background: linear-gradient(135deg, #9d4edd, #4cc9f0);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-family: 'Orbitron', sans-serif;
+    }
+
+    .profile-info h2 {
+        margin: 0 0 0.5rem;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.8rem;
+        color: #fff;
+    }
+
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, #9d4edd, #c77dff);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .profile-details {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .detail-row {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 1rem;
+        align-items: center;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        border-left: 3px solid #9d4edd;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #aaa;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.85rem;
+    }
+
+    .detail-value {
+        color: #fff;
+        font-size: 1rem;
+    }
+
+    .badge-admin {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, #9d4edd, #c77dff);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .profile-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-outline {
+        padding: 12px 24px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        color: #fff;
+        background: transparent;
+        font-weight: 600;
+        font-family: 'Rajdhani', sans-serif;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-outline:hover {
+        border-color: #9d4edd;
+        background: rgba(157, 78, 221, 0.1);
+    }
+
+    .btn-gradient {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #9d4edd 0%, #4cc9f0 100%);
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-gradient:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(157, 78, 221, 0.4);
+    }
+
+    .edit-form {
+        display: none;
+        background: linear-gradient(135deg, rgba(27, 30, 46, 0.8) 0%, rgba(157, 78, 221, 0.05) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 2rem;
+        border-radius: 16px;
+        margin-top: 2rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .edit-form.active {
+        display: block;
+        animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #aaa;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        color: white;
+        font-family: 'Poppins', sans-serif;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #9d4edd;
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 0 3px rgba(157, 78, 221, 0.1);
+    }
+
+    .form-group input::placeholder {
+        color: #777;
+    }
+
+    /* Professional Role Select Styling */
+    .form-group-role {
+        margin-bottom: 2rem;
+        margin-top: 1rem;
+    }
+
+    .role-label {
+        display: block;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 0.75rem;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        letter-spacing: 1.5px;
+    }
+
+    .role-select-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .professional-select {
+        width: 100%;
+        padding: 14px 16px;
+        background: linear-gradient(135deg, rgba(157, 78, 221, 0.15) 0%, rgba(76, 201, 240, 0.08) 100%);
+        border: 2px solid rgba(157, 78, 221, 0.4);
+        border-radius: 10px;
+        color: white;
+        font-family: 'Poppins', sans-serif;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        appearance: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        padding-right: 40px;
+    }
+
+    .professional-select:hover {
+        border-color: #9d4edd;
+        background: linear-gradient(135deg, rgba(157, 78, 221, 0.25) 0%, rgba(76, 201, 240, 0.15) 100%);
+        box-shadow: 0 4px 12px rgba(157, 78, 221, 0.2);
+    }
+
+    .professional-select:focus {
+        outline: none;
+        border-color: #9d4edd;
+        background: linear-gradient(135deg, rgba(157, 78, 221, 0.25) 0%, rgba(76, 201, 240, 0.15) 100%);
+        box-shadow: 0 0 0 4px rgba(157, 78, 221, 0.2), 0 4px 12px rgba(157, 78, 221, 0.2);
+    }
+
+    .professional-select option {
+        background: #2a2e42;
+        color: white;
+        padding: 10px;
+        margin: 4px 0;
+    }
+
+    .professional-select option:checked {
+        background: linear-gradient(#9d4edd, #9d4edd);
+        background-color: #9d4edd;
+    }
+
+    .role-select-icon {
+        position: absolute;
+        right: 14px;
+        color: #9d4edd;
+        pointer-events: none;
+        font-size: 0.9rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-cancel {
+        padding: 12px 24px;
+        background: transparent;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: 'Rajdhani', sans-serif;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+        border-color: #f72585;
+        color: #f72585;
+    }
+
+    .btn-submit {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #9d4edd 0%, #4cc9f0 100%);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: 'Rajdhani', sans-serif;
+        transition: all 0.3s ease;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(157, 78, 221, 0.4);
+    }
+
+    .form-errors {
+        color: #ff4757;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+</style>
+
+<script>
+    function toggleEditMode() {
+        const form = document.querySelector('.edit-form');
+        form.classList.toggle('active');
+        
+        // Scroll to form if opening
+        if (form.classList.contains('active')) {
+            form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+</script>
+{% endblock %}

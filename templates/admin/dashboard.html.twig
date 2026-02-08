@@ -4,138 +4,60 @@
 {% block page_title %}Vue d'ensemble{% endblock %}
 
 {% block body %}
-    <!-- Stats Cards -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-bottom: 40px;">
-        <!-- Card 1: Équipes Inscrites -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 30px; margin-bottom: 40px;">
         <div class="stat-card card-gradient-purple">
-            <div class="stat-card-title">Équipes Inscrites</div>
-            <div class="stat-card-value">{{ equipeCount | default(0) }}</div>
-            <div class="stat-card-change">
-                <i class="fas fa-arrow-up"></i> +12% cette semaine
+            <div style="margin-bottom: 10px; color: rgba(255,255,255,0.8); font-size: 14px;">Commandes</div>
+            <div style="font-size: 42px; font-weight: 700; margin-bottom: 5px;">{{ orderCount }}</div>
+            <div style="font-size: 13px; color: rgba(255,255,255,0.7);">
+                <i class="fas fa-arrow-up"></i> Total en base
             </div>
         </div>
 
-        <!-- Card 2: Utilisateurs Actifs -->
         <div class="stat-card card-gradient-blue">
-            <div class="stat-card-title">Utilisateurs Actifs</div>
-            <div class="stat-card-value">{{ userCount | default(0) }}</div>
-            <div class="stat-card-change">
-                <i class="fas fa-arrow-up"></i> +5% cette semaine
+            <div style="margin-bottom: 10px; color: rgba(255,255,255,0.8); font-size: 14px;">Produits</div>
+            <div style="font-size: 42px; font-weight: 700; margin-bottom: 5px;">{{ productCount }}</div>
+            <div style="font-size: 13px; color: rgba(255,255,255,0.7);">
+                <i class="fas fa-box"></i> Disponibles
             </div>
         </div>
 
-        <!-- Card 3: Tournois -->
         <div class="stat-card">
             <div style="display: flex; justify-content: space-between; align-items: start;">
                 <div>
-                    <div class="stat-card-title">Tournois Créés</div>
-                    <div class="stat-card-value" style="color: #fff; margin-bottom: 5px;">{{ tournoiCount | default(0) }}</div>
-                    <div class="stat-card-change" style="color: var(--primary-cyan);">Actifs</div>
+                    <div style="margin-bottom: 10px; color: var(--text-muted); font-size: 14px;">Paiements</div>
+                    <div style="font-size: 32px; font-weight: 700; color: #fff; margin-bottom: 5px;">{{ paymentCount }}</div>
+                    <div style="font-size: 13px; color: var(--primary-pink);">Valides</div>
                 </div>
-                <div class="stat-card-icon" style="background: rgba(76, 201, 240, 0.1); color: var(--primary-cyan);">
-                    <i class="fas fa-trophy"></i>
+                <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(247, 37, 133, 0.1); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-credit-card" style="color: var(--primary-pink); font-size: 24px;"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Recent Activity Section -->
     <div class="stat-card">
-        <h3>Activité Récente</h3>
-        <ul class="activity-list">
-            <li class="activity-item">
-                <div class="activity-icon blue">
-                    <i class="fas fa-plus"></i>
+        <h3 style="font-family: 'Orbitron', sans-serif; font-size: 18px; margin-bottom: 20px;">Activite Recente</h3>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+            <li style="display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--primary-blue); display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                    <i class="fas fa-plus" style="font-size: 14px;"></i>
                 </div>
-                <div class="activity-content">
-                    <div class="activity-title">Nouveau tournoi créé</div>
-                    <div class="activity-description">Tournoi "LCS Spring Split" a été créé</div>
+                <div style="flex: 1;">
+                    <span style="font-weight: 600;">Nouveau produit ajoute</span>
+                    <div style="color: var(--text-secondary); font-size: 13px;">Dernieres mises a jour du catalogue</div>
                 </div>
-                <div class="activity-time">Il y a 2h</div>
+                <div style="color: var(--text-secondary); font-size: 13px;">Aujourd'hui</div>
             </li>
-            <li class="activity-item">
-                <div class="activity-icon pink">
-                    <i class="fas fa-user-plus"></i>
+            <li style="display: flex; align-items: center; padding: 15px 0;">
+                <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--primary-pink); display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                    <i class="fas fa-receipt" style="font-size: 14px;"></i>
                 </div>
-                <div class="activity-content">
-                    <div class="activity-title">Nouvel utilisateur</div>
-                    <div class="activity-description">L'utilisateur "JohnDoe" s'est inscrit</div>
+                <div style="flex: 1;">
+                    <span style="font-weight: 600;">Nouvelle commande</span>
+                    <div style="color: var(--text-secondary); font-size: 13px;">Dernieres commandes en attente</div>
                 </div>
-                <div class="activity-time">Il y a 4h</div>
-            </li>
-            <li class="activity-item">
-                <div class="activity-icon blue">
-                    <i class="fas fa-edit"></i>
-                </div>
-                <div class="activity-content">
-                    <div class="activity-title">Tournoi modifié</div>
-                    <div class="activity-description">Les paramètres du tournoi "Valorant Champions" ont été mises à jour</div>
-                </div>
-                <div class="activity-time">Il y a 6h</div>
+                <div style="color: var(--text-secondary); font-size: 13px;">Aujourd'hui</div>
             </li>
         </ul>
-    </div>
-
-    <!-- Tournaments Table -->
-    <div class="stat-card" style="margin-top: 30px;">
-        <h3 style="margin-bottom: 20px;">Derniers Tournois</h3>
-        {% if tournois %}
-            <div class="admin-table-container">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Nom</th>
-                            <th>Type de Jeu</th>
-                            <th>Type de Tournoi</th>
-                            <th>Jeu</th>
-                            <th>Statut</th>
-                            <th>Début</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for tournoi in tournois | slice(0, 5) %}
-                            <tr>
-                                <td style="font-weight: 600;">{{ tournoi.name }}</td>
-                                <td>
-                                    <span class="badge badge-info">{{ tournoi.typeGame }}</span>
-                                </td>
-                                <td>
-                                    <span class="badge badge-success">{{ tournoi.typeTournoi | upper }}</span>
-                                </td>
-                                <td>{{ tournoi.game }}</td>
-                                <td>
-                                    {% if tournoi.status == 'planned' %}
-                                        <span class="badge badge-warning">Planifié</span>
-                                    {% elseif tournoi.status == 'ongoing' %}
-                                        <span class="badge badge-success">En cours</span>
-                                    {% else %}
-                                        <span class="badge badge-info">Terminé</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ tournoi.startDate | date('d/m/Y H:i') }}</td>
-                                <td>
-                                    <a href="{{ path('admin_tournoi_show', {id: tournoi.idTournoi}) }}" class="btn btn-primary" style="padding: 8px 12px; font-size: 12px;">
-                                        <i class="fas fa-eye"></i> Voir
-                                    </a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div style="margin-top: 15px; text-align: center;">
-                <a href="{{ path('admin_tournoi_index') }}" class="btn btn-primary">
-                    <i class="fas fa-list"></i> Voir Tous les Tournois
-                </a>
-            </div>
-        {% else %}
-            <div style="padding: 20px; text-align: center; color: var(--text-muted);">
-                <p>Aucun tournoi créé pour le moment</p>
-                <a href="{{ path('admin_tournoi_create') }}" class="btn btn-primary" style="margin-top: 15px;">
-                    <i class="fas fa-plus"></i> Créer un Tournoi
-                </a>
-            </div>
-        {% endif %}
     </div>
 {% endblock %}

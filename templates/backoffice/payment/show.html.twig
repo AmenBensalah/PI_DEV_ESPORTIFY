@@ -1,0 +1,34 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Paiement #{{ payment.id }} - Admin{% endblock %}
+{% block page_title %}Paiement #{{ payment.id }}{% endblock %}
+
+{% block body %}
+    <div class="admin-table-container" style="margin-bottom: 16px;">
+        <table class="admin-table">
+            <tbody>
+                <tr>
+                    <th>Id</th>
+                    <td>{{ payment.id }}</td>
+                </tr>
+                <tr>
+                    <th>Montant</th>
+                    <td>{{ payment.amount / 100 }} EUR</td>
+                </tr>
+                <tr>
+                    <th>Statut</th>
+                    <td><span class="badge">{{ payment.status }}</span></td>
+                </tr>
+                <tr>
+                    <th>Date</th>
+                    <td>{{ payment.createdAt ? payment.createdAt|date('Y-m-d H:i:s') : '' }}</td>
+                </tr>
+                <tr>
+                    <th>Commande</th>
+                    <td><a class="admin-link" href="{{ path('admin_order_show', {'id': payment.commande.id}) }}">{{ payment.commande.id }}</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <a href="{{ path('admin_payment_index') }}" class="btn btn-secondary">Retour</a>
+{% endblock %}

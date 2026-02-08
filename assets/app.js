@@ -1,10 +1,26 @@
 import './bootstrap.js';
-/*
- * Welcome to your app's main JavaScript file!
- *
- * This file will be included onto the page via the importmap() Twig function,
- * which should already be in your base.html.twig.
- */
 import './styles/app.css';
 
-console.log('This log comes from assets/app.js - welcome to AssetMapper! 🎉');
+/**
+ * E-Sportify - Main JavaScript File
+ * Modern Symfony UX Integration
+ */
+
+// Global helper for radio highlights (could be a controller but this is small)
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+            const group = document.querySelectorAll(`input[name="${this.name}"]`);
+            group.forEach(r => {
+                if (r.parentElement) {
+                    r.parentElement.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                    r.parentElement.style.background = 'transparent';
+                }
+            });
+            if (this.parentElement) {
+                this.parentElement.style.borderColor = 'var(--primary-blue)';
+                this.parentElement.style.background = 'rgba(0, 217, 255, 0.1)';
+            }
+        });
+    });
+});

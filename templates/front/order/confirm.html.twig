@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Commande Confirmée</h1>
+    <p>Merci pour votre commande ! Elle est en attente de paiement.</p>
+    
+    {% if commande %}
+        <p><strong>Numéro de commande:</strong> {{ commande.id }}</p>
+        <p><strong>Statut:</strong> {{ commande.statut }}</p>
+        
+        <h2>Détails de la commande</h2>
+        <ul>
+            {% for ligne in commande.lignesCommande %}
+                <li>{{ ligne.produit.nom }} x {{ ligne.quantite }} - {{ ligne.prix / 100 }} €</li>
+            {% endfor %}
+        </ul>
+        
+        <a href="{{ path('front_payment_init', {'id': commande.id}) }}" class="pro-btn pro-btn-primary">Payer maintenant</a>
+    {% endif %}
+    
+    <br><br>
+    <a href="{{ path('app_front_produit_index') }}">Retour à la boutique</a>
+{% endblock %}

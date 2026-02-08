@@ -1,0 +1,115 @@
+﻿{% extends (from == 'admin' ? 'admin/layout.html.twig' : 'base.html.twig') %}
+
+{% block title %}Modifier {{ equipe.nomEquipe }} — E-Sportify{% endblock %}
+{% block page_title %}Modifier {{ equipe.nomEquipe }}{% endblock %}
+
+{% block body %}
+    <div class="page-header">
+        <h1 class="hero-title" style="font-size: 42px;">
+            <i class="fas fa-edit"></i> MODIFIER L'ÉQUIPE
+        </h1>
+        <p class="hero-subtitle">
+            Mettez à jour les informations de {{ equipe.nomEquipe }}
+        </p>
+    </div>
+
+    <!-- Form -->
+    <div class="form-container">
+        <form class="form-card" method="POST" action="{{ path('app_equipes_edit', {'id': equipe.id, 'from': from}) }}" enctype="multipart/form-data">
+            <!-- Section 1 -->
+            <div class="form-section">
+                <h2 class="section-heading">
+                    <i class="fas fa-info-circle"></i> Informations de base
+                </h2>
+
+                <div class="form-group">
+                    <label class="form-label">Nom de l'équipe *</label>
+                    <input type="text" name="equipe[nomEquipe]" class="form-input" value="{{ equipe.nomEquipe }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description *</label>
+                    <textarea name="equipe[description]" class="form-textarea" required>{{ equipe.description }}</textarea>
+                    <span class="form-help">Min 20 caractères, Max 1000</span>
+                </div>
+            </div>
+
+            <!-- Section 2 -->
+            <div class="form-section">
+                <h2 class="section-heading">
+                    <i class="fas fa-image"></i> Logo actuel
+                </h2>
+
+                <div class="form-group">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        {% if equipe.logo %}
+                            <img src="{{ asset('uploads/equipes/' ~ equipe.logo) }}" alt="Logo actuel" class="team-logo-preview" id="logoPreview">
+                        {% else %}
+                            <div class="team-logo-preview placeholder" id="logoPreview">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="upload-dropzone" onclick="document.getElementById('logoInput').click()">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <p>Changer le logo</p>
+                        <p class="form-help">PNG, JPG, GIF - Max 5MB</p>
+                        <input type="file" id="logoInput" name="equipe[logo]" accept="image/*" style="display: none;" onchange="previewLogo(this)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Tag & Classement -->
+            <div class="form-section">
+                <h2 class="section-heading">
+                    <i class="fas fa-tags"></i> Tag & Classement
+                </h2>
+
+                <div class="form-group">
+                    <label class="form-label">Tag</label>
+                    <input type="text" name="equipe[tag]" class="form-input" value="{{ equipe.tag }}" placeholder="Ex: TeamPhoenix" data-action="input->team-form#formatTag">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Classement</label>
+                    <select name="equipe[classement]" class="form-select">
+                        <option value="">Sélectionner...</option>
+                        <option value="Bronze" {% if equipe.classement == 'Bronze' %}selected{% endif %}>Bronze</option>
+                        <option value="Argent" {% if equipe.classement == 'Argent' %}selected{% endif %}>Argent</option>
+                        <option value="Or" {% if equipe.classement == 'Or' %}selected{% endif %}>Or</option>
+                        <option value="Platine" {% if equipe.classement == 'Platine' %}selected{% endif %}>Platine</option>
+                        <option value="Diamant" {% if equipe.classement == 'Diamant' %}selected{% endif %}>Diamant</option>
+                        <option value="Master" {% if equipe.classement == 'Master' %}selected{% endif %}>Master</option>
+                        <option value="Challenger" {% if equipe.classement == 'Challenger' %}selected{% endif %}>Challenger</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Région</label>
+                    <select name="equipe[region]" class="form-select">
+                        <option value="">Sélectionner une région...</option>
+                        <option value="Asia" {% if equipe.region == 'Asia' %}selected{% endif %}>Asia</option>
+                        <option value="Europe" {% if equipe.region == 'Europe' %}selected{% endif %}>Europe</option>
+                        <option value="Middle East" {% if equipe.region == 'Middle East' %}selected{% endif %}>Middle East</option>
+                        <option value="North America" {% if equipe.region == 'North America' %}selected{% endif %}>North America</option>
+                        <option value="South America" {% if equipe.region == 'South America' %}selected{% endif %}>South America</option>
+                        <option value="Oceania" {% if equipe.region == 'Oceania' %}selected{% endif %}>Oceania</option>
+                        <option value="Africa" {% if equipe.region == 'Africa' %}selected{% endif %}>Africa</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="form-actions centered">
+                <button type="submit" class="btn-hero btn-gradient">
+                    <i class="fas fa-save"></i> ENREGISTRER
+                </button>
+                <a href="{{ from == 'admin' ? path('admin_equipes') : path('app_equipes_show', {'id': equipe.id}) }}" class="btn-hero btn-secondary">
+                    <i class="fas fa-times"></i> ANNULER
+                </a>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+ 
