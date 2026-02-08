@@ -12,8 +12,6 @@ class ShopController extends AbstractController
     #[Route('/', name: 'front_product_list')]
     public function index(ProduitRepository $produitRepository): Response
     {
-        return $this->render('front/shop/product_list.html.twig', [
-            'produits' => $produitRepository->findBy(['active' => true]),
-        ]);
+        return $this->redirectToRoute('app_front_produit_index');
     }
 }

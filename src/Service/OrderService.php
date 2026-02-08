@@ -27,7 +27,7 @@ class OrderService
 
     public function addProductToOrder(Commande $commande, Produit $produit, int $quantite): void
     {
-        if (!$produit->getActive()) {
+        if (!$produit->isActive()) {
             throw new \Exception("Product is not active.");
         }
 

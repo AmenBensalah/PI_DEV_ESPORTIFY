@@ -20,14 +20,15 @@
                 </ul>
                 <div class="cart-total">Quantite totale: {{ total_quantite }}</div>
                 <div class="cart-actions">
-                    <a class="pro-btn pro-btn-primary" href="{{ path('front_order_cart') }}">Retour aux informations</a>
-                    <a class="pro-link" href="{{ path('front_product_list') }}">Retour a la boutique</a>
+                    <a class="pro-btn pro-btn-primary" href="{{ path('front_order_cart') }}">Passer commande</a>
+                    <a class="pro-link" href="{{ path('front_order_cart') }}">Retour aux informations</a>
+                    <a class="pro-link" href="{{ path('app_front_produit_index') }}">Retour a la boutique</a>
                 </div>
             </div>
         {% else %}
             <div class="pro-card">
                 <p>Votre panier est vide.</p>
-                <a class="pro-link" href="{{ path('front_product_list') }}">Retour a la boutique</a>
+                <a class="pro-link" href="{{ path('app_front_produit_index') }}">Retour a la boutique</a>
             </div>
         {% endif %}
     </div>

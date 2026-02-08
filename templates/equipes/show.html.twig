@@ -1,0 +1,399 @@
+﻿{% extends 'equipes/base.html.twig' %}
+
+{% block title %}{{ equipe.nomEquipe }} - E-Sportify{% endblock %}
+
+{% block body %}
+    {# Pass server flashes to JS via a data container (no inline JS) #}
+    <div id="flash-data" data-flashes-success='{{ app.flashes('success')|json_encode()|e('html_attr') }}' data-flashes-error='{{ app.flashes('error')|json_encode()|e('html_attr') }}' style="display:none"></div>
+
+    {# content injected into base's main (avoid nested <main>) #}
+
+        <!-- Flash Messages -->
+        <div class="flash-messages-container">
+            {% for message in app.flashes('success') %}
+                <div class="flash-success" role="status" aria-live="polite" style="margin:12px 0;">
+                    <i class="fas fa-check-circle" style="color: var(--success-color); font-size: 18px; margin-right:10px;"></i>
+                    <span style="color: var(--success-color); font-weight:600;">{{ message }}</span>
+                </div>
+            {% endfor %}
+            {% for message in app.flashes('error') %}
+                <div class="flash-error" role="status" aria-live="polite" style="margin:12px 0; background: rgba(255,0,110,0.06); border:1px solid var(--primary-pink); padding:10px 12px; border-radius:8px;">
+                    <i class="fas fa-exclamation-circle" style="color: var(--primary-pink); font-size: 18px; margin-right:10px;"></i>
+                    <span style="color: var(--primary-pink); font-weight:600;">{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+        <!-- Hero with Team Logo -->
+        <div class="hero-section" style="height: 400px; display: flex; align-items: center; justify-content: center; flex-direction: column; border-radius: 24px; padding: 40px;">
+            <!-- Team Logo -->
+            {% if equipe.logo %}
+                <img src="{{ asset('uploads/equipes/' ~ equipe.logo) }}" alt="{{ equipe.nomEquipe }}" 
+                     style="width: 180px; height: 180px; border-radius: 50%; border: 6px solid var(--primary-blue); box-shadow: var(--shadow-glow); margin-bottom: 30px; object-fit: cover;">
+            {% else %}
+                <div style="width: 180px; height: 180px; border-radius: 50%; border: 6px solid var(--primary-blue); box-shadow: var(--shadow-glow); margin-bottom: 30px; background: var(--gradient-1); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-users" style="font-size: 70px; color: white;"></i>
+                </div>
+            {% endif %}
+            
+            <h1 class="hero-title" style="font-size: 48px; margin-bottom: 15px;">{{ equipe.nomEquipe|upper }}</h1>
+            <span class="badge badge-primary" style="padding: 12px 35px; font-size: 18px;">
+                <i class="fas fa-{{ equipe.classement == 'Challenger' ? 'star' : (equipe.classement == 'Master' ? 'crown' : 'medal') }}"></i> 
+                {{ equipe.classement|upper }}
+            </span>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons" style="display: flex; gap: 15px; justify-content: center; margin: 40px 0; flex-wrap: wrap;">
+            {% if isMember %}
+                <div class="badge badge-success" style="padding: 14px 30px; font-size: 16px; display: inline-flex; align-items: center; gap: 10px; border-radius: 12px;">
+                    <i class="fas fa-check-circle"></i> Membre Officiel
+                </div>
+            {% endif %}
+
+            {% if not isMember and not isManager %}
+                <a href="{{ path('app_equipes_apply', {'id': equipe.id}) }}" class="btn-gradient" style="padding: 14px 40px; border-radius: 12px; text-decoration: none; font-weight: 600;">
+                    <i class="fas fa-paper-plane"></i> Postuler maintenant
+                </a>
+            {% endif %}
+
+            {% if isManager %}
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+                    <a href="{{ path('app_equipes_edit', {'id': equipe.id}) }}" class="btn-outline" style="padding: 14px 30px; text-decoration: none; border-radius: 12px; font-weight: 600; border: 1px solid #FFC107; color: #FFC107;">
+                        <i class="fas fa-edit"></i> Modifier
+                    </a>
+                    <form method="post" action="{{ path('app_equipes_delete', {'id': equipe.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette équipe ? Cette action est irréversible.');" style="display: inline;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ equipe.id) }}">
+                        <button class="btn-outline" style="padding: 14px 30px; border-radius: 12px; font-weight: 600; border: 1px solid var(--primary-pink); color: var(--primary-pink); background: none; cursor: pointer; font-family: inherit;">
+                            <i class="fas fa-trash-alt"></i> Supprimer
+                        </button>
+                    </form>
+                    <a href="{{ path('app_recrutements_manage', {'id': equipe.id}) }}" class="btn-gradient" style="padding: 14px 30px; border-radius: 12px; text-decoration: none; font-weight: 600;">
+                        <i class="fas fa-user-plus"></i> Gérer demandes
+                    </a>
+                </div>
+            {% elseif isMember %}
+                <div style="display: flex; gap: 15px; justify-content: center;">
+                    <form method="post" action="{{ path('app_equipes_leave', {'id': equipe.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir quitter cette équipe ?');">
+                        <button class="btn-outline" style="padding: 14px 40px; border-radius: 12px; font-weight: 600; border: 1px solid var(--primary-pink); color: var(--primary-pink); background: none; cursor: pointer; font-family: inherit;">
+                            <i class="fas fa-sign-out-alt"></i> Quitter le groupe
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+
+            <a href="{{ path('app_equipes_index') }}" class="btn-outline" style="padding: 14px 40px; border-radius: 12px; text-decoration: none; font-weight: 600;">
+                <i class="fas fa-arrow-left"></i> Retour à la liste
+            </a>
+        </div>
+
+        <!-- Content Grid -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 40px; margin-bottom: 60px;">
+            <!-- Left: Info -->
+            <div>
+
+                <div class="info-card">
+                    <h2 style="font-family: 'Orbitron'; font-size: 28px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px;">
+                        <span style="width: 50px; height: 50px; border-radius: 12px; background: var(--gradient-1); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-info-circle"></i>
+                        </span>
+                        À propos
+                    </h2>
+                    
+                    <p style="color: var(--text-secondary); line-height: 1.8; font-size: 18px; margin-bottom: 30px;">
+                        {{ equipe.description }}
+                    </p>
+
+                    <div style="display: grid; gap: 20px;">
+                        <!-- ID -->
+                        <div style="display: flex; align-items: center; gap: 20px; padding: 20px; background: var(--darker-bg); border-radius: 16px;">
+                            <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(0, 217, 255, 0.1); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--primary-blue);">
+                                <i class="fas fa-hashtag"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 5px;">ID de l'équipe</div>
+                                <div style="font-size: 20px; font-weight: 700; font-family: 'Orbitron', sans-serif;">{{ equipe.id }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Date de création -->
+                        <div style="display: flex; align-items: center; gap: 20px; padding: 20px; background: var(--darker-bg); border-radius: 16px;">
+                            <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(0, 217, 255, 0.1); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--primary-blue);">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 5px;">Date de création</div>
+                                <div style="font-size: 20px; font-weight: 700;">{{ equipe.dateCreation|date('d F Y') }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Classement -->
+                        <div style="display: flex; align-items: center; gap: 20px; padding: 20px; background: var(--darker-bg); border-radius: 16px;">
+                            <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(0, 217, 255, 0.1); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--primary-blue);">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 5px;">Classement</div>
+                                <div style="font-size: 20px; font-weight: 700;">{{ equipe.classement }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Tag -->
+                        <div style="display: flex; align-items: center; gap: 20px; padding: 20px; background: var(--darker-bg); border-radius: 16px;">
+                            <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(0, 217, 255, 0.06); display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--primary-blue);">
+                                <i class="fas fa-tags"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 5px;">Tag</div>
+                                <div style="font-size: 20px; font-weight: 700;">{{ equipe.tag ?? '—' }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Région -->
+                        <div style="display: flex; align-items: center; gap: 20px; padding: 20px; background: var(--darker-bg); border-radius: 16px;">
+                            <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(0, 217, 255, 0.06); display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--primary-blue);">
+                                <i class="fas fa-globe"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 5px;">Région</div>
+                                <div style="font-size: 20px; font-weight: 700;">{{ equipe.region ?? '—' }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Capacité -->
+                        <div style="display: flex; align-items: center; gap: 20px; padding: 20px; background: var(--darker-bg); border-radius: 16px;">
+                            <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(0, 217, 255, 0.1); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--primary-blue);">
+                                <i class="fas fa-user-friends"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 5px;">Membres Maximum</div>
+                                <div style="font-size: 20px; font-weight: 700;">{{ equipe.maxMembers }} Joueurs</div>
+                            </div>
+                        </div>
+
+                        <!-- Visibilité (pour les détails) -->
+                        <div style="display: flex; align-items: center; gap: 20px; padding: 20px; background: var(--darker-bg); border-radius: 16px;">
+                            <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(0, 217, 255, 0.1); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--primary-blue);">
+                                <i class="fas fa-{{ equipe.isPrivate ? 'lock' : 'globe' }}"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 13px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 5px;">Visibilité</div>
+                                <div style="font-size: 20px; font-weight: 700;">{{ equipe.isPrivate ? 'Equipe Privée' : 'Equipe Publique' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recrutements -->
+                {% if equipe.recrutements|length > 0 %}
+                <div class="info-card" style="margin-top: 40px;">
+                    <h2 style="font-family: 'Orbitron'; font-size: 28px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px;">
+                        <span style="width: 50px; height: 50px; border-radius: 12px; background: var(--gradient-1); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-user-plus"></i>
+                        </span>
+                        Recrutements
+                    </h2>
+
+                    <div style="display: grid; gap: 20px;">
+                        {% for recrutement in equipe.recrutements %}
+                        <div style="background: var(--darker-bg); border-radius: 16px; padding: 25px;">
+                            <h3 style="font-family: 'Orbitron'; font-size: 20px; margin-bottom: 10px;">{{ recrutement.titre }}</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 15px;">{{ recrutement.description|slice(0, 100) }}...</p>
+                            <span class="badge badge-{{ recrutement.statut == 'Ouvert' ? 'success' : 'danger' }}">
+                                <i class="fas fa-{{ recrutement.statut == 'Ouvert' ? 'check-circle' : 'times-circle' }}"></i> {{ recrutement.statut }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Contacts (statique) -->
+                {% if isManager or isMember %}
+                <div class="info-card" style="margin-top: 40px;">
+                    <h2 style="font-family: 'Orbitron'; font-size: 28px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+                        <span style="width: 44px; height: 44px; border-radius: 10px; background: var(--gradient-1); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-address-book"></i>
+                        </span>
+                        Coordonnées des membres 
+                        {% if isManager %}
+                        <button class="btn-gradient" onclick="openAddMemberModal()" style="font-size: 14px; padding: 8px 20px; text-transform: uppercase; letter-spacing: 1px; margin-left: auto;">
+                            <i class="fas fa-plus"></i> Ajouter un membre
+                        </button>
+                        {% endif %}
+                    </h2>
+
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; min-width: 720px;">
+                            <thead>
+                                <tr style="background: rgba(0,0,0,0.15); text-transform: uppercase; color: var(--text-secondary); font-size: 13px;">
+                                    <th style="padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.04);">Nom</th>
+                                    <th style="padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.04);">Pseudo</th>
+                                    <th style="padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.04);">Email</th>
+                                    {% if isManager %}
+                                        <th style="padding: 12px 16px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.04);">Actions</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for member in members %}
+                                    <tr style="{{ loop.index is even ? 'background: rgba(255,255,255,0.02);' : '' }}">
+                                        {# Note: Nom is fetched from user if possible, but here we show pseudo as name if no user linked? 
+                                           The user requested 'Nom', 'Pseudo', 'Email'. 
+                                           I'll try to find the User or just use pseudo for both if needed, 
+                                           but let's assume we can at least get Pseudo and Email from candidature. #}
+                                        <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">{{ member.nom }}</td>
+                                        <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03); font-weight: 700;">{{ member.pseudo }}</td>
+                                        <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);">{{ member.email }}</td>
+                                        {% if isManager %}
+                                            <td style="padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.03); text-align: right;">
+                                                <form method="post" action="{{ path('app_equipes_remove_member', {'id': equipe.id}) }}" onsubmit="return confirm('Voulez-vous vraiment retirer ce membre ?');" style="display:inline;">
+                                                    <input type="hidden" name="user_id" value="{{ member.id }}">
+                                                    <button type="submit" class="btn-action delete" style="padding: 6px 12px; font-size: 11px; border: 1px solid var(--primary-pink); color: var(--primary-pink); background: rgba(255,0,110,0.1); border-radius: 6px; cursor: pointer; transition: all 0.3s;" title="Exclure du groupe"
+                                                            onmouseover="this.style.background='var(--primary-pink)'; this.style.color='white';"
+                                                            onmouseout="this.style.background='rgba(255,0,110,0.1)'; this.style.color='var(--primary-pink)';">
+                                                        <i class="fas fa-user-times"></i> Exclure
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        {% endif %}
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                    <tr style="border: none;">
+                                        <td colspan="{% if isManager %}4{% else %}3{% endif %}" style="padding: 30px; text-align: center; color: var(--text-secondary);">
+                                            Aucun membre officiel pour le moment.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right: Stats -->
+            <div>
+                <div class="info-card" style="position: sticky; top: 100px;">
+                    <h2 style="font-family: 'Orbitron'; font-size: 24px; margin-bottom: 30px; display: flex; align-items: center; gap: 15px;">
+                        <span style="width: 50px; height: 50px; border-radius: 12px; background: var(--gradient-1); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-chart-line"></i>
+                        </span>
+                        Statistiques
+                    </h2>
+
+                    <div style="display: grid; gap: 25px;">
+                        <div class="stat-box" style="background: var(--darker-bg); padding: 25px; border-radius: 16px; text-align: center;">
+                            <div class="stat-icon" style="width: 60px; height: 60px; margin: 0 auto 15px; border-radius: 50%; background: var(--gradient-1); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-user-friends" style="font-size: 24px;"></i>
+                            </div>
+                            <div class="stat-value" style="font-family: 'Orbitron', sans-serif; font-size: 36px; font-weight: 900; color: var(--primary-blue);">{{ equipe.recrutements|length }}</div>
+                            <div class="stat-label" style="color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">Recrutements</div>
+                        </div>
+
+                        <div class="stat-box" style="background: var(--darker-bg); padding: 25px; border-radius: 16px; text-align: center;">
+                            <div class="stat-icon" style="width: 60px; height: 60px; margin: 0 auto 15px; border-radius: 50%; background: rgba(0, 255, 136, 0.2); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-check-circle" style="font-size: 24px; color: var(--success-color);"></i>
+                            </div>
+                            <div class="stat-value" style="font-family: 'Orbitron', sans-serif; font-size: 36px; font-weight: 900; color: var(--success-color);">
+                                {{ equipe.recrutements|filter(r => r.statut == 'Ouvert')|length }}
+                            </div>
+                            <div class="stat-label" style="color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">Ouverts</div>
+                        </div>
+
+                        <div class="stat-box" style="background: var(--darker-bg); padding: 25px; border-radius: 16px; text-align: center;">
+                            <div class="stat-icon" style="width: 60px; height: 60px; margin: 0 auto 15px; border-radius: 50%; background: rgba(123, 47, 255, 0.2); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-calendar-check" style="font-size: 24px; color: var(--primary-purple);"></i>
+                            </div>
+                            <div class="stat-value" style="font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 900; color: var(--primary-purple);">
+                                {{ equipe.dateCreation|date('d/m/Y') }}
+                            </div>
+                            <div class="stat-label" style="color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;">Créée le</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {# end content - base.html.twig provides the <main> wrapper #}
+
+    {% if isManager %}
+    {# â”€â”€â”€ ADD MEMBER MODAL â”€â”€â”€ #}
+    <div id="addMemberModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+        <div class="modal-content" style="background: var(--dark-bg); padding: 30px; border-radius: 20px; width: 90%; max-width: 500px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 50px rgba(0,0,0,0.5); transform: scale(0.9); opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div style="width: 60px; height: 60px; background: rgba(0,217,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; border: 2px solid var(--primary-blue);">
+                    <i class="fas fa-user-plus" style="font-size: 24px; color: var(--primary-blue);"></i>
+                </div>
+                <h2 style="font-family: 'Orbitron', sans-serif; font-size: 24px; margin-bottom: 10px; color: white;">Ajouter un Membre</h2>
+                <p style="color: var(--text-secondary);">Entrez le pseudo ou l'email du joueur à ajouter.</p>
+            </div>
+
+            <form method="post" action="{{ path('app_equipes_add_member', {'id': equipe.id}) }}">
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; color: var(--text-secondary); margin-bottom: 8px; font-size: 14px; font-weight: 600;">Pseudo ou Email</label>
+                    <div style="position: relative;">
+                        <i class="fas fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                        <input type="text" name="identifier" required placeholder="Ex: Faker, joueur@email.com" 
+                               style="width: 100%; padding: 12px 12px 12px 45px; background: var(--darker-bg); border: 2px solid rgba(255,255,255,0.1); border-radius: 10px; color: white; font-family: 'Rajdhani', sans-serif; font-size: 16px; outline: none; transition: var(--transition);"
+                               onfocus="this.style.borderColor='var(--primary-blue)'; this.style.boxShadow='0 0 15px rgba(0,217,255,0.15)';"
+                               onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.boxShadow='none';">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 15px;">
+                    <button type="button" onclick="closeAddMemberModal()" style="flex: 1; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+                        Annuler
+                    </button>
+                    <button type="submit" class="btn-gradient" style="flex: 1; border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                        Ajouter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openAddMemberModal() {
+            const modal = document.getElementById('addMemberModal');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            const content = modal.querySelector('.modal-content');
+            
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    content.style.opacity = '1';
+                    content.style.transform = 'scale(1)';
+                });
+            });
+            
+            setTimeout(() => {
+                const input = modal.querySelector('input[name="identifier"]');
+                if (input) input.focus();
+            }, 100);
+        }
+
+        function closeAddMemberModal() {
+            const modal = document.getElementById('addMemberModal');
+            const content = modal.querySelector('.modal-content');
+            
+            content.style.opacity = '0';
+            content.style.transform = 'scale(0.9)';
+            
+            setTimeout(() => {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }, 300);
+        }
+        
+        document.getElementById('addMemberModal').addEventListener('click', function(e) {
+            if (e.target === this) closeAddMemberModal();
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeAddMemberModal();
+        });
+    </script>
+    {% endif %}
+
+{% endblock %}

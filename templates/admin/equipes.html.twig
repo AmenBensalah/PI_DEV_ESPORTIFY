@@ -1,0 +1,148 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Gestion Équipes - Admin{% endblock %}
+{% block page_title %}Gestion des Équipes{% endblock %}
+
+{% block body %}
+    <!-- Search and Actions Banner -->
+    <div style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; gap: 20px;">
+        <div style="position: relative; flex: 1; max-width: 500px;">
+            <i class="fas fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+            <input type="text" id="live-search-equipes" placeholder="Rechercher une équipe par nom, tag ou région..." 
+                   style="width: 100%; padding: 12px 15px 12px 45px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); color: #fff; font-size: 14px; outline: none; transition: 0.3s;"
+                   onfocus="this.style.borderColor='var(--primary-blue)'; this.style.background='rgba(255,255,255,0.06)'; this.style.boxShadow='0 0 15px rgba(67, 97, 238, 0.2)';"
+                   onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.background='rgba(255,255,255,0.03)'; this.style.boxShadow='none';">
+        </div>
+        <a href="{{ path('app_equipes_new') }}" class="btn-gradient" style="padding: 12px 25px; text-decoration: none; display: inline-block;">
+            <i class="fas fa-plus"></i> Ajouter une Équipe
+        </a>
+    </div>
+
+    <div class="admin-table-container">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Tag</th>
+                    <th>Region</th>
+                    <th>Classement</th>
+                    <th>Membres</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="equipes-tbody">
+                {% for equipe in equipes %}
+                    <tr class="equipe-row" 
+                        data-nom="{{ equipe.nomEquipe|lower }}" 
+                        data-tag="{{ equipe.tag|lower }}" 
+                        data-region="{{ equipe.region|default('')|lower }}">
+                        <td>#{{ equipe.id }}</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                {% if equipe.logo %}
+                                    <img src="{{ asset('uploads/equipes/' ~ equipe.logo) }}" alt="Logo" style="width: 30px; height: 30px; border-radius: 6px; object-fit: cover;">
+                                {% else %}
+                                    <div style="width: 30px; height: 30px; border-radius: 6px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-users" style="font-size: 12px;"></i>
+                                    </div>
+                                {% endif %}
+                                <span style="font-weight: 600;">{{ equipe.nomEquipe }}</span>
+                            </div>
+                        </td>
+                        <td><span class="badge badge-primary">{{ equipe.tag }}</span></td>
+                        <td>{{ equipe.region|default('N/A') }}</td>
+                        <td>{{ equipe.classement }}</td>
+                        <td>{{ equipe.recrutements|length }}</td>
+                        <td>
+                            <div style="display: flex; gap: 10px;">
+                                <a href="{{ path('app_recrutements_manage', {'id': equipe.id}) }}" class="btn-icon" title="Gérer Demandes" style="text-decoration: none; color: var(--success-color);">
+                                    <i class="fas fa-user-check"></i>
+                                </a>
+                                <a href="{{ path('app_equipes_show', {'id': equipe.id}) }}" class="btn-icon" title="Voir" style="text-decoration: none; color: var(--primary-blue);">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ path('app_equipes_edit', {'id': equipe.id, 'from': 'admin'}) }}" class="btn-icon" title="Modifier" style="text-decoration: none; color: #FFC107;">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="post" action="{{ path('app_equipes_delete', {'id': equipe.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette équipe ?');" style="display: inline-block; margin: 0;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ equipe.id) }}">
+                                    <button type="submit" class="btn-icon" title="Supprimer" style="background: none; border: none; cursor: pointer; color: var(--primary-pink); padding: 0;">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr id="no-results-default">
+                        <td colspan="7" style="text-align: center; padding: 30px;">Aucune équipe trouvée</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('live-search-equipes');
+            const tbody = document.getElementById('equipes-tbody');
+
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    const searchTerm = e.target.value.toLowerCase().trim();
+                    const rows = document.querySelectorAll('.equipe-row');
+                    let visibleCount = 0;
+
+                    rows.forEach(row => {
+                        const nom = row.dataset.nom || '';
+                        const tag = row.dataset.tag || '';
+                        const region = row.dataset.region || '';
+
+                        // Search in name, tag, or region
+                        if (nom.includes(searchTerm) || tag.includes(searchTerm) || region.includes(searchTerm)) {
+                            row.style.display = '';
+                            visibleCount++;
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+
+                    // Handle empty state
+                    const defaultNoResults = document.getElementById('no-results-default');
+                    let noResultsRow = document.getElementById('no-results-search');
+
+                    if (defaultNoResults) {
+                        defaultNoResults.style.display = 'none';
+                    }
+
+                    if (visibleCount === 0 && searchTerm !== '') {
+                        if (!noResultsRow) {
+                            noResultsRow = document.createElement('tr');
+                            noResultsRow.id = 'no-results-search';
+                            noResultsRow.innerHTML = `
+                                <td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                                    <i class="fas fa-ghost" style="font-size: 48px; opacity: 0.3; display: block; margin-bottom: 15px;"></i>
+                                    Aucune équipe ne correspond à "${e.target.value}"
+                                </td>
+                            `;
+                            tbody.appendChild(noResultsRow);
+                        } else {
+                            noResultsRow.style.display = '';
+                            noResultsRow.querySelector('td').innerHTML = `
+                                <i class="fas fa-ghost" style="font-size: 48px; opacity: 0.3; display: block; margin-bottom: 15px;"></i>
+                                Aucune équipe ne correspond à "${e.target.value}"
+                            `;
+                        }
+                    } else if (noResultsRow) {
+                        noResultsRow.style.display = 'none';
+                    }
+
+                    if (visibleCount === 0 && searchTerm === '' && defaultNoResults) {
+                        defaultNoResults.style.display = '';
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Profil - E-Sportify{% endblock %}
+
+{% block body %}
+<!-- Profile Header Section -->
+<div class="page-header animate__animated animate__fadeIn">
+    <div style="width: 100px; height: 100px; margin: 0 auto 20px; border-radius: 50%; padding: 4px; background: var(--gradient-1); box-shadow: var(--shadow-glow);">
+        <div style="width: 100%; height: 100%; background: var(--darker-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+            {% if user.avatar is defined and user.avatar %}
+                <img src="{{ asset('uploads/avatars/' ~ user.avatar) }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+                <span style="font-family: 'Orbitron'; font-size: 36px; font-weight: 900; background: var(--gradient-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    {{ user.nom|default(user.email)|first|upper }}
+                </span>
+            {% endif %}
+        </div>
+    </div>
+    <h1 class="hero-title" style="margin-bottom: 5px;">{{ user.pseudo|default(user.nom) }}</h1>
+    <p class="hero-subtitle">
+        {{ user.email }} • 
+        <span style="color: var(--primary-blue);">
+            {% if is_granted('ROLE_ADMIN') %}Administrateur
+            {% elseif is_granted('ROLE_MANAGER') %}Manager
+            {% else %}Joueur{% endif %}
+        </span>
+    </p>
+</div>
+
+<!-- Profile Details Card -->
+<div class="form-container animate__animated animate__fadeInUp" style="max-width: 800px; margin-top: -20px;">
+    <div class="form-card">
+        <div class="form-header">
+            <h2 class="section-heading"><i class="fas fa-id-card"></i> Informations Personnelles</h2>
+            <p class="form-subtitle">Gérez vos informations de compte et vos préférences.</p>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label class="form-label"><i class="fas fa-signature"></i> Nom Complet</label>
+                <div class="form-input" style="background: rgba(255,255,255,0.05); cursor: default;">
+                    {{ user.nom }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label"><i class="fas fa-at"></i> Email</label>
+                <div class="form-input" style="background: rgba(255,255,255,0.05); cursor: default;">
+                    {{ user.email }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label"><i class="fas fa-user-tag"></i> Pseudo</label>
+                <div class="form-input" style="background: rgba(255,255,255,0.05); cursor: default;">
+                    {{ user.pseudo|default('Non défini') }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label"><i class="fas fa-shield-alt"></i> Statut du Compte</label>
+                <div class="form-input" style="background: rgba(0, 255, 136, 0.1); color: var(--success-color); border-color: rgba(0, 255, 136, 0.3);">
+                    <i class="fas fa-check-circle"></i> Actif
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions centered" style="margin-top: 50px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.05);">
+            <a href="{{ path('app_profile_edit') }}" class="btn-gradient">
+                <i class="fas fa-edit"></i> Modifier le Profil
+            </a>
+            
+            <button onclick="openDeleteModal()" class="btn-outline" style="border-color: var(--primary-pink); color: var(--primary-pink);">
+                <i class="fas fa-trash-alt"></i> Supprimer le Compte
+            </button>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="{{ path('app_home') }}" style="color: var(--text-secondary); font-size: 14px; text-decoration: none; transition: var(--transition);" onmouseover="this.style.color='var(--primary-blue)'" onmouseout="this.style.color='var(--text-secondary)'">
+                <i class="fas fa-arrow-left"></i> Retour à l'accueil
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" class="modal-overlay delete-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center;">
+    <div class="modal-content" style="background: var(--darker-bg); padding: 40px; border-radius: 20px; max-width: 500px; width: 90%; text-align: center; border: 1px solid rgba(255,0,110,0.3); box-shadow: 0 0 50px rgba(255,0,110,0.2);">
+        <div style="width: 80px; height: 80px; margin: 0 auto 20px; background: rgba(255,0,110,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-exclamation-triangle" style="font-size: 32px; color: var(--primary-pink);"></i>
+        </div>
+        
+        <h2 style="font-family: 'Orbitron'; font-size: 24px; color: white; margin-bottom: 15px;">Supprimer le compte ?</h2>
+        <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 30px;">
+            Cette action est <strong style="color: var(--primary-pink);">irréversible</strong>. Toutes vos données seront perdues définitivement.
+        </p>
+        
+        <div style="display: flex; gap: 15px;">
+            <button onclick="closeDeleteModal()" class="btn-outline" style="flex: 1; border-color: rgba(255,255,255,0.2); color: white;">
+                Annuler
+            </button>
+            <form method="post" action="{{ path('app_profile_delete') }}" style="flex: 1;">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete_profile') }}">
+                <button type="submit" class="btn-gradient" style="width: 100%; background: var(--primary-pink); box-shadow: none;">
+                    Confirmer
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.style.display = 'flex';
+        // Add animation logic if needed
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    // Close on click outside
+    document.getElementById('deleteModal').addEventListener('click', function(e) {
+        if (e.target === this) closeDeleteModal();
+    });
+</script>
+{% endblock %}

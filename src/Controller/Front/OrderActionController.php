@@ -47,10 +47,10 @@ class OrderActionController extends AbstractController
 
         if (!$produit) {
              $this->addFlash('error', 'Produit non trouvé.');
-             return $this->redirectToRoute('front_product_list');
+             return $this->redirectToRoute('app_front_produit_index');
         }
         if ($request->isMethod('GET')) {
-            return $this->redirectToRoute('front_product_list');
+            return $this->redirectToRoute('app_front_produit_index');
         }
 
         $orderId = $session->get('current_order_id');
@@ -72,7 +72,7 @@ class OrderActionController extends AbstractController
         $quantite = (int) $request->request->get('quantite', 1);
         if ($quantite <= 0 || $quantite > 100) {
             $this->addFlash('error', 'Quantite invalide.');
-            return $this->redirectToRoute('front_product_list');
+            return $this->redirectToRoute('app_front_produit_index');
         }
         
         try {
@@ -155,7 +155,7 @@ class OrderActionController extends AbstractController
         $orderId = $session->get('current_order_id');
         if (!$orderId) {
             $this->addFlash('error', 'Aucune commande en cours.');
-            return $this->redirectToRoute('front_product_list');
+            return $this->redirectToRoute('app_front_produit_index');
         }
 
         $commande = $commandeRepository->find($orderId);
@@ -163,7 +163,7 @@ class OrderActionController extends AbstractController
         if (!$commande) {
             $this->addFlash('error', 'Commande introuvable.');
             $session->remove('current_order_id');
-            return $this->redirectToRoute('front_product_list');
+            return $this->redirectToRoute('app_front_produit_index');
         }
 
         if ($commande->getStatut() !== 'draft') {
@@ -226,14 +226,14 @@ class OrderActionController extends AbstractController
         $orderId = $session->get('current_order_id');
         if (!$orderId) {
             $this->addFlash('error', 'Aucune commande en cours.');
-            return $this->redirectToRoute('front_product_list');
+            return $this->redirectToRoute('app_front_produit_index');
         }
 
         $commande = $commandeRepository->find($orderId);
         if (!$commande) {
             $this->addFlash('error', 'Commande introuvable.');
             $session->remove('current_order_id');
-            return $this->redirectToRoute('front_product_list');
+            return $this->redirectToRoute('app_front_produit_index');
         }
 
         if ($commande->getStatut() !== 'draft') {
@@ -352,6 +352,6 @@ class OrderActionController extends AbstractController
             }
         }
 
-        return $this->redirectToRoute('front_product_list');
+        return $this->redirectToRoute('app_front_produit_index');
     }
 }

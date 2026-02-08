@@ -1,456 +1,658 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-            <style>
-                @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Work+Sans:wght@400;500;600&display=swap');
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}E-Sportify{% endblock %}</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
+    <!-- Custom CSS (Legacy) -->
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
+    
+    <!-- Custom JS (Legacy) -->
+    <script src="{{ asset('js/app.js') }}?v=1.2" defer></script>
+    
+    <style>
+        .pro-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(3, 10, 24, 0.2);
+            padding: 22px;
+            box-sizing: border-box;
+            max-width: 100%;
+        }
 
-                :root {
-                    --bg-1: #0d1b2a;
-                    --bg-2: #1b263b;
-                    --card: #ffffff;
-                    --ink: #0b1320;
-                    --muted: #5b6b7b;
-                    --accent: #2d6cdf;
-                    --accent-2: #14b8a6;
-                    --danger: #e11d48;
-                    --ring: rgba(45, 108, 223, 0.25);
-                }
+        .pro-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
 
-                body {
-                    margin: 0;
-                    font-family: "Work Sans", "Segoe UI", sans-serif;
-                    color: var(--ink);
-                    background: radial-gradient(1200px 600px at 20% -10%, #2b6cb0 0%, rgba(43, 108, 176, 0.2) 45%, transparent 60%),
-                                linear-gradient(180deg, #0e223a 0%, #0b1a2a 100%);
-                    min-height: 100vh;
-                }
+        .pro-input {
+            width: 100%;
+            border: 1px solid #e6e9ef;
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-size: 14px;
+            background: #f7f9fc;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
 
-                h1, h2, h3 {
-                    font-family: "Playfair Display", Georgia, serif;
-                    letter-spacing: 0.3px;
-                }
+        .pro-input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.25);
+            background: #fff;
+        }
 
-                .container {
-                    max-width: 1200px;
-                    margin: 0 auto;
-                    padding: 28px 20px 60px;
-                    box-sizing: border-box;
-                }
+        .pro-input::placeholder {
+            color: #9aa3af;
+            font-size: 12px;
+        }
 
-                .pro-card {
-                    background: var(--card);
-                    border-radius: 16px;
-                    box-shadow: 0 12px 30px rgba(3, 10, 24, 0.2);
-                    padding: 22px;
-                    box-sizing: border-box;
-                    max-width: 100%;
-                }
+        .pro-label {
+            font-size: 13px;
+            color: #5b6b7b;
+            margin-bottom: 6px;
+            display: inline-block;
+        }
 
-                .pro-grid {
-                    display: grid;
-                    grid-template-columns: repeat(2, minmax(0, 1fr));
-                    gap: 20px;
-                }
+        .pro-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 10px 18px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+            min-width: 140px;
+            justify-content: center;
+        }
 
-                .pro-input {
-                    width: 100%;
-                    border: 1px solid #e6e9ef;
-                    border-radius: 12px;
-                    padding: 10px 12px;
-                    font-size: 14px;
-                    background: #f7f9fc;
-                    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-                }
+        .pro-btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-pink));
+            color: #fff;
+            box-shadow: 0 10px 20px rgba(247, 37, 133, 0.25), 0 8px 16px rgba(67, 97, 238, 0.25);
+        }
 
-                .pro-input:focus {
-                    outline: none;
-                    border-color: var(--accent);
-                    box-shadow: 0 0 0 4px var(--ring);
-                    background: #fff;
-                }
+        .pro-btn-primary:hover {
+            transform: translateY(-1px);
+        }
 
-                .pro-label {
-                    font-size: 13px;
-                    color: var(--muted);
-                    margin-bottom: 6px;
-                    display: inline-block;
-                }
+        .pro-btn:hover {
+            transform: translateY(-1px);
+        }
 
-                .pro-btn {
-                    border: none;
-                    border-radius: 999px;
-                    padding: 10px 18px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 8px;
-                    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-                    text-decoration: none;
-                    color: inherit;
-                }
+        .pro-btn:active {
+            transform: translateY(0);
+        }
 
-                .pro-btn-primary {
-                    background: var(--accent);
-                    color: #fff;
-                    box-shadow: 0 10px 20px rgba(45, 108, 223, 0.35);
-                }
+        .pro-btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(45, 108, 223, 0.25);
+        }
 
-                .pro-btn-primary:hover {
-                    transform: translateY(-1px);
-                }
+        .pro-btn-danger {
+            background: #e11d48;
+            color: #fff;
+        }
 
-                .pro-btn:hover {
-                    transform: translateY(-1px);
-                }
+        .pro-btn-secondary {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
 
-                .pro-btn:active {
-                    transform: translateY(0);
-                }
+        .pro-link {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
 
-                .pro-btn:focus-visible {
-                    outline: none;
-                    box-shadow: 0 0 0 4px var(--ring);
-                }
+        .pro-link:hover {
+            text-decoration: underline;
+        }
 
-                .pro-btn-danger {
-                    background: var(--danger);
-                    color: #fff;
-                }
+        .cart-page h1 {
+            color: #f8fafc;
+            margin-bottom: 18px;
+        }
 
-                .pro-btn-secondary {
-                    background: #e2e8f0;
-                    color: #0f172a;
-                }
+        .cart-shell {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 22px;
+        }
 
-                .pro-link {
-                    color: var(--accent);
-                    text-decoration: none;
-                    font-weight: 600;
-                }
+        .cart-shell.single {
+            grid-template-columns: 1fr;
+            max-width: 760px;
+            margin: 0 auto;
+            width: 100%;
+        }
 
-                .pro-link:hover {
-                    text-decoration: underline;
-                }
+        .cart-page .pro-card {
+            width: 100%;
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #e5e7eb;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+        }
 
-                .btn {
-                    border: none;
-                    border-radius: 999px;
-                    padding: 10px 18px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 8px;
-                    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
-                    text-decoration: none;
-                }
+        .form-rows {
+            display: grid;
+            gap: 14px;
+            padding: 0;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+        .cart-page .form-rows {
+            grid-template-columns: 1fr;
+        }
 
-                .btn-primary {
-                    background: var(--accent);
-                    color: #fff;
-                    box-shadow: 0 10px 20px rgba(45, 108, 223, 0.35);
-                }
+        .form-row {
+            padding: 0 12px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+        .cart-page {
+            padding: 40px 0;
+        }
 
-                .btn-secondary {
-                    background: #e2e8f0;
-                    color: #0f172a;
-                }
+        .form-row .pro-label {
+            margin: 0;
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
 
-                .btn-success {
-                    background: var(--accent-2);
-                    color: #fff;
-                    box-shadow: 0 10px 20px rgba(20, 184, 166, 0.35);
-                }
+        .form-row .pro-input {
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #e5e7eb;
+        }
+        .cart-page .pro-input::placeholder {
+            color: rgba(255,255,255,0.35);
+        }
 
-                .btn-danger {
-                    background: var(--danger);
-                    color: #fff;
-                }
+        .form-section-title {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.75);
+            margin-bottom: 6px;
+        }
 
-                .btn:hover {
-                    transform: translateY(-1px);
-                }
+        .cart-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
 
-                .alert {
-                    border-radius: 14px;
-                    padding: 12px 16px;
-                    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
-                }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eef1f6;
+        }
 
-                .form-control, input[type="text"], input[type="number"], input[type="email"], input[type="password"], select, textarea {
-                    width: 100%;
-                    border: 1px solid #e6e9ef;
-                    border-radius: 12px;
-                    padding: 10px 12px;
-                    font-size: 14px;
-                    background: #f7f9fc;
-                    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-                    box-sizing: border-box;
-                }
+        .cart-item:last-child {
+            border-bottom: none;
+        }
 
-                .form-control:focus,
-                input[type="text"]:focus,
-                input[type="number"]:focus,
-                input[type="email"]:focus,
-                input[type="password"]:focus,
-                select:focus,
-                textarea:focus {
-                    outline: none;
-                    border-color: var(--accent);
-                    box-shadow: 0 0 0 4px var(--ring);
-                    background: #fff;
-                }
+        .cart-total {
+            margin-top: 16px;
+            font-weight: 600;
+            color: #0b1320;
+        }
 
-                label {
-                    font-size: 13px;
-                    color: var(--muted);
-                    margin-bottom: 6px;
-                    display: inline-block;
-                }
+        .cart-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+            align-items: center;
+        }
 
-                .table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    background: #ffffff;
-                    border-radius: 14px;
-                    overflow: hidden;
-                    box-shadow: 0 12px 28px rgba(3, 10, 24, 0.12);
-                }
+        .cart-actions.stack {
+            flex-direction: column;
+            align-items: flex-start;
+        }
 
-                .table th, .table td {
-                    text-align: left;
-                    padding: 12px 14px;
-                    border-bottom: 1px solid #eef1f6;
-                    font-size: 14px;
-                }
+        .cart-actions.space {
+            justify-content: space-between;
+            width: 100%;
+        }
 
-                .table th {
-                    background: #f1f5f9;
-                    color: #0f172a;
-                    font-weight: 600;
-                }
+        .cart-actions .pro-link {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .cart-page .form-control {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #e5e7eb;
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+        .cart-page .form-control::placeholder {
+            color: rgba(255,255,255,0.35);
+        }
 
-                .table tr:last-child td {
-                    border-bottom: none;
-                }
+        .info-list {
+            display: grid;
+            gap: 10px;
+            padding: 0 12px;
+        }
 
-                .mb-3 {
-                    margin-bottom: 14px;
-                }
+        .info-item {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px;
+            padding: 10px 12px;
+            color: #e5e7eb;
+            font-size: 14px;
+        }
 
-                .cart-page h1 {
-                    color: #f8fafc;
-                    margin-bottom: 18px;
-                }
+        @media (max-width: 900px) {
+            .pro-grid {
+                grid-template-columns: 1fr;
+            }
 
-                .cart-shell {
-                    display: grid;
-                    grid-template-columns: 1.1fr 1fr;
-                    gap: 22px;
-                }
+            .cart-shell {
+                grid-template-columns: 1fr;
+            }
+        }
 
-                .cart-shell.single {
-                    grid-template-columns: 1fr;
-                    max-width: 520px;
-                    margin: 0 auto;
-                }
-
-                .cart-page .pro-card {
-                    width: 100%;
-                }
-
-                .form-rows {
-                    display: grid;
-                    gap: 10px;
-                    padding: 0;
-                }
-
-                .form-row {
-                    padding: 0 12px;
-                }
-
-                .form-row {
-                    display: grid;
-                    grid-template-columns: 1fr;
-                    gap: 8px;
-                }
-
-                .form-row .pro-label {
-                    margin: 0;
-                    font-size: 10px;
-                    color: #6b7280;
-                    text-transform: none;
-                    letter-spacing: 0.2px;
-                }
-
-                .form-row .pro-input {
-                    height: 32px;
-                    border-radius: 8px;
-                    background: #fff;
-                    border: 1px solid #e5e7eb;
-                }
-
-                .pro-input::placeholder {
-                    color: #9aa3af;
-                    font-size: 12px;
-                }
-
-                .form-section-title {
-                    font-family: "Work Sans", "Segoe UI", sans-serif;
-                    font-size: 12px;
-                    font-weight: 600;
-                    letter-spacing: 0.6px;
-                    text-transform: uppercase;
-                    color: #6b7280;
-                    margin-bottom: 6px;
-                }
-
-                @media (max-width: 600px) {
-                    .container {
-                        padding: 20px 14px 40px;
-                    }
-
-                    .form-row {
-                        grid-template-columns: 1fr;
-                        align-items: start;
-                    }
-                }
-
-                .cart-list {
-                    list-style: none;
-                    padding: 0;
-                    margin: 0;
-                }
-
-                .cart-item {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 12px 0;
-                    border-bottom: 1px solid #eef1f6;
-                }
-
-                .cart-item:last-child {
-                    border-bottom: none;
-                }
-
-                .cart-total {
-                    margin-top: 16px;
-                    font-weight: 600;
-                    color: var(--ink);
-                }
-
-                .cart-actions {
-                    display: flex;
-                    gap: 10px;
-                    flex-wrap: wrap;
-                    margin-top: 16px;
-                    align-items: center;
-                }
-
-                .cart-actions.stack {
-                    flex-direction: column;
-                    align-items: flex-start;
-                }
-
-                .cart-actions.space {
-                    justify-content: space-between;
-                    width: 100%;
-                }
-
-                .cart-actions .pro-link {
-                    font-weight: 600;
-                    font-size: 14px;
-                }
-
-                .pro-btn {
-                    min-width: 140px;
-                    justify-content: center;
-                }
-
-                .info-list {
-                    display: grid;
-                    gap: 10px;
-                    padding: 0 12px;
-                }
-
-                .info-item {
-                    background: #f9fafb;
-                    border: 1px solid #e5e7eb;
-                    border-radius: 10px;
-                    padding: 10px 12px;
-                    color: #111827;
-                    font-size: 14px;
-                }
-
-                @media (max-width: 900px) {
-                    .pro-grid {
-                        grid-template-columns: 1fr;
-                    }
-
-                    .cart-shell {
-                        grid-template-columns: 1fr;
-                    }
-                }
-            </style>
-        {% endblock %}
-
-        {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
-            <script>
-                const autoDismissAlerts = () => {
-                    const alerts = document.querySelectorAll('.alert');
-                    if (!alerts.length) return;
-                    setTimeout(() => {
-                        alerts.forEach((alert) => {
-                            alert.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-                            alert.style.opacity = '0';
-                            alert.style.transform = 'translateY(-6px)';
-                            setTimeout(() => alert.remove(), 450);
-                        });
-                    }, 2000);
-                };
-
-                const initCartSearch = () => {
-                    const input = document.getElementById('cart_search');
-                    if (!input) return;
-                    const items = Array.from(document.querySelectorAll('.cart-item[data-search]'));
-                    input.addEventListener('input', () => {
-                        const q = input.value.trim().toLowerCase();
-                        items.forEach((item) => {
-                            const hay = (item.getAttribute('data-search') || '').toLowerCase();
-                            item.style.display = hay.includes(q) ? '' : 'none';
-                        });
-                    });
-                };
-
-                document.addEventListener('DOMContentLoaded', () => {
-                    autoDismissAlerts();
-                    initCartSearch();
-                });
-                document.addEventListener('turbo:load', () => {
-                    autoDismissAlerts();
-                    initCartSearch();
-                });
-            </script>
-        {% endblock %}
-    </head>
-    <body>
-        <div class="container">
-            {% for type, messages in app.flashes %}
-                <div class="alert alert-{{ type }}" style="padding: 10px; margin: 10px 0; border-radius: 5px; {% if type == 'success' %}background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;{% elseif type == 'error' %}background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;{% else %}background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;{% endif %}">
-                    {% for message in messages %}
-                        <p style="margin: 5px 0;">{{ message }}</p>
-                    {% endfor %}
-                </div>
-            {% endfor %}
-            
-            {% block body %}{% endblock %}
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+                align-items: start;
+            }
+        }
+    </style>
+    {% block stylesheets %}{% endblock %}
+</head>
+<body class="with-sidebar" data-theme="dark">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <img src="{{ asset('images/logo3.png') }}" alt="Logo" class="sidebar-logo-img">
+            </div>
+            <h1 class="sidebar-brand">E-SPORTIFY</h1>
+            <div class="online-count">
+                <i class="fas fa-circle"></i> +21 000 JOUEURS
+            </div>
         </div>
-    </body>
+
+        <nav class="sidebar-nav">
+            <a href="{{ path('app_home') }}" class="nav-link">
+                <i class="fas fa-home"></i>
+                <span>Accueil</span>
+            </a>
+            {% set teamId = app.session.get('my_team_id') %}
+            {% if teamId %}
+                <a href="{{ path('app_equipes_show', {'id': teamId}) }}" class="nav-link">
+                    <i class="fas fa-users"></i>
+                    <span>Équipes</span>
+                </a>
+            {% else %}
+                <a href="{{ path('app_equipes_index') }}" class="nav-link">
+                    <i class="fas fa-users"></i>
+                    <span>Équipes</span>
+                </a>
+            {% endif %}
+            <a href="{{ path('app_recrutements_index') }}" class="nav-link">
+                <i class="fas fa-clipboard-list"></i>
+                <span>Recrutements</span>
+            </a>
+            <a href="#" class="nav-link">
+                <i class="fas fa-trophy"></i>
+                <span>Tournois</span>
+            </a>
+            <a href="{{ path('app_front_produit_index') }}" class="nav-link">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Boutique</span>
+            </a>
+            <a href="#" class="nav-link">
+                <i class="fas fa-comments"></i>
+                <span>Chat</span>
+            </a>
+            <a href="#" class="nav-link">
+                <i class="fas fa-rss"></i>
+                <span>News</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            {% if app.user %}
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; padding:10px 12px; background: rgba(255,255,255,0.05); border-radius:10px;">
+                    <div style="width:32px; height:32px; border-radius:50%; background: var(--primary-blue); display:flex; align-items:center; justify-content:center; font-weight:700;">
+                        {{ app.user.nom|default(app.user.email)|first|upper }}
+                    </div>
+                    <div style="line-height:1.1;">
+                        <div style="font-weight:600;">{{ app.user.nom|default('Utilisateur') }}</div>
+                        <div style="font-size:12px; color: var(--text-secondary);">
+                            {% if is_granted('ROLE_ADMIN') %}Administrateur
+                            {% elseif is_granted('ROLE_MANAGER') %}Manager
+                            {% else %}Joueur{% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            <button id="themeToggle" class="sidebar-footer-btn">
+                <i class="fas fa-moon"></i>
+                <span>Mode Nuit</span>
+            </button>
+            <a href="{{ path('app_profile') }}" class="sidebar-footer-btn">
+                <i class="fas fa-user"></i>
+                <span>Mon Compte</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block body %}{% endblock %}
+    </main>
+
+    <!-- DEBUG MARKER -->
+    <div style="background:red; color:white; text-align:center; display:none;">CHATBOT TEMPLATE ACTIVE</div>
+
+    {% set currentRoute = app.request.attributes.get('_route') %}
+    {% if currentRoute in ['app_home', 'app_front_produit_index'] %}
+    <a href="{{ path('front_order_cart_details') }}" class="cart-fab" title="Voir panier" aria-label="Voir panier">
+        <i class="fas fa-shopping-cart"></i>
+    </a>
+    {% endif %}
+
+    <!-- Chatbot Floating Button -->
+    <button id="chatbot-toggle" class="chatbot-btn" style="display: flex !important; position: fixed !important; bottom: 20px !important; right: 20px !important; z-index: 2147483647 !important; width: 70px !important; height: 70px !important; opacity: 1 !important; visibility: visible !important;">
+        <i class="fas fa-robot"></i>
+        <!-- Fallback text if icon fails -->
+        <span style="font-size: 10px; position: absolute; bottom: 12px; font-weight: bold;">CHAT</span>
+        <span class="pulse-ring"></span>
+    </button>
+
+    <!-- Chatbot Window -->
+    <div id="chatbot-window" class="chatbot-window">
+        <div class="chatbot-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="robot-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 800; font-size: 14px; color: #fff;">NEXUS_AI</div>
+                    <div style="font-size: 10px; color: var(--success-color); display: flex; align-items: center; gap: 4px;">
+                        <i class="fas fa-circle" style="font-size: 6px;"></i> EN LIGNE
+                    </div>
+                </div>
+            </div>
+            <button id="chatbot-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="chatbot-messages" class="chatbot-messages">
+            <div class="bot-msg">
+                Séquence d'accueil initialisée. Je suis Nexus_AI. Comment puis-je assister votre session aujourd'hui ?
+            </div>
+        </div>
+        <div class="chatbot-input-area">
+            <input type="text" id="chatbot-input" placeholder="Tapez un message...">
+            <button id="chatbot-send"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <style>
+        .cart-fab {
+            position: fixed;
+            bottom: 110px;
+            right: 30px;
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-cyan));
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 12px 28px rgba(67, 97, 238, 0.35);
+            text-decoration: none;
+            z-index: 10001;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .cart-fab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 36px rgba(67, 97, 238, 0.45);
+        }
+
+        .chatbot-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-cyan));
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 10001 !important; /* Force on top */
+            display: flex !important; /* Force visible */
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(67, 97, 238, 0.4);
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .chatbot-btn:hover { transform: scale(1.1) rotate(10deg); }
+        .pulse-ring {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            opacity: 0.6;
+            animation: pulse 2s infinite;
+            z-index: -1;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.6; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+
+        .chatbot-window {
+            position: fixed;
+            bottom: 110px;
+            right: 30px;
+            width: 380px;
+            height: 500px;
+            background: #1b1e2e;
+            border-radius: 20px;
+            display: none;
+            flex-direction: column;
+            z-index: 10000;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: slideIn 0.4s ease;
+        }
+        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .chatbot-header {
+            padding: 20px;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .robot-avatar {
+            width: 35px; height: 35px; border-radius: 50%;
+            background: var(--primary-blue);
+            display: flex; align-items: center; justify-content: center; font-size: 16px;
+        }
+        #chatbot-close { background: none; border: none; color: #8d91a5; cursor: pointer; font-size: 18px; }
+
+        .chatbot-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .bot-msg, .user-msg {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 15px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .bot-msg { background: rgba(255,255,255,0.05); color: #fff; border-bottom-left-radius: 2px; align-self: flex-start; }
+        .user-msg { background: var(--primary-blue); color: white; border-bottom-right-radius: 2px; align-self: flex-end; }
+
+        .chatbot-input-area {
+            padding: 20px;
+            background: rgba(255,255,255,0.02);
+            display: flex; gap: 10px;
+        }
+        #chatbot-input {
+            flex: 1; background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px; padding: 10px 15px; color: #fff;
+        }
+        #chatbot-send {
+            width: 42px; height: 42px; border-radius: 10px;
+            background: var(--primary-pink); border: none; color: white; cursor: pointer;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.getElementById('chatbot-toggle');
+            const chatWindow = document.getElementById('chatbot-window');
+            const close = document.getElementById('chatbot-close');
+            const input = document.getElementById('chatbot-input');
+            const send = document.getElementById('chatbot-send');
+            const messages = document.getElementById('chatbot-messages');
+
+            let history = [];
+
+            toggle.onclick = () => {
+                chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex';
+                if(chatWindow.style.display === 'flex') input.focus();
+            };
+            close.onclick = () => chatWindow.style.display = 'none';
+
+            const addMessage = (content, role) => {
+                const div = document.createElement('div');
+                div.className = role === 'bot' ? 'bot-msg' : 'user-msg';
+                div.textContent = content;
+                messages.appendChild(div);
+                messages.scrollTop = messages.scrollHeight;
+                if(role !== 'system') history.push({ role, content });
+            };
+
+            const processChat = async () => {
+                const message = input.value.trim();
+                if(!message || input.disabled) return;
+                
+                input.disabled = true;
+                send.disabled = true;
+                addMessage(message, 'user');
+                input.value = '';
+
+                // Typing indicator (simple)
+                const loading = document.createElement('div');
+                loading.className = 'bot-msg';
+                loading.textContent = '...';
+                messages.appendChild(loading);
+
+                try {
+                    const response = await fetch('/api/chatbot', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            message, 
+                            history,
+                            page: document.title,
+                            url: window.location.href,
+                            context: "Page : " + document.title
+                        })
+                    });
+                    const data = await response.json();
+                    loading.remove();
+                    addMessage(data.response, 'bot');
+                } catch (e) {
+                    loading.textContent = "Désolé, la connexion avec le Nexus est instable. Vérifiez votre réseau ou réessayez dans un instant.";
+                } finally {
+                    input.disabled = false;
+                    send.disabled = false;
+                    input.focus();
+                }
+            };
+
+            send.onclick = processChat;
+            input.onkeypress = (e) => { if(e.key === 'Enter') processChat(); };
+        });
+    </script>
+
+    <script>
+        const autoDismissAlerts = () => {
+            const alerts = document.querySelectorAll('.alert');
+            if (!alerts.length) return;
+            setTimeout(() => {
+                alerts.forEach((alert) => {
+                    alert.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                    alert.style.opacity = '0';
+                    alert.style.transform = 'translateY(-6px)';
+                    setTimeout(() => alert.remove(), 450);
+                });
+            }, 2000);
+        };
+
+        const initCartSearch = () => {
+            const input = document.getElementById('cart_search');
+            if (!input) return;
+            const items = Array.from(document.querySelectorAll('.cart-item[data-search]'));
+            input.addEventListener('input', () => {
+                const q = input.value.trim().toLowerCase();
+                items.forEach((item) => {
+                    const hay = (item.getAttribute('data-search') || '').toLowerCase();
+                    item.style.display = hay.includes(q) ? '' : 'none';
+                });
+            });
+        };
+
+        const initBaseHelpers = () => {
+            autoDismissAlerts();
+            initCartSearch();
+        };
+
+        document.addEventListener('DOMContentLoaded', initBaseHelpers);
+        document.addEventListener('turbo:load', initBaseHelpers);
+    </script>
+    {% block javascripts %}
+        {% block importmap %}{{ importmap('app') }}{% endblock %}
+    {% endblock %}
+</body>
 </html>
+
+

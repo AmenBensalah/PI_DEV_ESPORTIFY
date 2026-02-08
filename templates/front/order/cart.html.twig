@@ -41,7 +41,7 @@
                             <button type="submit" class="pro-btn pro-btn-danger">Supprimer la commande</button>
                         </form>
                         <div class="cart-actions">
-                            <a class="pro-link" href="{{ path('front_product_list') }}">Retour a la boutique</a>
+                            <a class="pro-link" href="{{ path('app_front_produit_index') }}">Retour a la boutique</a>
                             <a class="pro-link" href="{{ path('front_order_cart_details') }}">Voir panier</a>
                         </div>
                     </div>
@@ -50,7 +50,7 @@
         {% else %}
             <div class="pro-card">
                 <p>Votre panier est vide.</p>
-                <a class="pro-link" href="{{ path('front_product_list') }}">Retour a la boutique</a>
+                <a class="pro-link" href="{{ path('app_front_produit_index') }}">Retour a la boutique</a>
             </div>
         {% endif %}
     </div>

@@ -1,0 +1,254 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Profil Utilisateur - Admin{% endblock %}
+
+{% block body %}
+<div class="profile-container">
+    <div class="page-header">
+        <h1>Profil Utilisateur</h1>
+        <p>Détails du compte utilisateur</p>
+    </div>
+
+    <div class="profile-content">
+        <div class="profile-card">
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <div class="avatar-circle" style="width: 100px; height: 100px; font-size: 40px;">
+                        {{ user.nom|first|upper }}
+                    </div>
+                </div>
+                <div class="profile-info">
+                    <h2>{{ user.nom }}</h2>
+                    <div class="role-badge">
+                        {% if user.role.value == 'ROLE_ADMIN' %}
+                            <i class="fas fa-crown"></i> Administrateur
+                        {% elseif user.role.value == 'ROLE_JOUEUR' %}
+                            <i class="fas fa-gamepad"></i> Joueur
+                        {% elseif user.role.value == 'ROLE_MANAGER' %}
+                            <i class="fas fa-users"></i> Manager
+                        {% else %}
+                            <i class="fas fa-trophy"></i> Organisateur
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Details -->
+            <div class="profile-details">
+                <div class="detail-row">
+                    <div class="detail-label">ID</div>
+                    <div class="detail-value">#{{ user.id }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Email</div>
+                    <div class="detail-value">{{ user.email }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Pseudo</div>
+                    <div class="detail-value">{{ user.pseudo ? user.pseudo : 'Non défini' }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Rôle</div>
+                    <div class="detail-value">
+                        {% if user.role.value == 'ROLE_ADMIN' %}
+                            <span class="badge badge-admin"><i class="fas fa-shield-alt"></i> ADMIN</span>
+                        {% elseif user.role.value == 'ROLE_JOUEUR' %}
+                            <span class="badge badge-joueur"><i class="fas fa-gamepad"></i> JOUEUR</span>
+                        {% elseif user.role.value == 'ROLE_MANAGER' %}
+                            <span class="badge badge-manager"><i class="fas fa-briefcase"></i> MANAGER</span>
+                        {% else %}
+                            <span class="badge badge-organisateur"><i class="fas fa-star"></i> ORGANISATEUR</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Mot de passe</div>
+                    <div class="detail-value">
+                        <code style="background: rgba(255,255,255,0.1); padding: 6px 10px; border-radius: 4px; font-size: 0.85rem; word-break: break-all;">{{ user.password|slice(0, 20) }}...</code>
+                        <small style="display: block; margin-top: 5px; color: #888; font-style: italic;">Chiffré et sécurisé</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="profile-actions">
+                <a href="{{ path('admin_users') }}" class="btn-outline" style="text-decoration: none;">
+                    <i class="fas fa-arrow-left"></i> Retour à la liste
+                </a>
+                <a href="{{ path('app_admin_user_edit', {'id': user.id}) }}" class="btn-gradient" style="text-decoration: none;">
+                    <i class="fas fa-edit"></i> Modifier
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .profile-container {
+        padding: 0;
+    }
+
+    .profile-content {
+        padding: 2rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .profile-card {
+        background: linear-gradient(135deg, rgba(27, 30, 46, 0.8) 0%, rgba(157, 78, 221, 0.05) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 2rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .profile-avatar {
+        flex-shrink: 0;
+    }
+
+    .avatar-circle {
+        background: linear-gradient(135deg, #9d4edd, #4cc9f0);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-family: 'Orbitron', sans-serif;
+    }
+
+    .profile-info h2 {
+        margin: 0 0 0.5rem;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.8rem;
+        color: #fff;
+    }
+
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, #9d4edd, #c77dff);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .profile-details {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .detail-row {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 1rem;
+        align-items: flex-start;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        border-left: 3px solid #9d4edd;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #aaa;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.85rem;
+    }
+
+    .detail-value {
+        color: #fff;
+        font-size: 1rem;
+    }
+
+    .badge-admin, .badge-joueur, .badge-manager, .badge-organisateur {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: white;
+    }
+
+    .badge-admin {
+        background: linear-gradient(135deg, #9d4edd, #c77dff);
+    }
+
+    .badge-joueur {
+        background: linear-gradient(135deg, #4cc9f0, #4361ee);
+    }
+
+    .badge-manager {
+        background: linear-gradient(135deg, #f72585, #ec0868);
+    }
+
+    .badge-organisateur {
+        background: linear-gradient(135deg, #ffbe0b, #fb5607);
+    }
+
+    .profile-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-outline {
+        padding: 12px 24px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        color: #fff;
+        background: transparent;
+        font-weight: 600;
+        font-family: 'Rajdhani', sans-serif;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-outline:hover {
+        border-color: #9d4edd;
+        background: rgba(157, 78, 221, 0.1);
+    }
+
+    .btn-gradient {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #9d4edd 0%, #4cc9f0 100%);
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-gradient:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(157, 78, 221, 0.4);
+    }
+</style>
+{% endblock %}

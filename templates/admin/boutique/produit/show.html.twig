@@ -1,0 +1,173 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}{{ produit.nom }}{% endblock %}
+{% block page_title %}Détail Produit{% endblock %}
+
+{% block body %}
+
+<!-- Product Card -->
+<div class="stat-card"
+     style="
+        max-width:900px;
+        margin:auto;
+        padding:35px;
+     ">
+
+    <!-- Header -->
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:25px;
+    ">
+
+        <h3 style="font-family:'Orbitron',sans-serif;">
+            <i class="fas fa-box"></i> {{ produit.nom }}
+        </h3>
+
+        <span style="
+            padding:6px 14px;
+            border-radius:20px;
+            background:rgba(67,97,238,0.15);
+            color:var(--primary-blue);
+            font-size:13px;
+            font-weight:600;
+        ">
+            {{ produit.statut }}
+        </span>
+
+    </div>
+
+    <!-- Content -->
+    <div style="display:flex;gap:30px;flex-wrap:wrap;">
+
+        <!-- Image -->
+        <div style="min-width:220px;">
+
+            {% if produit.image %}
+
+                <img src="{{ produit.image starts with 'http' ? produit.image : asset(produit.image) }}"
+                     alt="{{ produit.nom }}"
+                     style="
+                        width:220px;
+                        height:220px;
+                        object-fit:cover;
+                        border-radius:16px;
+                        box-shadow:0 8px 20px rgba(0,0,0,0.4);
+                     ">
+
+            {% else %}
+
+                <div style="
+                    width:220px;
+                    height:220px;
+                    border-radius:16px;
+                    background:rgba(255,255,255,0.05);
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    color:var(--text-muted);
+                ">
+                    <i class="fas fa-image" style="font-size:32px;"></i>
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- Infos -->
+        <div style="flex:1;min-width:250px;">
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+                <div>
+                    <div style="color:var(--text-muted);font-size:13px;">Nom</div>
+                    <div style="font-weight:600;">{{ produit.nom }}</div>
+                </div>
+
+                <div>
+                    <div style="color:var(--text-muted);font-size:13px;">Prix</div>
+                    <div style="font-weight:600;">{{ produit.prix|number_format(2) }} €</div>
+                </div>
+
+                <div>
+                    <div style="color:var(--text-muted);font-size:13px;">Stock</div>
+                    <div style="font-weight:600;">{{ produit.stock }}</div>
+                </div>
+
+                <div>
+                    <div style="color:var(--text-muted);font-size:13px;">Catégorie</div>
+                    <div style="font-weight:600;">
+                        {{ produit.categorie ? produit.categorie.nom : '—' }}
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- Description -->
+            <div style="margin-top:25px;">
+
+                <div style="color:var(--text-muted);font-size:13px;margin-bottom:5px;">
+                    Description
+                </div>
+
+                <div style="
+                    background:rgba(255,255,255,0.03);
+                    padding:15px;
+                    border-radius:10px;
+                    line-height:1.6;
+                ">
+
+                    {{ produit.description|default('Aucune description') }}
+
+                </div>
+
+            </div>
+
+
+            <!-- Buttons -->
+            <div style="
+                display:flex;
+                gap:15px;
+                margin-top:30px;
+            ">
+
+                <a href="{{ path('admin_boutique_produit_edit', { id: produit.id }) }}"
+                   style="
+                        background:linear-gradient(135deg,#4361ee,#3f37c9);
+                        color:white;
+                        padding:12px 25px;
+                        border-radius:10px;
+                        text-decoration:none;
+                        font-weight:600;
+                   ">
+
+                    <i class="fas fa-edit"></i> Modifier
+
+                </a>
+
+
+                <a href="{{ path('admin_boutique_produit_index') }}"
+                   style="
+                        background:#2b2d42;
+                        color:#aaa;
+                        padding:12px 25px;
+                        border-radius:10px;
+                        text-decoration:none;
+                   ">
+
+                    <i class="fas fa-arrow-left"></i> Retour
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

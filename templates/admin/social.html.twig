@@ -1,0 +1,90 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Acctualité - Admin{% endblock %}
+{% block page_title %}Gestion Fil d'Actualité{% endblock %}
+
+{% block body %}
+    <!-- Custom Tabs -->
+    <div style="margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; gap: 30px; align-items: center; justify-content: space-between;">
+        <div style="display: flex; gap: 30px;">
+            <div style="padding-bottom: 10px; border-bottom: 2px solid var(--primary-purple); color: #fff; cursor: pointer; font-weight: 600;">Posts</div>
+            <div style="padding-bottom: 10px; border-bottom: 2px solid transparent; color: var(--text-muted); cursor: pointer; font-weight: 500;">Commentaires</div>
+        </div>
+        <button class="btn-gradient" onclick="alert('Fonctionnalité de post admin à venir !')" style="padding: 8px 20px; font-size: 14px;">
+            <i class="fas fa-plus"></i> Ajouter un Post
+        </button>
+    </div>
+
+    <!-- Posts Section -->
+    <div class="admin-table-container">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Auteur</th>
+                    <th>Contenu</th>
+                    <th>Date</th>
+                    <th>Engagement</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--primary-blue); display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                AL
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; font-size: 14px;">AlexLogin</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">Joueur Pro</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="max-width: 350px; font-size: 13px; color: #fff;">
+                            Incroyable performance de l'équipe T1 hier soir ! Faker est vraiment inarrêtable...
+                        </div>
+                    </td>
+                    <td style="color: var(--text-muted); font-size: 13px;">Il y a 2h</td>
+                    <td>
+                        <span class="badge" style="background: rgba(255,255,255,0.1); font-size: 12px;"><i class="fas fa-heart" style="color: var(--primary-pink);"></i> 42</span>
+                        <span class="badge" style="background: rgba(255,255,255,0.1); font-size: 12px; margin-left: 5px;"><i class="fas fa-comment"></i> 12</span>
+                    </td>
+                    <td>
+                        <button class="btn-icon" style="background: none; border: none; cursor: pointer;">
+                            <i class="fas fa-trash-alt" style="color: var(--primary-pink);"></i>
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--primary-purple); display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                SM
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; font-size: 14px;">Samumu</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">Membre</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="max-width: 350px; font-size: 13px; color: #fff;">
+                            Quelqu'un pour une duoQ ce soir ? Je suis Silver 2 main support.
+                        </div>
+                    </td>
+                    <td style="color: var(--text-muted); font-size: 13px;">Il y a 5h</td>
+                    <td>
+                        <span class="badge" style="background: rgba(255,255,255,0.1); font-size: 12px;"><i class="fas fa-heart" style="color: var(--primary-pink);"></i> 5</span>
+                        <span class="badge" style="background: rgba(255,255,255,0.1); font-size: 12px; margin-left: 5px;"><i class="fas fa-comment"></i> 3</span>
+                    </td>
+                    <td>
+                        <button class="btn-icon" style="background: none; border: none; cursor: pointer;">
+                            <i class="fas fa-trash-alt" style="color: var(--primary-pink);"></i>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

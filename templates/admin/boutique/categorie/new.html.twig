@@ -1,0 +1,16 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Nouvelle catégorie{% endblock %}
+{% block page_title %}Nouvelle catégorie{% endblock %}
+
+{% block body %}
+<div class="stat-card" style="max-width: 400px;">
+    {{ form_start(form) }}
+    {{ form_widget(form) }}
+    <div style="margin-top: 20px;">
+        <button type="submit" class="btn-gradient" style="padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer;">Créer</button>
+        <a href="{{ path('admin_boutique_categorie_index') }}" style="margin-left: 12px; color: var(--text-muted);">Annuler</a>
+    </div>
+    {{ form_end(form) }}
+</div>
+{% endblock %}
