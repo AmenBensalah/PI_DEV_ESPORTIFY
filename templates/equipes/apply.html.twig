@@ -34,11 +34,11 @@
                 </label>
                 <select name="niveau" 
                         style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.1); background: var(--darker-bg); color: white; font-size: 16px; cursor: pointer;">
-                    <option value="" disabled {{ not formData.niveau|default(false)  'selected' : '' }}>Sélectionnez votre niveau...</option>
-                    <option value="Débutant" {{ formData.niveau|default('') == 'Débutant'  'selected' : '' }}>Débutant (Je commence tout juste)</option>
-                    <option value="Intermédiaire" {{ formData.niveau|default('') == 'Intermédiaire'  'selected' : '' }}>Intermédiaire (Je connais les bases)</option>
-                    <option value="Confirmé" {{ formData.niveau|default('') == 'Confirmé'  'selected' : '' }}>Confirmé (Bon niveau compétitif)</option>
-                    <option value="Expert" {{ formData.niveau|default('') == 'Expert'  'selected' : '' }}>Expert / Pro (Haut niveau)</option>
+                    <option value="" disabled {{ (not formData.niveau|default(false)) ? 'selected' : '' }}>Sélectionnez votre niveau...</option>
+                    <option value="Débutant" {{ formData.niveau|default('') == 'Débutant' ? 'selected' : '' }}>Débutant (Je commence tout juste)</option>
+                    <option value="Intermédiaire" {{ formData.niveau|default('') == 'Intermédiaire' ? 'selected' : '' }}>Intermédiaire (Je connais les bases)</option>
+                    <option value="Confirmé" {{ formData.niveau|default('') == 'Confirmé' ? 'selected' : '' }}>Confirmé (Bon niveau compétitif)</option>
+                    <option value="Expert" {{ formData.niveau|default('') == 'Expert' ? 'selected' : '' }}>Expert / Pro (Haut niveau)</option>
                 </select>
             </div>
 

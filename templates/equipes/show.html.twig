@@ -54,6 +54,12 @@
                         <a href="{{ path('app_recrutements_manage', {'id': equipe.id}) }}" class="btn-gradient">
                             <i class="fas fa-user-plus"></i> Gérer demandes
                         </a>
+                        <form method="post" action="{{ path('app_equipes_delete', {'id': equipe.id}) }}" onsubmit="return confirm('Supprimer l\\'équipe définitivement ?');" style="display:inline;">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ equipe.id) }}">
+                            <button type="submit" class="btn-outline">
+                                <i class="fas fa-trash-alt"></i> Supprimer l'équipe
+                            </button>
+                        </form>
                     {% endif %}
 
                     <a href="{{ path('app_equipes_index') }}" class="btn-outline">

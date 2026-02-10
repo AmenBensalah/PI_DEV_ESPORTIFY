@@ -224,6 +224,10 @@
                             <div class="announce-media">
                                 <img src="{{ asset(announcement.mediaFilename starts with 'http' ? announcement.mediaFilename : 'uploads/' ~ announcement.mediaFilename) }}" alt="media">
                             </div>
+                        {% elseif announcement.title|lower == 'oppenning' %}
+                            <div class="announce-media">
+                                <img src="{{ asset('images/esportify-card.jpg') }}" alt="E-Sportify">
+                            </div>
                         {% elseif announcement.mediaType == 'video' and announcement.mediaFilename %}
                             <div class="announce-media">
                                 <video controls>

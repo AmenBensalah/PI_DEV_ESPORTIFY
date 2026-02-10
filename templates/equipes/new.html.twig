@@ -18,10 +18,18 @@
                 </div>
             </div>
 
-            <form id="createTeamForm"
-                  data-api-url="{{ path('app_equipes_api_create') }}"
-                  data-index-url="{{ path('app_equipes_index') }}"
-                  onsubmit="return createTeam(event)">
+            {% for message in app.flashes('error') %}
+                <div class="flash-error" role="status" aria-live="polite" style="margin:12px 0; background: rgba(255,0,110,0.06); border:1px solid var(--primary-pink); padding:10px 12px; border-radius:8px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+            {% for message in app.flashes('success') %}
+                <div class="flash-success" role="status" aria-live="polite" style="margin:12px 0;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+
+            <form id="createTeamForm" method="post" enctype="multipart/form-data">
 
                 <div class="admin-form-grid">
                     <div>
@@ -121,43 +129,6 @@
 </div>
 
 <script>
-    async function createTeam(event) {
-        event.preventDefault();
-        const form = event.target;
-        const apiUrl = form.dataset.apiUrl;
-        const indexUrl = form.dataset.indexUrl;
-        if (!apiUrl) return true;
-
-        const submitBtn = form.querySelector('button[type="submit"]');
-        if (submitBtn) {
-            submitBtn.disabled = true;
-        }
-
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                body: new FormData(form)
-            });
-
-            const data = await response.json();
-            if (data && data.success) {
-                window.location.href = data.redirect || indexUrl || ('/equipe/' + data.id);
-                return false;
-            }
-
-            const errorText = data && data.errors ? data.errors.join('\n') : (data.message || 'Erreur lors de la création.');
-            alert(errorText);
-        } catch (error) {
-            alert('Erreur réseau. Réessayez dans un instant.');
-        } finally {
-            if (submitBtn) {
-                submitBtn.disabled = false;
-            }
-        }
-
-        return false;
-    }
-
     function updateVisibilityLabel() {
         const checkbox = document.getElementById('teamPrivate');
         const label = document.getElementById('visibilityLabel');

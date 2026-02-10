@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Form\FormError;
 
 class ProfileController extends AbstractController
 {
@@ -34,7 +35,31 @@ class ProfileController extends AbstractController
         $form = $this->createForm(UserProfileFormType::class, $user);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted()) {
+            $nom = trim((string) $form->get('nom')->getData());
+            $pseudo = trim((string) $form->get('pseudo')->getData());
+            $plainPassword = (string) $form->get('plainPassword')->getData();
+
+            if ($nom === '') {
+                $form->get('nom')->addError(new FormError('Le nom est obligatoire.'));
+            } elseif (mb_strlen($nom) < 2 || mb_strlen($nom) > 100) {
+                $form->get('nom')->addError(new FormError('Le nom doit contenir entre 2 et 100 caractères.'));
+            }
+
+            if ($pseudo !== '' && (mb_strlen($pseudo) < 3 || mb_strlen($pseudo) > 30)) {
+                $form->get('pseudo')->addError(new FormError('Le pseudo doit contenir entre 3 et 30 caractères.'));
+            }
+
+            if ($plainPassword !== '') {
+                if (mb_strlen($plainPassword) < 6) {
+                    $form->get('plainPassword')->addError(new FormError('Le mot de passe doit contenir au moins 6 caractères.'));
+                }
+                if (!preg_match('/[A-Za-z]/', $plainPassword) || !preg_match('/\d/', $plainPassword)) {
+                    $form->get('plainPassword')->addError(new FormError('Le mot de passe doit contenir au moins une lettre et un chiffre.'));
+                }
+            }
+
+            if ($form->isValid()) {
             $plainPassword = $form->get('plainPassword')->getData();
             if (is_string($plainPassword) && $plainPassword !== '') {
                 $user->setPassword($passwordHasher->hashPassword($user, $plainPassword));
@@ -44,6 +69,7 @@ class ProfileController extends AbstractController
             $this->addFlash('success', 'Profil mis a jour avec succes.');
 
             return $this->redirectToRoute('app_profile');
+            }
         }
 
         return $this->render('home/edit_profile.html.twig', [

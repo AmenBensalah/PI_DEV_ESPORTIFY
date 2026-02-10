@@ -216,17 +216,25 @@ class TournoiController extends AbstractController
             return $this->redirectToRoute('tournoi_show', ['id' => $tournoi->getIdTournoi()]);
         }
 
-        $message = $data['message'] ?? null;
+        $message = trim((string) ($data['message'] ?? ''));
         $playerLevel = $data['player_level'] ?? null;
         $rulesAccepted = isset($data['rules_accepted']);
 
         $allowedLevels = ['amateur', 'debutant', 'pro'];
+        if (empty($playerLevel)) {
+            $this->addFlash('error', 'Veuillez sélectionner votre niveau de joueur.');
+            return $this->redirectToRoute('tournoi_participate', ['id' => $tournoi->getIdTournoi()]);
+        }
         if (!$rulesAccepted) {
             $this->addFlash('error', 'Vous devez accepter les regles du tournoi.');
             return $this->redirectToRoute('tournoi_participate', ['id' => $tournoi->getIdTournoi()]);
         }
         if ($playerLevel && !in_array($playerLevel, $allowedLevels, true)) {
             $this->addFlash('error', 'Niveau de joueur invalide.');
+            return $this->redirectToRoute('tournoi_participate', ['id' => $tournoi->getIdTournoi()]);
+        }
+        if ($message === '' || mb_strlen($message) < 10) {
+            $this->addFlash('error', 'Veuillez saisir un message descriptif (min. 10 caractères).');
             return $this->redirectToRoute('tournoi_participate', ['id' => $tournoi->getIdTournoi()]);
         }
 

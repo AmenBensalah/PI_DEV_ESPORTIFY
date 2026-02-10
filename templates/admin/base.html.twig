@@ -153,6 +153,7 @@
 
         <div class="topbar-right">
             <a class="admin-link-btn topbar-action" href="{{ path('admin_dashboard') }}">Dashboard</a>
+            <a class="admin-link-btn topbar-action" href="{{ path('admin_profile') }}">Voir mon profil</a>
         </div>
 
         <div class="topbar-dragon">
@@ -320,6 +321,56 @@
 
         toggle.addEventListener('change', sync);
         sync();
+    });
+
+    document.querySelectorAll('.admin-tournament-form').forEach((form) => {
+        const inputs = form.querySelectorAll('input[type="text"], input[type="search"], select');
+        if (!inputs.length) {
+            return;
+        }
+
+        const getFilterText = () => {
+            const parts = [];
+            inputs.forEach((el) => {
+                if (!el) {
+                    return;
+                }
+                const val = (el.value || '').toString().toLowerCase().trim();
+                if (val) {
+                    parts.push(val);
+                }
+            });
+            return parts.join(' ');
+        };
+
+        const panel = form.closest('.admin-tournament-panel');
+        const scope = panel?.parentElement || form.closest('section') || document;
+        const tableBody =
+            scope.querySelector('[data-table] tbody') ||
+            scope.querySelector('.admin-tournament-table table tbody') ||
+            scope.querySelector('table tbody');
+        const rows = tableBody ? Array.from(tableBody.querySelectorAll('tr')) : [];
+        if (!rows.length) {
+            return;
+        }
+
+        const applyFilter = () => {
+            const query = getFilterText();
+            rows.forEach((row) => {
+                const hay = (row.getAttribute('data-search') || row.textContent || '').toLowerCase();
+                row.style.display = !query || hay.includes(query) ? '' : 'none';
+            });
+        };
+
+        inputs.forEach((el) => {
+            el.addEventListener('input', applyFilter);
+            el.addEventListener('change', applyFilter);
+            el.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                }
+            });
+        });
     });
 })();
 </script>

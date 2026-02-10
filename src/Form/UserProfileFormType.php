@@ -20,10 +20,12 @@ class UserProfileFormType extends AbstractType
             ])
             ->add('nom', TextType::class, [
                 'label' => 'Full Name',
+                'empty_data' => '',
             ])
             ->add('pseudo', TextType::class, [
                 'label' => 'Pseudo (Optional)',
                 'required' => false,
+                'empty_data' => '',
             ])
             ->add('plainPassword', PasswordType::class, [
                 'mapped' => false,

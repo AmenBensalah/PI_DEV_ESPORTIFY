@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\User;
 use App\Form\User1Type;
+use App\Repository\ParticipationRequestRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -96,9 +97,13 @@ final class UserController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_admin_user_delete', methods: ['POST'])]
-    public function delete(Request $request, User $user, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, User $user, EntityManagerInterface $entityManager, ParticipationRequestRepository $participationRequestRepository): Response
     {
         if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->getPayload()->getString('_token'))) {
+            $requests = $participationRequestRepository->findBy(['user' => $user]);
+            foreach ($requests as $req) {
+                $entityManager->remove($req);
+            }
             $entityManager->remove($user);
             $entityManager->flush();
         }

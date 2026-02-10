@@ -19,12 +19,23 @@
                 </div>
             </div>
 
+            {% for message in app.flashes('error') %}
+                <div class="flash-error" role="status" aria-live="polite" style="margin:12px 0; background: rgba(255,0,110,0.06); border:1px solid var(--primary-pink); padding:10px 12px; border-radius:8px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+            {% for message in app.flashes('success') %}
+                <div class="flash-success" role="status" aria-live="polite" style="margin:12px 0;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+
             <form method="POST" action="{{ path('app_equipes_edit', {'id': equipe.id, 'from': from}) }}" enctype="multipart/form-data">
                 <div class="admin-form-grid">
                     <div>
                         <div class="admin-form-group">
                             <label class="admin-form-label"><i class="fas fa-users"></i> Nom de l'équipe *</label>
-                            <input type="text" name="equipe[nomEquipe]" class="admin-form-input" value="{{ equipe.nomEquipe }}" required>
+                            <input type="text" name="equipe[nomEquipe]" class="admin-form-input" value="{{ equipe.nomEquipe }}">
                         </div>
 
                         <div class="admin-form-group">
@@ -88,7 +99,7 @@
 
                 <div class="admin-form-group">
                     <label class="admin-form-label"><i class="fas fa-align-left"></i> Description *</label>
-                    <textarea name="equipe[description]" class="admin-form-textarea" required>{{ equipe.description }}</textarea>
+                    <textarea name="equipe[description]" class="admin-form-textarea">{{ equipe.description }}</textarea>
                 </div>
 
                 <div class="admin-form-actions">

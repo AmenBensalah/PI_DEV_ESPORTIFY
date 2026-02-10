@@ -31,11 +31,6 @@
                     <a href="{{ path('app_equipes_show', {'id': myTeam.id}) }}" class="admin-tournament-btn">
                         <i class="fas fa-eye"></i> Voir mon équipe
                     </a>
-                    {% if isManager %}
-                        <a href="{{ path('app_equipes_manage', {'id': myTeam.id}) }}" class="admin-tournament-btn ghost">
-                            <i class="fas fa-user-cog"></i> Gérer mon équipe
-                        </a>
-                    {% endif %}
                 {% elseif memberTeam %}
                     <a href="{{ path('app_equipes_show', {'id': memberTeam.id}) }}" class="admin-tournament-btn">
                         <i class="fas fa-eye"></i> Voir mon équipe
@@ -47,10 +42,6 @@
                         <i class="fas fa-plus-circle"></i> Créer mon équipe
                     </a>
                 {% endif %}
-                <a href="#" class="admin-tournament-btn ghost" aria-disabled="true">
-                    <i class="fas fa-envelope-open"></i> Mes invitations
-                </a>
-
                 {% if not myTeam and not memberTeam and not canCreateTeam %}
                     {% if canRequestManager %}
                         <a href="{{ path('app_become_manager') }}" class="admin-tournament-btn ghost">
@@ -273,5 +264,62 @@
             });
         });
     });
+
+    async function searchTeams() {
+        const input = document.getElementById('team-search');
+        const list = document.getElementById('available-teams');
+        const emptyState = document.getElementById('no-teams-found');
+        if (!list) return;
+
+        const query = (input?.value || '').trim();
+        if (!query) {
+            list.style.display = '';
+            if (emptyState) emptyState.style.display = 'none';
+            return;
+        }
+
+        try {
+            const response = await fetch('{{ path('app_equipes_api_search') }}?q=' + encodeURIComponent(query));
+            const data = await response.json();
+            list.innerHTML = '';
+
+            if (!Array.isArray(data) || data.length === 0) {
+                list.style.display = 'none';
+                if (emptyState) emptyState.style.display = 'block';
+                return;
+            }
+
+            data.forEach(team => {
+                const item = document.createElement('div');
+                item.className = 'team-join-item';
+                const logoSrc = team.logo ? `{{ asset('uploads/equipes/') }}${team.logo}` : `{{ asset('images/logo3.png') }}`;
+                item.innerHTML = `
+                    <img src="${logoSrc}" alt="${team.name}">
+                    <div class="team-join-info">
+                        <h4>${team.name}</h4>
+                        <span class="badge badge-info"><i class="fas fa-medal"></i> ${team.rank}</span>
+                    </div>
+                    <div class="team-join-actions">
+                        <button class="admin-tournament-btn" onclick="applyToTeam(${team.id})">
+                            <i class="fas fa-paper-plane"></i> Postuler
+                        </button>
+                        <a class="admin-tournament-btn ghost" href="/equipe/${team.id}">Profil</a>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+
+            list.style.display = '';
+            if (emptyState) emptyState.style.display = 'none';
+        } catch (e) {
+            list.style.display = 'none';
+            if (emptyState) emptyState.style.display = 'block';
+        }
+    }
+
+    function applyToTeam(teamId) {
+        if (!teamId) return;
+        window.location.href = `/equipe/${teamId}/postuler`;
+    }
 </script>
 {% endblock %}

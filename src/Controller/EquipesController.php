@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Candidature;
 use App\Entity\Equipe;
-use App\Form\EquipeType;
 use App\Repository\EquipeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -272,10 +271,68 @@ final class EquipesController extends AbstractController
         }
 
         $equipe = new Equipe();
-        $form = $this->createForm(EquipeType::class, $equipe);
-        $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($request->isMethod('POST')) {
+            $nomEquipe = trim((string) $request->request->get('nomEquipe'));
+            $description = trim((string) $request->request->get('description'));
+            $dateCreation = $request->request->get('dateCreation');
+            $classement = $request->request->get('classement');
+            $tag = strtoupper(trim((string) $request->request->get('tag')));
+            $region = $request->request->get('region');
+            $maxMembers = (int) $request->request->get('maxMembers');
+            $isPrivate = $request->request->get('isPrivate') === 'on' || $request->request->get('isPrivate') === '1';
+
+            $logoFile = $request->files->get('logo');
+
+            $errors = [];
+            if ($nomEquipe === '' || mb_strlen($nomEquipe) < 3) {
+                $errors[] = "Le nom de l'équipe doit comporter au moins 3 caractères.";
+            }
+            if ($tag === '' || mb_strlen($tag) < 2 || mb_strlen($tag) > 6) {
+                $errors[] = "Le Tag de l'équipe doit comporter entre 2 et 6 caractères.";
+            }
+            if (empty($classement)) {
+                $errors[] = "Veuillez sélectionner un classement pour votre équipe.";
+            }
+            if ($maxMembers < 2 || $maxMembers > 50) {
+                $errors[] = "Le nombre maximum de membres doit être compris entre 2 et 50.";
+            }
+
+            if ($description === '') {
+                $description = 'Aucune description';
+            }
+
+            if (!empty($errors)) {
+                foreach ($errors as $error) {
+                    $this->addFlash('error', $error);
+                }
+                return $this->render('equipes/new.html.twig', [
+                    'equipe' => $equipe,
+                ]);
+            }
+
+            $equipe->setNomEquipe($nomEquipe);
+            $equipe->setDescription($description);
+            $equipe->setDateCreation(new \DateTime($dateCreation ?: 'now'));
+            $equipe->setClassement($classement);
+            $equipe->setTag($tag);
+            $equipe->setRegion($region ?: null);
+            $equipe->setIsPrivate($isPrivate);
+            $equipe->setMaxMembers($maxMembers);
+
+            $targetDir = $this->getParameter('kernel.project_dir').'/public/uploads/equipes';
+            if (!is_dir($targetDir)) {
+                @mkdir($targetDir, 0755, true);
+            }
+
+            if ($logoFile) {
+                $newFilename = uniqid().'.'.$logoFile->guessExtension();
+                $logoFile->move($targetDir, $newFilename);
+                $equipe->setLogo($newFilename);
+            } else {
+                $equipe->setLogo(null);
+            }
+
             $equipe->setManager($this->getUser());
             $entityManager->persist($equipe);
             $entityManager->flush();
@@ -292,15 +349,6 @@ final class EquipesController extends AbstractController
             // Add flash message so user sees confirmation after redirect
             $this->addFlash('success', 'Équipe créée et sélectionnée comme votre équipe.');
 
-            // Si c'est une requête AJAX, retourner JSON
-            if ($request->isXmlHttpRequest()) {
-                return new \Symfony\Component\HttpFoundation\JsonResponse([
-                    'success' => true,
-                    'message' => 'Équipe créée avec succès',
-                    'id' => $equipe->getId()
-                ]);
-            }
-
             // Redirect Admin back to dashboard
             if ($this->isGranted('ROLE_ADMIN') || str_contains($request->headers->get('referer', ''), '/admin')) {
                 return $this->redirectToRoute('admin_equipes');
@@ -308,21 +356,8 @@ final class EquipesController extends AbstractController
             return $this->redirectToRoute('app_equipes_show', ['id' => $equipe->getId()], Response::HTTP_SEE_OTHER);
         }
 
-        // Si c'est une requête AJAX avec erreur de validation
-        if ($request->isXmlHttpRequest() && $form->isSubmitted()) {
-            $errors = [];
-            foreach ($form->getErrors(true) as $error) {
-                $errors[] = $error->getMessage();
-            }
-            return new \Symfony\Component\HttpFoundation\JsonResponse([
-                'success' => false,
-                'errors' => $errors
-            ], 400);
-        }
-
         return $this->render('equipes/new.html.twig', [
             'equipe' => $equipe,
-            'form' => $form,
         ]);
     }
 
@@ -554,18 +589,46 @@ final class EquipesController extends AbstractController
                     'region' => $request->request->get('region'),
                 ];
             }
+
+            $errors = [];
+            $nomEquipe = trim((string) ($data['nomEquipe'] ?? ''));
+            $description = trim((string) ($data['description'] ?? ''));
+            $tag = strtoupper(trim((string) ($data['tag'] ?? '')));
+            $classement = $data['classement'] ?? null;
+
+            if ($nomEquipe === '' || mb_strlen($nomEquipe) < 3) {
+                $errors[] = "Le nom de l'équipe doit comporter au moins 3 caractères.";
+            }
+
+            if ($tag !== '' && (mb_strlen($tag) < 2 || mb_strlen($tag) > 6)) {
+                $errors[] = "Le Tag de l'équipe doit comporter entre 2 et 6 caractères.";
+            }
+
+            if ($description !== '' && mb_strlen($description) < 5) {
+                $errors[] = "La description doit comporter au moins 5 caractères.";
+            }
+
+            if (!empty($errors)) {
+                foreach ($errors as $error) {
+                    $this->addFlash('error', $error);
+                }
+                return $this->render('equipes/edit.html.twig', [
+                    'equipe' => $equipe,
+                    'from' => $from,
+                ]);
+            }
             
-            if (!empty($data['nomEquipe'])) {
-                $equipe->setNomEquipe($data['nomEquipe']);
+            if ($nomEquipe !== '') {
+                $equipe->setNomEquipe($nomEquipe);
             }
-            if (!empty($data['description'])) {
-                $equipe->setDescription($data['description']);
+            if ($description !== '') {
+                $equipe->setDescription($description);
             }
-            if (!empty($data['classement'])) {
-                $equipe->setClassement($data['classement']);
+            if (!empty($classement)) {
+                $equipe->setClassement($classement);
             }
-            if (!empty($data['tag'])) {
-                $equipe->setTag($data['tag']);
+            if ($tag !== '') {
+                $equipe->setTag($tag);
             }
             if (array_key_exists('region', $data) && $data['region'] !== null) {
                 $equipe->setRegion($data['region']);
