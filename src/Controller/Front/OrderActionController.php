@@ -3,6 +3,7 @@
 namespace App\Controller\Front;
 
 use App\Entity\Commande;
+use App\Entity\LigneCommande;
 use App\Entity\Produit;
 use App\Repository\CommandeRepository;
 use App\Repository\ProduitRepository;
@@ -147,6 +148,57 @@ class OrderActionController extends AbstractController
             'commande' => $commande,
             'total_quantite' => $totalQuantite,
         ]);
+    }
+
+    #[Route('/line/{id}/update', name: 'front_order_line_update', methods: ['POST'])]
+    public function updateLine(LigneCommande $ligne, Request $request, SessionInterface $session, OrderService $orderService): Response
+    {
+        $orderId = $session->get('current_order_id');
+        $commande = $ligne->getCommande();
+
+        if (!$orderId || !$commande || $commande->getId() !== $orderId) {
+            $this->addFlash('error', 'Commande introuvable.');
+            return $this->redirectToRoute('front_order_cart');
+        }
+
+        $quantite = (int) $request->request->get('quantite', 1);
+        if ($quantite < 0) {
+            $quantite = 0;
+        }
+
+        try {
+            $orderService->updateLineQuantity($commande, $ligne, $quantite);
+        } catch (\Exception $e) {
+            $this->addFlash('error', $e->getMessage());
+        }
+
+        $redirect = $request->request->get('redirect');
+        if ($redirect) {
+            return $this->redirectToRoute($redirect);
+        }
+
+        return $this->redirectToRoute('front_order_cart');
+    }
+
+    #[Route('/line/{id}/remove', name: 'front_order_line_remove', methods: ['POST'])]
+    public function removeLine(LigneCommande $ligne, Request $request, SessionInterface $session, OrderService $orderService): Response
+    {
+        $orderId = $session->get('current_order_id');
+        $commande = $ligne->getCommande();
+
+        if (!$orderId || !$commande || $commande->getId() !== $orderId) {
+            $this->addFlash('error', 'Commande introuvable.');
+            return $this->redirectToRoute('front_order_cart');
+        }
+
+        $orderService->removeLine($commande, $ligne);
+
+        $redirect = $request->request->get('redirect');
+        if ($redirect) {
+            return $this->redirectToRoute($redirect);
+        }
+
+        return $this->redirectToRoute('front_order_cart');
     }
 
     #[Route('/step-1', name: 'front_order_step1', methods: ['GET', 'POST'])]

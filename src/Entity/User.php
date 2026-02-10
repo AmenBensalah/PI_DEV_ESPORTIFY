@@ -7,6 +7,10 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use App\Entity\ManagerRequest;
+use App\Entity\Commentaire;
+use App\Entity\Like;
+use App\Entity\EventParticipant;
+use App\Entity\Post;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -54,10 +58,46 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: ManagerRequest::class, mappedBy: 'user', orphanRemoval: true)]
     private Collection $managerRequests;
 
+    /**
+     * @var Collection<int, Post>
+     */
+    #[ORM\OneToMany(targetEntity: Post::class, mappedBy: 'author')]
+    private Collection $posts;
+
+    /**
+     * @var Collection<int, Commentaire>
+     */
+    #[ORM\OneToMany(targetEntity: Commentaire::class, mappedBy: 'author', orphanRemoval: true)]
+    private Collection $commentaires;
+
+    /**
+     * @var Collection<int, Like>
+     */
+    #[ORM\OneToMany(targetEntity: Like::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $likes;
+
+    /**
+     * @var Collection<int, EventParticipant>
+     */
+    #[ORM\OneToMany(targetEntity: EventParticipant::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $eventParticipations;
+
+    /**
+     * @var Collection<int, Post>
+     */
+    #[ORM\ManyToMany(targetEntity: Post::class, inversedBy: 'savedBy')]
+    #[ORM\JoinTable(name: 'user_saved_posts')]
+    private Collection $savedPosts;
+
     public function __construct()
     {
         $this->candidatures = new ArrayCollection();
         $this->managerRequests = new ArrayCollection();
+        $this->posts = new ArrayCollection();
+        $this->commentaires = new ArrayCollection();
+        $this->likes = new ArrayCollection();
+        $this->eventParticipations = new ArrayCollection();
+        $this->savedPosts = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -219,5 +259,150 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Post>
+     */
+    public function getPosts(): Collection
+    {
+        return $this->posts;
+    }
+
+    public function addPost(Post $post): static
+    {
+        if (!$this->posts->contains($post)) {
+            $this->posts->add($post);
+            $post->setAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removePost(Post $post): static
+    {
+        if ($this->posts->removeElement($post)) {
+            if ($post->getAuthor() === $this) {
+                $post->setAuthor(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Commentaire>
+     */
+    public function getCommentaires(): Collection
+    {
+        return $this->commentaires;
+    }
+
+    public function addCommentaire(Commentaire $commentaire): static
+    {
+        if (!$this->commentaires->contains($commentaire)) {
+            $this->commentaires->add($commentaire);
+            $commentaire->setAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCommentaire(Commentaire $commentaire): static
+    {
+        if ($this->commentaires->removeElement($commentaire)) {
+            if ($commentaire->getAuthor() === $this) {
+                $commentaire->setAuthor(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Like>
+     */
+    public function getLikes(): Collection
+    {
+        return $this->likes;
+    }
+
+    public function addLike(Like $like): static
+    {
+        if (!$this->likes->contains($like)) {
+            $this->likes->add($like);
+            $like->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLike(Like $like): static
+    {
+        if ($this->likes->removeElement($like)) {
+            if ($like->getUser() === $this) {
+                $like->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, EventParticipant>
+     */
+    public function getEventParticipations(): Collection
+    {
+        return $this->eventParticipations;
+    }
+
+    public function addEventParticipation(EventParticipant $eventParticipant): static
+    {
+        if (!$this->eventParticipations->contains($eventParticipant)) {
+            $this->eventParticipations->add($eventParticipant);
+            $eventParticipant->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEventParticipation(EventParticipant $eventParticipant): static
+    {
+        if ($this->eventParticipations->removeElement($eventParticipant)) {
+            if ($eventParticipant->getUser() === $this) {
+                $eventParticipant->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Post>
+     */
+    public function getSavedPosts(): Collection
+    {
+        return $this->savedPosts;
+    }
+
+    public function addSavedPost(Post $post): static
+    {
+        if (!$this->savedPosts->contains($post)) {
+            $this->savedPosts->add($post);
+        }
+
+        return $this;
+    }
+
+    public function removeSavedPost(Post $post): static
+    {
+        $this->savedPosts->removeElement($post);
+
+        return $this;
+    }
+
+    public function hasSavedPost(Post $post): bool
+    {
+        return $this->savedPosts->contains($post);
     }
 }

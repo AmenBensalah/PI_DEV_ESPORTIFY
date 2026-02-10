@@ -1,127 +1,53 @@
-{% extends 'admin/base.html.twig' %}
+﻿{% extends 'admin/base.html.twig' %}
 
-{% block title %}Utilisateurs - Admin{% endblock %}
-{% block page_title %}Gestion des Utilisateurs{% endblock %}
+{% block title %}Gestion des Comptes - Admin{% endblock %}
+{% block page_title %}Gestion des Comptes{% endblock %}
 
 {% block body %}
-    <style>
-        .advanced-search-container {
-            background: #15182b;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-        .search-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: white;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .filter-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-        .filter-input {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
-            padding: 10px 12px;
-            color: white;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-        .filter-input:focus {
-            outline: none;
-            border-color: var(--primary-pink);
-            background: rgba(255, 255, 255, 0.08);
-        }
-        .btn-search {
-            background: #4e65f6;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 25px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-        }
-        .btn-search:hover {
-            background: #3d52d9;
-            transform: translateY(-2px);
-        }
-        .btn-reset {
-            background: rgba(255, 255, 255, 0.05);
-            color: #a0a0ff;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 15px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .sort-row {
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        .sort-label {
-            font-weight: 700;
-            color: white;
-            font-size: 14px;
-        }
-        .sort-link {
-            font-size: 13px;
-            color: #a0a0ff;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-        .sort-link:hover, .sort-link.active {
-            color: var(--primary-pink);
-        }
-    </style>
-
-    <div class="advanced-search-container animate__animated animate__fadeIn">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <div class="search-title" style="margin-bottom: 0;">
-                <i class="fas fa-search"></i> Recherche Avancée
-            </div>
-            <a href="{{ path('app_admin_user_new') }}" class="btn-gradient" style="padding: 10px 20px; font-size: 14px;">
-                <i class="fas fa-plus"></i> Ajouter un Utilisateur
+<section class="admin-tournament-hero">
+    <div class="admin-tournament-hero-inner">
+        <div class="admin-tournament-kicker">Admin</div>
+        <h2 class="admin-tournament-title">Gestion des Comptes</h2>
+        <p class="admin-tournament-lead">Administrez les utilisateurs et leurs rôles.</p>
+        <div class="admin-tournament-hero-actions">
+            <a href="{{ path('app_admin_user_new') }}" class="admin-tournament-btn">
+                <i class="fas fa-plus"></i> Créer un compte
+            </a>
+            <a href="{{ path('admin_users') }}" class="admin-tournament-btn ghost">
+                <i class="fas fa-rotate"></i> Rafraîchir
             </a>
         </div>
-        
-        <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end;">
-            <div class="filter-group" style="flex: 2; min-width: 250px;">
-                <label class="filter-label">NOM, EMAIL OU PSEUDO</label>
-                <input type="text" id="live-search-nom" class="filter-input" placeholder="Rechercher..." value="{{ currentQuery }}">
+    </div>
+    <div class="admin-tournament-hero-glow"></div>
+</section>
+
+<section class="admin-tournament-shell">
+    <div class="admin-tournament-tabs">
+        <a href="{{ path('admin_users', app.request.query.all | merge({'role': ''})) }}"
+           class="tab {{ currentRole is empty ? 'active' : '' }}">Tous</a>
+        <a href="{{ path('admin_users', app.request.query.all | merge({'role': 'ROLE_ADMIN'})) }}"
+           class="tab {{ currentRole == 'ROLE_ADMIN' ? 'active' : '' }}">Admin</a>
+        <a href="{{ path('admin_users', app.request.query.all | merge({'role': 'ROLE_MANAGER'})) }}"
+           class="tab {{ currentRole == 'ROLE_MANAGER' ? 'active' : '' }}">Manager</a>
+        <a href="{{ path('admin_users', app.request.query.all | merge({'role': 'ROLE_JOUEUR'})) }}"
+           class="tab {{ currentRole == 'ROLE_JOUEUR' ? 'active' : '' }}">Joueur</a>
+        <a href="{{ path('admin_users', app.request.query.all | merge({'role': 'ROLE_ORGANISATEUR'})) }}"
+           class="tab {{ currentRole == 'ROLE_ORGANISATEUR' ? 'active' : '' }}">Organisateur</a>
+    </div>
+
+    <div class="admin-tournament-panel">
+        <div class="admin-tournament-panel-title">
+            <i class="fas fa-search"></i>
+            Recherche avancée
+        </div>
+        <form method="GET" class="admin-tournament-form">
+            <div class="field">
+                <label>Nom, email ou pseudo</label>
+                <input type="text" name="q" placeholder="Rechercher..." value="{{ currentQuery }}">
             </div>
-            
-            <div class="filter-group" style="flex: 1; min-width: 200px;">
-                <label class="filter-label">RÔLE</label>
-                <select id="live-search-role" class="filter-input">
+            <div class="field">
+                <label>Rôle</label>
+                <select name="role">
                     <option value="">-- Tous --</option>
                     <option value="ROLE_ADMIN" {% if currentRole == 'ROLE_ADMIN' %}selected{% endif %}>Admin</option>
                     <option value="ROLE_MANAGER" {% if currentRole == 'ROLE_MANAGER' %}selected{% endif %}>Manager</option>
@@ -129,225 +55,88 @@
                     <option value="ROLE_ORGANISATEUR" {% if currentRole == 'ROLE_ORGANISATEUR' %}selected{% endif %}>Organisateur</option>
                 </select>
             </div>
-
-            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 2px;">
-                <button type="button" id="btn-reset-filters" class="btn-reset">
-                    <i class="fas fa-sync-alt"></i> Réinitialiser
+            <div class="admin-tournament-actions">
+                <button type="submit" class="admin-tournament-btn">
+                    <i class="fas fa-search"></i> Rechercher
                 </button>
+                <a href="{{ path('admin_users') }}" class="admin-tournament-btn ghost">
+                    <i class="fas fa-rotate"></i> Réinitialiser
+                </a>
             </div>
-        </div>
+        </form>
 
-        <div class="sort-row">
-            <span class="sort-label">Trier par :</span>
-            <a href="#" data-sort="nom" data-dir="ASC" class="sort-link {% if currentSort == 'nom' and currentDirection == 'ASC' %}active{% endif %}">Nom A → Z</a>
-            <a href="#" data-sort="nom" data-dir="DESC" class="sort-link {% if currentSort == 'nom' and currentDirection == 'DESC' %}active{% endif %}">Nom Z → A</a>
-            <a href="#" data-sort="id" data-dir="DESC" class="sort-link {% if currentSort == 'id' and currentDirection == 'DESC' %}active{% endif %}">ID ↓</a>
-            <a href="#" data-sort="id" data-dir="ASC" class="sort-link {% if currentSort == 'id' and currentDirection == 'ASC' %}active{% endif %}">ID ↑</a>
+        <div class="admin-tournament-sort">
+            <span>Trier :</span>
+            <a href="{{ path('admin_users', app.request.query.all | merge({'sort':'nom','direction':'ASC'})) }}">Nom A→Z</a>
+            <a href="{{ path('admin_users', app.request.query.all | merge({'sort':'nom','direction':'DESC'})) }}">Nom Z→A</a>
+            <a href="{{ path('admin_users', app.request.query.all | merge({'sort':'id','direction':'DESC'})) }}">ID ↓</a>
+            <a href="{{ path('admin_users', app.request.query.all | merge({'sort':'id','direction':'ASC'})) }}">ID ↑</a>
         </div>
     </div>
 
-    <div class="admin-table-container">
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nom</th>
-                    <th>Email</th>
-                    <th>Rôle</th>
-                    <th>Statut</th>
-                    <th style="text-align: right;">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="users-tbody">
-                {% for user in users %}
-                <tr class="user-row"
-                    data-id="{{ user.id }}"
-                    data-nom="{{ user.nom|lower }}"
-                    data-email="{{ user.email|lower }}"
-                    data-pseudo="{{ user.pseudo|default('')|lower }}"
-                    data-role="{% if 'ROLE_ADMIN' in user.roles %}ROLE_ADMIN{% elseif 'ROLE_MANAGER' in user.roles %}ROLE_MANAGER{% elseif 'ROLE_ORGANISATEUR' in user.roles %}ROLE_ORGANISATEUR{% else %}ROLE_JOUEUR{% endif %}">
-                    <td>#{{ user.id }}</td>
-                    <td>
-                        <div class="user-avatar-small">
-                            <div class="avatar-circle">{{ user.nom|first|upper }}</div>
-                            <span>{{ user.nom }}</span>
-                        </div>
-                    </td>
-                    <td>{{ user.email }}</td>
-                    <td>
-                        {% if 'ROLE_ADMIN' in user.roles %}
-                            <span class="badge badge-admin">Admin</span>
-                        {% elseif 'ROLE_MANAGER' in user.roles %}
-                            <span class="badge badge-manager">Manager</span>
-                        {% elseif 'ROLE_ORGANISATEUR' in user.roles %}
-                            <span class="badge badge-organisateur">Organisateur</span>
-                        {% else %}
-                            <span class="badge badge-joueur">Joueur</span>
-                        {% endif %}
-                    </td>
-                    <td><span class="status-active">🟢 Active</span></td>
-                    <td style="text-align: right;">
-                        <a href="{{ path('app_admin_user_show', {'id': user.id}) }}" class="btn-icon" title="Voir">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        <a href="{{ path('app_admin_user_edit', {'id': user.id}) }}" class="btn-icon" title="Éditer">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        <form method="post" action="{{ path('app_admin_user_delete', {'id': user.id}) }}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
-                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
-                            <button type="submit" class="btn-icon" title="Supprimer">
-                                <i class="fas fa-trash" style="color: var(--primary-pink);"></i>
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                {% else %}
-                <tr id="no-users-default">
-                    <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
-                        <i class="fas fa-search" style="font-size: 32px; margin-bottom: 10px; display: block;"></i>
-                        Aucun utilisateur trouvé
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const searchNom = document.getElementById('live-search-nom');
-            const searchRole = document.getElementById('live-search-role');
-            const btnReset = document.getElementById('btn-reset-filters');
-            const sortLinks = document.querySelectorAll('.sort-link');
-            const tbody = document.getElementById('users-tbody');
-
-            // Live filtering function
-            function applyFilters() {
-                const nomValue = searchNom.value.toLowerCase().trim();
-                const roleValue = searchRole.value;
-                
-                const rows = document.querySelectorAll('.user-row');
-                let visibleCount = 0;
-
-                rows.forEach(row => {
-                    const nom = row.dataset.nom || '';
-                    const email = row.dataset.email || '';
-                    const pseudo = row.dataset.pseudo || '';
-                    const role = row.dataset.role || '';
-
-                    let matches = true;
-
-                    // Filter by name, email or pseudo
-                    if (nomValue && !nom.includes(nomValue) && !email.includes(nomValue) && !pseudo.includes(nomValue)) {
-                        matches = false;
-                    }
-
-                    // Filter by role
-                    if (roleValue && role !== roleValue) {
-                        matches = false;
-                    }
-
-                    if (matches) {
-                        row.style.display = '';
-                        visibleCount++;
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-
-                // Handle empty state
-                const defaultNoResults = document.getElementById('no-users-default');
-                let noResultsRow = document.getElementById('no-results-search');
-
-                if (defaultNoResults) {
-                    defaultNoResults.style.display = 'none';
-                }
-
-                if (visibleCount === 0 && (nomValue !== '' || roleValue !== '')) {
-                    if (!noResultsRow) {
-                        noResultsRow = document.createElement('tr');
-                        noResultsRow.id = 'no-results-search';
-                        noResultsRow.innerHTML = `
-                            <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
-                                <i class="fas fa-ghost" style="font-size: 32px; margin-bottom: 10px; display: block;"></i>
-                                Aucun utilisateur trouvé
+    {% if users %}
+        <div class="admin-tournament-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nom</th>
+                        <th>Email</th>
+                        <th>Rôle</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                        <tr style="animation-delay: {{ loop.index0 * 0.05 }}s;" class="admin-tournament-row">
+                            <td>#{{ user.id }}</td>
+                            <td class="name">
+                                <div class="user-avatar-small">
+                                    <div class="avatar-circle">{{ user.nom|first|upper }}</div>
+                                    <span>{{ user.nom }}</span>
+                                </div>
                             </td>
-                        `;
-                        tbody.appendChild(noResultsRow);
-                    } else {
-                        noResultsRow.style.display = '';
-                    }
-                } else if (noResultsRow) {
-                    noResultsRow.style.display = 'none';
-                }
-
-                if (visibleCount === 0 && nomValue === '' && roleValue === '' && defaultNoResults) {
-                    defaultNoResults.style.display = '';
-                }
-            }
-
-            // Sorting function
-            function sortTable(sortBy, direction) {
-                const rows = Array.from(tbody.querySelectorAll('.user-row'));
-                
-                rows.sort((a, b) => {
-                    let valA, valB;
-                    
-                    if (sortBy === 'id') {
-                        valA = parseInt(a.dataset.id) || 0;
-                        valB = parseInt(b.dataset.id) || 0;
-                    } else if (sortBy === 'nom') {
-                        valA = a.dataset.nom;
-                        valB = b.dataset.nom;
-                    } else if (sortBy === 'email') {
-                        valA = a.dataset.email;
-                        valB = b.dataset.email;
-                    }
-                    
-                    if (direction === 'ASC') {
-                        return valA > valB ? 1 : valA < valB ? -1 : 0;
-                    } else {
-                        return valA < valB ? 1 : valA > valB ? -1 : 0;
-                    }
-                });
-
-                // Re-append sorted rows
-                rows.forEach(row => tbody.appendChild(row));
-            }
-
-            // Event listeners for live search
-            if (searchNom) {
-                searchNom.addEventListener('input', applyFilters);
-            }
-            if (searchRole) {
-                searchRole.addEventListener('change', applyFilters);
-            }
-
-            // Reset filters
-            if (btnReset) {
-                btnReset.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    searchNom.value = '';
-                    searchRole.value = '';
-                    applyFilters();
-                });
-            }
-
-            // Sort links
-            sortLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const sortBy = link.dataset.sort;
-                    const direction = link.dataset.dir;
-
-                    // Update active class
-                    sortLinks.forEach(l => l.classList.remove('active'));
-                    link.classList.add('active');
-
-                    // Sort the table
-                    sortTable(sortBy, direction);
-                });
-            });
-        });
-    </script>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                {% if 'ROLE_ADMIN' in user.roles %}
+                                    <span class="badge badge-info">Admin</span>
+                                {% elseif 'ROLE_MANAGER' in user.roles %}
+                                    <span class="badge badge-success">Manager</span>
+                                {% elseif 'ROLE_ORGANISATEUR' in user.roles %}
+                                    <span class="badge badge-warn">Organisateur</span>
+                                {% else %}
+                                    <span class="badge badge-muted">Joueur</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="badge badge-success">Actif</span></td>
+                            <td>
+                                <div class="admin-tournament-row-actions">
+                                    <a href="{{ path('app_admin_user_show', {'id': user.id}) }}" class="admin-tournament-icon" title="Voir">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ path('app_admin_user_edit', {'id': user.id}) }}" class="admin-tournament-icon cyan" title="Modifier">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form method="post" action="{{ path('app_admin_user_delete', {'id': user.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                                        <button type="submit" class="admin-tournament-icon danger" title="Supprimer">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="admin-tournament-empty">
+            <div class="empty-ring"></div>
+            <strong>Aucun utilisateur trouvé</strong>
+            <p>Ajoutez un compte ou modifiez vos filtres.</p>
+        </div>
+    {% endif %}
+</section>
 {% endblock %}

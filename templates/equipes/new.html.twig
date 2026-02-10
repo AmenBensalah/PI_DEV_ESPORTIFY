@@ -1,71 +1,57 @@
-﻿{% extends 'equipes/base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
+
+{% block body_class %}page-equipes{% endblock %}
 
 {% block title %}Créer une Équipe — E-Sportify{% endblock %}
 
 {% block body %}
-    <div class="page-header animate__animated animate__fadeIn">
-        <div class="page-icon">
-            <i class="fas fa-shield-alt"></i>
-        </div>
-        <h1 class="page-title">CRÉER MON ÉQUIPE</h1>
-        <p class="page-subtitle">Formez votre équipe e-sport et dominez la compétition !</p>
-    </div>
-
-    <div id="create-team-section" class="form-container animate__animated animate__fadeInUp">
-        <div class="form-card">
-            <div class="form-header">
-                <h2 class="section-heading"><i class="fas fa-plus-circle"></i> Nouvelle Équipe</h2>
-                <p class="form-subtitle">Remplissez les informations de votre équipe</p>
+<div class="equipes-content">
+    <div class="admin-form-wrapper">
+        <div class="admin-form-card">
+            <div class="admin-form-header">
+                <div class="admin-form-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div>
+                    <h1 class="admin-form-title">Ajouter une équipe</h1>
+                    <p class="admin-form-subtitle">Créez votre roster et préparez vos recrutements.</p>
+                </div>
             </div>
 
-            <form id="createTeamForm" 
-                  data-api-url="{{ path('app_equipes_api_create') }}" 
+            <form id="createTeamForm"
+                  data-api-url="{{ path('app_equipes_api_create') }}"
                   data-index-url="{{ path('app_equipes_index') }}"
                   onsubmit="return createTeam(event)">
-                
-                {# SÉLECTION DU LOGO #}
-                <div class="logo-upload-section">
-                    <div class="logo-preview-container" id="logoPreviewContainer">
-                        <img id="logoPreview" src="{{ asset('images/default-team.png') }}" alt="Aperçu Logo">
-                        <div class="upload-overlay" id="uploadOverlay">
-                            <i class="fas fa-camera"></i>
-                            <span>Changer</span>
-                        </div>
-                        <input type="file" id="logoInput" name="logo" accept="image/*" onchange="previewLogo(this)">
-                    </div>
-                    <p class="logo-help">Cliquez sur l'icône pour uploader votre logo d'équipe</p>
-                </div>
 
-                <div class="form-grid">
-                    <div class="form-column">
-                        <div class="form-group">
-                            <label class="form-label"><i class="fas fa-users"></i> Nom de l'Équipe <span class="required">*</span></label>
-                            <input type="text" class="form-input" id="teamName" name="nomEquipe" placeholder="Ex: Phoenix Warriors">
+                <div class="admin-form-grid">
+                    <div>
+                        <div class="admin-form-group">
+                            <label class="admin-form-label"><i class="fas fa-users"></i> Nom de l'équipe <span class="required">*</span></label>
+                            <input type="text" class="admin-form-input" id="teamName" name="nomEquipe" placeholder="Ex: Phoenix Warriors">
                         </div>
- 
-                        <div class="form-group">
-                            <label class="form-label"><i class="fas fa-calendar-alt"></i> Date de Création <small>(automatique)</small></label>
-                            <input type="date" class="form-input" id="teamDate" name="dateCreation" readonly>
+
+                        <div class="admin-form-group">
+                            <label class="admin-form-label"><i class="fas fa-tag"></i> Tag de l'équipe <span class="required">*</span></label>
+                            <input type="text" class="admin-form-input" id="teamTag" name="tag" placeholder="Ex: PHX"
+                                   oninput="this.value = this.value.toUpperCase()" style="text-transform: uppercase;">
                         </div>
- 
-                        <div class="form-group">
-                            <label class="form-label"><i class="fas fa-user-friends"></i> Nombre Max de Membres <span class="required">*</span></label>
-                            <input type="number" class="form-input" id="teamMaxMembers" name="maxMembers" placeholder="Ex: 5" value="5">
+
+                        <div class="admin-form-group">
+                            <label class="admin-form-label"><i class="fas fa-calendar-alt"></i> Date de création</label>
+                            <input type="date" class="admin-form-input" id="teamDate" name="dateCreation" readonly>
+                        </div>
+
+                        <div class="admin-form-group">
+                            <label class="admin-form-label"><i class="fas fa-user-friends"></i> Nombre max de membres <span class="required">*</span></label>
+                            <input type="number" class="admin-form-input" id="teamMaxMembers" name="maxMembers" placeholder="Ex: 5" value="5">
                             <small class="form-help">Minimum 2, Maximum 50 membres</small>
                         </div>
                     </div>
- 
-                    <div class="form-column">
-                        <div class="form-group">
-                            <label class="form-label"><i class="fas fa-tag"></i> Tag de l'Équipe <span class="required">*</span></label>
-                            <input type="text" class="form-input" id="teamTag" name="tag" placeholder="Ex: PHX" 
-                                   oninput="this.value = this.value.toUpperCase()" style="text-transform: uppercase;">
-                            <small class="form-help">2-6 caractères (affiché comme [TAG] à côté du nom)</small>
-                        </div>
- 
-                        <div class="form-group">
-                            <label class="form-label"><i class="fas fa-medal"></i> Classement <span class="required">*</span></label>
-                            <select class="form-select" id="teamClassement" name="classement">
+
+                    <div>
+                        <div class="admin-form-group">
+                            <label class="admin-form-label"><i class="fas fa-medal"></i> Classement <span class="required">*</span></label>
+                            <select class="admin-form-select" id="teamClassement" name="classement">
                                 <option value="">Sélectionner un classement...</option>
                                 <option value="Bronze">Bronze</option>
                                 <option value="Argent">Argent</option>
@@ -76,10 +62,10 @@
                                 <option value="Challenger">Challenger</option>
                             </select>
                         </div>
- 
-                        <div class="form-group">
-                            <label class="form-label"><i class="fas fa-globe"></i> Région</label>
-                            <select class="form-select" id="teamRegion" name="region">
+
+                        <div class="admin-form-group">
+                            <label class="admin-form-label"><i class="fas fa-globe"></i> Région</label>
+                            <select class="admin-form-select" id="teamRegion" name="region">
                                 <option value="">Sélectionner une région...</option>
                                 <option value="Asia">Asia</option>
                                 <option value="Europe">Europe</option>
@@ -90,54 +76,120 @@
                                 <option value="Africa">Africa</option>
                             </select>
                         </div>
-                    </div>
-                </div>
- 
-                <div class="form-group">
-                    <label class="form-label"><i class="fas fa-lock"></i> Visibilité de l'Équipe</label>
-                    <div class="toggle-container">
-                        <div>
-                            <div class="toggle-label" id="visibilityLabel">Équipe Publique</div>
-                            <div class="toggle-description" id="visibilityDescription">Tout le monde peut voir et demander à rejoindre votre équipe</div>
+
+                        <div class="admin-form-group">
+                            <label class="admin-form-label"><i class="fas fa-lock"></i> Visibilité</label>
+                            <div class="team-visibility">
+                                <label class="team-toggle">
+                                    <input type="checkbox" id="teamPrivate" name="isPrivate" onchange="updateVisibilityLabel()">
+                                    <span class="team-toggle-slider"></span>
+                                </label>
+                                <div>
+                                    <div class="team-visibility-label" id="visibilityLabel">Équipe publique</div>
+                                    <div class="team-visibility-text" id="visibilityDescription">Tout le monde peut voir et demander à rejoindre votre équipe</div>
+                                </div>
+                            </div>
                         </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="teamPrivate" name="isPrivate" onchange="updateVisibilityLabel()">
-                            <span class="toggle-slider"></span>
-                        </label>
+
+                        <div class="admin-form-group">
+                            <label class="admin-form-label"><i class="fas fa-image"></i> Logo de l'équipe</label>
+                            <div class="admin-upload-box" id="logoUploadBox">
+                                <div class="admin-upload-preview" id="logoPreview"></div>
+                                <div class="admin-upload-placeholder">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <span>Cliquez ou glissez une image ici</span>
+                                    <small>PNG, JPG, GIF — max 5MB</small>
+                                </div>
+                                <input type="file" class="admin-upload-input" id="logoInput" name="logo" accept="image/*" onchange="previewLogo(this)">
+                            </div>
+                        </div>
                     </div>
                 </div>
- 
-                <div class="form-group">
-                    <label class="form-label"><i class="fas fa-align-left"></i> Description</label>
-                    <textarea class="form-textarea" id="teamDescription" name="description" placeholder="Décrivez votre équipe..."></textarea>
+
+                <div class="admin-form-group">
+                    <label class="admin-form-label"><i class="fas fa-align-left"></i> Description</label>
+                    <textarea class="admin-form-textarea" id="teamDescription" name="description" placeholder="Décrivez votre équipe..."></textarea>
                 </div>
-                <div class="form-actions centered">
-                    <a href="{{ path('app_equipes_index') }}" class="btn-outline" style="text-decoration:none;"> <i class="fas fa-arrow-left"></i> Annuler</a>
-                    <button type="submit" class="btn-gradient"><i class="fas fa-check-circle"></i> Créer Mon Équipe</button>
+
+                <div class="admin-form-actions">
+                    <a href="{{ path('app_equipes_index') }}" class="admin-form-cancel"><i class="fas fa-arrow-left"></i> Annuler</a>
+                    <button type="submit" class="admin-form-submit"><i class="fas fa-check-circle"></i> Créer mon équipe</button>
                 </div>
             </form>
-
-            <script>
-                function updateVisibilityLabel() {
-                    const checkbox = document.getElementById('teamPrivate');
-                    const label = document.getElementById('visibilityLabel');
-                    const desc = document.getElementById('visibilityDescription');
-                    if (checkbox.checked) {
-                        label.textContent = "Équipe Privée";
-                        desc.textContent = "Seulement sur invitation ou lien direct";
-                    } else {
-                        label.textContent = "Équipe Publique";
-                        desc.textContent = "Tout le monde peut voir et demander à rejoindre votre équipe";
-                    }
-                }
-                
-                // Set today's date
-                const teamDateInput = document.getElementById('teamDate');
-                if (teamDateInput) {
-                    teamDateInput.valueAsDate = new Date();
-                }
-            </script>
         </div>
     </div>
-    
+</div>
+
+<script>
+    async function createTeam(event) {
+        event.preventDefault();
+        const form = event.target;
+        const apiUrl = form.dataset.apiUrl;
+        const indexUrl = form.dataset.indexUrl;
+        if (!apiUrl) return true;
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+        }
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                body: new FormData(form)
+            });
+
+            const data = await response.json();
+            if (data && data.success) {
+                window.location.href = data.redirect || indexUrl || ('/equipe/' + data.id);
+                return false;
+            }
+
+            const errorText = data && data.errors ? data.errors.join('\n') : (data.message || 'Erreur lors de la création.');
+            alert(errorText);
+        } catch (error) {
+            alert('Erreur réseau. Réessayez dans un instant.');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+            }
+        }
+
+        return false;
+    }
+
+    function updateVisibilityLabel() {
+        const checkbox = document.getElementById('teamPrivate');
+        const label = document.getElementById('visibilityLabel');
+        const desc = document.getElementById('visibilityDescription');
+        if (!checkbox || !label || !desc) return;
+
+        if (checkbox.checked) {
+            label.textContent = "Équipe privée";
+            desc.textContent = "Seulement sur invitation ou lien direct";
+        } else {
+            label.textContent = "Équipe publique";
+            desc.textContent = "Tout le monde peut voir et demander à rejoindre votre équipe";
+        }
+    }
+
+    function previewLogo(input) {
+        const preview = document.getElementById('logoPreview');
+        const box = document.getElementById('logoUploadBox');
+        if (!preview || !input.files || !input.files[0]) return;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            preview.innerHTML = `<img src="${event.target.result}" alt="Aperçu logo">`;
+            preview.style.display = 'block';
+            if (box) box.classList.add('has-preview');
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+
+    const teamDateInput = document.getElementById('teamDate');
+    if (teamDateInput) {
+        teamDateInput.valueAsDate = new Date();
+    }
+</script>
 {% endblock %}

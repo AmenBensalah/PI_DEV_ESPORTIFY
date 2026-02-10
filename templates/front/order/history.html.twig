@@ -1,17 +1,27 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
+
+{% block title %}Mes commandes{% endblock %}
 
 {% block body %}
-    <div class="cart-page">
-        <h1>Mes commandes</h1>
+<section class="order-hero">
+    <div class="order-hero-inner">
+        <div class="order-kicker">History</div>
+        <h1 class="order-title">Mes commandes</h1>
+        <p class="order-lead">Historique des achats et suivi des statuts.</p>
+    </div>
+    <div class="order-hero-glow"></div>
+</section>
 
-        {% if commandes is empty %}
-            <div class="pro-card">
-                <p>Aucune commande disponible pour ce navigateur.</p>
-                <a class="pro-link" href="{{ path('app_front_produit_index') }}">Retour a la boutique</a>
-            </div>
-        {% else %}
-            <div class="pro-card">
-                <table class="table">
+<section class="order-shell">
+    {% if commandes is empty %}
+        <div class="order-card empty">
+            <p>Aucune commande disponible pour ce navigateur.</p>
+            <a class="order-link" href="{{ path('app_front_produit_index') }}">Retour a la boutique</a>
+        </div>
+    {% else %}
+        <div class="order-card">
+            <div class="order-table">
+                <table>
                     <thead>
                         <tr>
                             <th>Numero</th>
@@ -29,13 +39,14 @@
                             <td>{{ commande.nom }}</td>
                             <td>{{ commande.prenom }}</td>
                             <td>
-                                <a class="pro-link" href="{{ path('front_order_show', {'id': commande.id}) }}">Voir</a>
+                                <a class="order-link" href="{{ path('front_order_show', {'id': commande.id}) }}">Voir</a>
                             </td>
                         </tr>
                     {% endfor %}
                     </tbody>
                 </table>
             </div>
-        {% endif %}
-    </div>
+        </div>
+    {% endif %}
+</section>
 {% endblock %}

@@ -1,0 +1,176 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Gestion des Commentaires - Admin{% endblock %}
+{% block page_title %}Gestion des Commentaires{% endblock %}
+
+{% block body %}
+<section class="admin-tournament-hero">
+    <div class="admin-tournament-hero-inner">
+        <div class="admin-tournament-kicker">Fil d'actualité</div>
+        <h2 class="admin-tournament-title">Gestion des Commentaires</h2>
+        <p class="admin-tournament-lead">Modérez et suivez les commentaires du fil d'actualité.</p>
+        <div class="admin-tournament-hero-actions">
+            <a href="{{ path('fil_admin_comment_index') }}" class="admin-tournament-btn ghost">
+                <i class="fas fa-rotate"></i> Rafraîchir
+            </a>
+        </div>
+    </div>
+    <div class="admin-tournament-hero-glow"></div>
+</section>
+
+<section class="admin-tournament-shell">
+    <div class="admin-tournament-tabs">
+        <a href="{{ path('fil_admin_post_index') }}" class="tab">Publications</a>
+        <a href="{{ path('fil_admin_announcement_index') }}" class="tab">Annonces</a>
+        <a href="{{ path('fil_admin_comment_index') }}" class="tab active">Commentaires</a>
+    </div>
+
+    <div class="admin-tournament-panel">
+        <div class="admin-tournament-panel-title">
+            <i class="fas fa-search"></i>
+            Recherche avancée
+        </div>
+        <form class="admin-tournament-form" data-filter-form>
+            <div class="field">
+                <label>Contenu / Auteur</label>
+                <input type="text" name="q" placeholder="Rechercher...">
+            </div>
+            <div class="field">
+                <label>Date (du)</label>
+                <input type="date" name="date_from">
+            </div>
+            <div class="field">
+                <label>Date (au)</label>
+                <input type="date" name="date_to">
+            </div>
+            <div class="admin-tournament-actions">
+                <button type="submit" class="admin-tournament-btn">
+                    <i class="fas fa-search"></i> Rechercher
+                </button>
+                <button type="reset" class="admin-tournament-btn ghost">
+                    <i class="fas fa-rotate"></i> Réinitialiser
+                </button>
+            </div>
+        </form>
+
+        <div class="admin-tournament-sort">
+            <span>Trier :</span>
+            <a href="#" data-sort="date:desc">Date ↓</a>
+            <a href="#" data-sort="date:asc">Date ↑</a>
+            <a href="#" data-sort="author:asc">Auteur A→Z</a>
+            <a href="#" data-sort="author:desc">Auteur Z→A</a>
+        </div>
+    </div>
+
+    {% if commentaires %}
+        <div class="admin-tournament-table">
+            <table data-table="comments">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Auteur</th>
+                        <th>Publication</th>
+                        <th>Commentaire</th>
+                        <th>Création</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for comment in commentaires %}
+                        {% set authorName = comment.author ? (comment.author.pseudo ?: comment.author.nom) : 'Utilisateur' %}
+                        <tr class="admin-tournament-row"
+                            data-author="{{ authorName|lower }}"
+                            data-date="{{ comment.createdAt ? comment.createdAt|date('Y-m-d') : '' }}"
+                            data-search="{{ comment.id }} {{ authorName }} {{ comment.content|default('') }}">
+                            <td>#{{ comment.id }}</td>
+                            <td class="name">{{ authorName }}</td>
+                            <td>#{{ comment.post ? comment.post.id : 'N/A' }}</td>
+                            <td>{{ comment.content|default('')|slice(0, 80) }}</td>
+                            <td>{{ comment.createdAt ? comment.createdAt|date('d/m/Y H:i') : '' }}</td>
+                            <td>
+                                <div class="admin-tournament-row-actions">
+                                    <form method="post" action="{{ path('fil_admin_comment_delete', {id: comment.id}) }}" onsubmit="return confirm('Supprimer ce commentaire ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_comment_' ~ comment.id) }}">
+                                        <button class="admin-tournament-icon danger" type="submit" title="Supprimer">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="admin-tournament-empty">
+            <div class="empty-ring"></div>
+            <strong>Aucun commentaire</strong>
+            <p>Les commentaires apparaîtront ici.</p>
+        </div>
+    {% endif %}
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.querySelector('[data-filter-form]');
+        const rows = Array.from(document.querySelectorAll('[data-table="comments"] tbody tr'));
+        const sortLinks = document.querySelectorAll('.admin-tournament-sort a[data-sort]');
+
+        const applyFilters = () => {
+            const formData = new FormData(form);
+            const query = (formData.get('q') || '').toLowerCase();
+            const from = formData.get('date_from');
+            const to = formData.get('date_to');
+
+            rows.forEach(row => {
+                const search = (row.dataset.search || '').toLowerCase();
+                const date = row.dataset.date || '';
+                const matchesQuery = !query || search.includes(query);
+                const matchesFrom = !from || (date && date >= from);
+                const matchesTo = !to || (date && date <= to);
+                row.style.display = matchesQuery && matchesFrom && matchesTo ? '' : 'none';
+            });
+        };
+
+        const applySort = (field, direction) => {
+            const tbody = rows[0] ? rows[0].closest('tbody') : null;
+            if (!tbody) {
+                return;
+            }
+            const sorted = rows.slice().sort((a, b) => {
+                if (field === 'date') {
+                    const aVal = a.dataset.date || '';
+                    const bVal = b.dataset.date || '';
+                    return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                }
+                if (field === 'author') {
+                    const aVal = a.dataset.author || '';
+                    const bVal = b.dataset.author || '';
+                    return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                }
+                return 0;
+            });
+            sorted.forEach(row => tbody.appendChild(row));
+        };
+
+        if (form) {
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                applyFilters();
+            });
+            form.addEventListener('reset', () => {
+                setTimeout(applyFilters, 0);
+            });
+        }
+
+        sortLinks.forEach(link => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
+                const [field, direction] = (link.dataset.sort || '').split(':');
+                applySort(field, direction);
+            });
+        });
+    });
+</script>
+{% endblock %}

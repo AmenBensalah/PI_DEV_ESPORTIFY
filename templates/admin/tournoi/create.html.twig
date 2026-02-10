@@ -1,92 +1,119 @@
-{% extends 'admin/layout.html.twig' %}
+﻿{% extends 'admin/layout.html.twig' %}
 
 {% block title %}Créer un Tournoi - Admin{% endblock %}
 {% block page_title %}Créer un Tournoi{% endblock %}
 
 {% block body %}
-<div style="max-width: 800px;">
-    <form method="POST" class="stat-card">
-        <h2 style="font-family: 'Orbitron', sans-serif; margin-bottom: 30px; color: #fff;">
-            <i class="fas fa-plus-circle"></i> Nouveau Tournoi
-        </h2>
+<div class="admin-form-wrapper animate__animated animate__fadeInUp">
+    <div class="admin-form-card">
+        <div class="admin-form-header">
+            <div class="admin-form-icon">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <div>
+                <h2 class="admin-form-title">Ajouter un Tournoi</h2>
+                <p class="admin-form-subtitle">Créez un nouveau tournoi et configurez ses paramètres.</p>
+            </div>
+        </div>
 
-        {% if app.flashes('error') %}
-            {% for message in app.flashes('error') %}
-                <div style="background: rgba(220, 53, 69, 0.2); border-left: 4px solid #dc3545; padding: 15px; border-radius: 8px; margin-bottom: 20px; color: #ff6b6b;">
-                    <i class="fas fa-exclamation-circle"></i> {{ message }}
+        <form method="POST" class="admin-form">
+            {% if app.flashes('error') %}
+                {% for message in app.flashes('error') %}
+                    <div class="admin-form-error" style="margin-bottom: 12px;">
+                        <i class="fas fa-exclamation-circle"></i> {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if errors is defined and errors|length > 0 %}
+                {% for message in errors %}
+                    <div class="admin-form-error" style="margin-bottom: 12px;">
+                        <i class="fas fa-exclamation-circle"></i> {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="admin-form-grid">
+                <div>
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">
+                            <i class="fas fa-font"></i> Nom du tournoi
+                        </label>
+                        <input type="text" name="name" value="{{ formData.name|default('') }}" class="admin-form-input" placeholder="Nom du tournoi">
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">
+                            <i class="fas fa-gamepad"></i> Type de jeu
+                        </label>
+                        <select name="type_game" class="admin-form-select">
+                            <option value="">-- Sélectionner --</option>
+                            <option value="FPS" {% if formData.type_game is defined and formData.type_game == 'FPS' %}selected{% endif %}>FPS</option>
+                            <option value="Sports" {% if formData.type_game is defined and formData.type_game == 'Sports' %}selected{% endif %}>Sports</option>
+                            <option value="Battle_royale" {% if formData.type_game is defined and formData.type_game == 'Battle_royale' %}selected{% endif %}>Battle Royale</option>
+                            <option value="Mind" {% if formData.type_game is defined and formData.type_game == 'Mind' %}selected{% endif %}>Mind</option>
+                        </select>
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">
+                            <i class="fas fa-dice"></i> Jeu
+                        </label>
+                        <input type="text" name="game" value="{{ formData.game|default('') }}" class="admin-form-input" placeholder="ex: League of Legends">
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">
+                            <i class="fas fa-calendar-day"></i> Date de début
+                        </label>
+                        <input type="datetime-local" name="startDate" value="{{ formData.startDate|default('') }}" class="admin-form-input">
+                    </div>
                 </div>
-            {% endfor %}
-        {% endif %}
 
-        {% if errors is defined and errors|length > 0 %}
-            {% for message in errors %}
-                <div style="background: rgba(220, 53, 69, 0.2); border-left: 4px solid #dc3545; padding: 15px; border-radius: 8px; margin-bottom: 20px; color: #ff6b6b;">
-                    <i class="fas fa-exclamation-circle"></i> {{ message }}
+                <div>
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">
+                            <i class="fas fa-users"></i> Type de tournoi
+                        </label>
+                        <select name="type_tournoi" class="admin-form-select">
+                            <option value="">-- Sélectionner --</option>
+                            <option value="solo" {% if formData.type_tournoi is defined and formData.type_tournoi == 'solo' %}selected{% endif %}>Solo</option>
+                            <option value="squad" {% if formData.type_tournoi is defined and formData.type_tournoi == 'squad' %}selected{% endif %}>Squad</option>
+                        </select>
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">
+                            <i class="fas fa-calendar-check"></i> Date de fin
+                        </label>
+                        <input type="datetime-local" name="endDate" value="{{ formData.endDate|default('') }}" class="admin-form-input">
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">
+                            <i class="fas fa-coins"></i> Dotation ($)
+                        </label>
+                        <input type="text" name="prize_won" value="{{ formData.prize_won|default('') }}" class="admin-form-input" placeholder="Montant">
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">
+                            <i class="fas fa-layer-group"></i> Places max (optionnel)
+                        </label>
+                        <input type="text" name="max_places" value="{{ formData.max_places|default('') }}" class="admin-form-input" placeholder="Laisser vide = illimité">
+                    </div>
                 </div>
-            {% endfor %}
-        {% endif %}
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-muted);">Nom du Tournoi</label>
-            <input type="text" name="name" value="{{ formData.name|default('') }}" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 14px;">
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-            <div>
-                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-muted);">Type de Jeu</label>
-                <select name="type_game" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 14px;">
-                    <option value="">-- Sélectionner --</option>
-                    <option value="FPS" {% if formData.type_game is defined and formData.type_game == 'FPS' %}selected{% endif %}>FPS</option>
-                    <option value="Sports" {% if formData.type_game is defined and formData.type_game == 'Sports' %}selected{% endif %}>Sports</option>
-                    <option value="Battle_royale" {% if formData.type_game is defined and formData.type_game == 'Battle_royale' %}selected{% endif %}>Battle Royale</option>
-                    <option value="Mind" {% if formData.type_game is defined and formData.type_game == 'Mind' %}selected{% endif %}>Mind</option>
-                </select>
             </div>
 
-            <div>
-                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-muted);">Type de Tournoi</label>
-                <select name="type_tournoi" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 14px;">
-                    <option value="">-- Sélectionner --</option>
-                    <option value="solo" {% if formData.type_tournoi is defined and formData.type_tournoi == 'solo' %}selected{% endif %}>Solo</option>
-                    <option value="squad" {% if formData.type_tournoi is defined and formData.type_tournoi == 'squad' %}selected{% endif %}>Squad</option>
-                </select>
+            <div class="admin-form-actions">
+                <a href="{{ path('admin_tournoi_index') }}" class="admin-form-cancel">
+                    <i class="fas fa-arrow-left"></i> Annuler
+                </a>
+                <button type="submit" class="admin-form-submit">
+                    <i class="fas fa-save"></i> Créer
+                </button>
             </div>
-        </div>
-
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-muted);">Jeu</label>
-            <input type="text" name="game" value="{{ formData.game|default('') }}" placeholder="ex: League of Legends, Counter-Strike 2" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 14px;">
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-            <div>
-                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-muted);">Date de Début</label>
-                <input type="datetime-local" name="startDate" value="{{ formData.startDate|default('') }}" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 14px;">
-            </div>
-
-            <div>
-                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-muted);">Date de Fin</label>
-                <input type="datetime-local" name="endDate" value="{{ formData.endDate|default('') }}" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 14px;">
-            </div>
-        </div>
-
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-muted);">Dotation ($)</label>
-            <input type="text" name="prize_won" value="{{ formData.prize_won|default('') }}" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 14px;">
-        </div>
-
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-muted);">Nombre maximum de places (laisser vide = illimité)</label>
-            <input type="text" name="max_places" value="{{ formData.max_places|default('') }}" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 14px;">
-        </div>
-
-        <div style="display: flex; gap: 10px; margin-top: 30px;">
-            <button type="submit" class="btn btn-primary" style="flex: 1;">
-                <i class="fas fa-save"></i> Créer le Tournoi
-            </button>
-            <a href="{{ path('admin_tournoi_index') }}" class="btn" style="background: rgba(255,255,255,0.1); padding: 12px 20px; border-radius: 8px; text-decoration: none; text-align: center;">
-                <i class="fas fa-times"></i> Annuler
-            </a>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
 {% endblock %}

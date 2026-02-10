@@ -1,36 +1,59 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
 
 {% block title %}{{ produit.nom }} – Boutique{% endblock %}
 
-{% block stylesheets %}
-<style>
-    .container { width: 90%; max-width: 900px; margin: 3rem auto; }
-    .card-detail { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 2rem; border: 1px solid rgba(255,255,255,0.1); }
-    .card-detail img { width: 100%; max-height: 320px; object-fit: contain; border-radius: 16px; margin-bottom: 1.5rem; }
-    .card-detail h2 { font-size: 1.8rem; margin-bottom: 1rem; }
-    .info { display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; margin-bottom: 1.5rem; }
-    .info .label { font-weight: 600; color: rgba(255,255,255,0.6); }
-    .btn-back { display: inline-block; padding: 12px 24px; border-radius: 10px; background: var(--primary-blue, #4361ee); color: #fff; text-decoration: none; font-weight: 600; margin-top: 1rem; }
-    .btn-back:hover { filter: brightness(1.1); }
-</style>
-{% endblock %}
-
 {% block body %}
-<div class="container">
-    <div class="card-detail">
-        <img src="{{ produit.image starts with 'http' ? produit.image : asset(produit.image) }}" alt="{{ produit.nom }}" onerror="this.src='https://placehold.co/600x400?text=Produit'">
-        <h2>{{ produit.nom }}</h2>
-        <div class="info">
-            <div class="label">Prix</div>
-            <div class="value">{{ produit.prix|number_format(2) }} €</div>
-            <div class="label">Stock</div>
-            <div class="value">{{ produit.stock }}</div>
-            <div class="label">Description</div>
-            <div class="value">{{ produit.description|default('—') }}</div>
-            <div class="label">Statut</div>
-            <div class="value">{{ produit.statut }}</div>
-        </div>
-        <a href="{{ path('app_front_produit_index') }}" class="btn-back">← Retour à la boutique</a>
+<section class="shop-hero">
+    <div class="shop-hero-inner">
+        <div class="shop-kicker">Produit</div>
+        <h1 class="shop-title">{{ produit.nom }}</h1>
+        <p class="shop-lead">Découvrez les détails et ajoutez ce produit à votre arsenal.</p>
     </div>
-</div>
+    <div class="shop-hero-glow"></div>
+</section>
+
+<section class="shop-shell">
+    <div class="product-detail-grid">
+        <div class="product-media-card">
+            <img src="{{ produit.image starts with 'http' ? produit.image : asset(produit.image) }}" alt="{{ produit.nom }}" onerror="this.src='https://placehold.co/600x400?text=Produit'">
+        </div>
+
+        <div class="product-info-card">
+            <div class="product-badges">
+                <span class="badge badge-info"><i class="fa-solid fa-tag"></i>{{ produit.categorie ? produit.categorie.nom : 'Divers' }}</span>
+                {% if produit.stock == 0 %}
+                    <span class="badge badge-danger">Rupture</span>
+                {% elseif produit.stock < 5 %}
+                    <span class="badge badge-warning">Derniers</span>
+                {% endif %}
+            </div>
+
+            <h2 class="product-title">{{ produit.nom }}</h2>
+            <div class="product-price">{{ produit.prix|number_format(2, '.', ' ') }} €</div>
+
+            <div class="product-status {{ produit.stock == 0 ? 'out' : 'in' }}">
+                <i class="fa-solid fa-circle"></i>
+                {{ produit.stock == 0 ? 'Rupture de stock' : 'En stock' }}
+            </div>
+
+            <p class="product-description">{{ produit.description|default('—') }}</p>
+
+            <ul class="product-features">
+                <li><i class="fa-solid fa-box"></i> Stock disponible : {{ produit.stock }}</li>
+                <li><i class="fa-solid fa-circle-check"></i> Statut : {{ produit.statut }}</li>
+                <li><i class="fa-solid fa-shield-halved"></i> Produit officiel E‑Sportify</li>
+            </ul>
+
+            <div class="product-actions">
+                <form action="{{ path('front_order_add_product', { id: produit.id }) }}" method="post" style="margin: 0;">
+                    <input type="hidden" name="quantite" value="1">
+                    <button type="submit" class="order-btn primary" {{ produit.stock == 0 ? 'disabled' : '' }}>
+                        <i class="fa-solid fa-cart-shopping"></i> Ajouter au panier
+                    </button>
+                </form>
+                <a href="{{ path('app_front_produit_index') }}" class="order-btn ghost">Retour à la boutique</a>
+            </div>
+        </div>
+    </div>
+</section>
 {% endblock %}

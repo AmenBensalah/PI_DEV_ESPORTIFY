@@ -1,4 +1,6 @@
-﻿{% extends 'equipes/base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
+
+{% block body_class %}page-equipes{% endblock %}
 
 {% block title %}Postuler chez {{ equipe.nomEquipe }} - E-Sportify{% endblock %}
 
@@ -32,20 +34,20 @@
                 </label>
                 <select name="niveau" 
                         style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.1); background: var(--darker-bg); color: white; font-size: 16px; cursor: pointer;">
-                    <option value="" disabled {{ not formData.niveau|default(false) ? 'selected' : '' }}>Sélectionnez votre niveau...</option>
-                    <option value="Débutant" {{ formData.niveau|default('') == 'Débutant' ? 'selected' : '' }}>Débutant (Je commence tout juste)</option>
-                    <option value="Intermédiaire" {{ formData.niveau|default('') == 'Intermédiaire' ? 'selected' : '' }}>Intermédiaire (Je connais les bases)</option>
-                    <option value="Confirmé" {{ formData.niveau|default('') == 'Confirmé' ? 'selected' : '' }}>Confirmé (Bon niveau compétitif)</option>
-                    <option value="Expert" {{ formData.niveau|default('') == 'Expert' ? 'selected' : '' }}>Expert / Pro (Haut niveau)</option>
+                    <option value="" disabled {{ not formData.niveau|default(false)  'selected' : '' }}>Sélectionnez votre niveau...</option>
+                    <option value="Débutant" {{ formData.niveau|default('') == 'Débutant'  'selected' : '' }}>Débutant (Je commence tout juste)</option>
+                    <option value="Intermédiaire" {{ formData.niveau|default('') == 'Intermédiaire'  'selected' : '' }}>Intermédiaire (Je connais les bases)</option>
+                    <option value="Confirmé" {{ formData.niveau|default('') == 'Confirmé'  'selected' : '' }}>Confirmé (Bon niveau compétitif)</option>
+                    <option value="Expert" {{ formData.niveau|default('') == 'Expert'  'selected' : '' }}>Expert / Pro (Haut niveau)</option>
                 </select>
             </div>
 
             <!-- Motivation -->
             <div class="form-group" style="margin-bottom: 30px;">
                 <label style="display: block; margin-bottom: 10px; font-weight: 600; color: var(--text-primary);">
-                    <i class="fas fa-pen"></i> Pourquoi cette équipe ?
+                    <i class="fas fa-pen"></i> Pourquoi cette équipe 
                 </label>
-                <textarea name="reason" rows="4" placeholder="Qu'est-ce qui vous attire chez nous ?"
+                <textarea name="reason" rows="4" placeholder="Qu'est-ce qui vous attire chez nous "
                           style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.1); background: var(--darker-bg); color: white; font-size: 16px; resize: vertical;">{{ formData.reason|default('') }}</textarea>
             </div>
 
@@ -75,4 +77,3 @@
     </div>
 </div>
 {% endblock %}
-

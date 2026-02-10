@@ -1,89 +1,79 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
 
 {% block title %}{{ tournoi.name }}{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8">
-            <h1 class="mb-4">{{ tournoi.name }}</h1>
-
-            <div class="card mb-4">
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <h5>Game Type</h5>
-                            <p><span class="badge bg-info">{{ tournoi.typeGame }}</span></p>
-                        </div>
-                        <div class="col-md-6">
-                            <h5>Tournament Type</h5>
-                            <p><span class="badge bg-secondary">{{ tournoi.typeTournoi|upper }}</span></p>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <h5>Game</h5>
-                            <p>{{ tournoi.game }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <h5>Status</h5>
-                            <p>
-                                {% if tournoi.currentStatus == 'planned' %}
-                                    <span class="badge bg-warning">Planifié</span>
-                                {% elseif tournoi.currentStatus == 'ongoing' %}
-                                    <span class="badge bg-success">En cours</span>
-                                {% else %}
-                                    <span class="badge bg-danger">Terminé</span>
-                                {% endif %}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <h5>Start Date</h5>
-                            <p>{{ tournoi.startDate|date('Y-m-d H:i') }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <h5>End Date</h5>
-                            <p>{{ tournoi.endDate|date('Y-m-d H:i') }}</p>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <h5>Prize Pool</h5>
-                            <p class="text-success"><strong>${{ tournoi.prizeWon }}</strong></p>
-                        </div>
-                    </div>
-
-                    {% if tournoi.resultat %}
-                        <div class="alert alert-success">
-                            <h5>Results</h5>
-                            <p><strong>Rank:</strong> {{ tournoi.resultat.rank }}</p>
-                            <p><strong>Score:</strong> {{ tournoi.resultat.score }}</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="d-flex gap-2">
-                {% if is_granted('ROLE_USER') %}
-                    {% set remaining = tournoi.remainingPlaces %}
-                    {% if app.user in tournoi.participants %}
-                        <button class="btn btn-success" disabled>Inscrit</button>
-                    {% elseif remaining is not null and remaining <= 0 %}
-                        <button class="btn btn-secondary" disabled>Complet</button>
-                    {% elseif tournoi.currentStatus != 'planned' %}
-                        <button class="btn btn-secondary" disabled>Non disponible</button>
-                    {% else %}
-                        <a href="{{ path('tournoi_participate', {id: tournoi.idTournoi}) }}" class="btn btn-primary">Participer</a>
-                    {% endif %}
-                {% endif %}
-                <a href="{{ path('tournoi_index') }}" class="btn btn-secondary">Retour</a>
-            </div>
+<section class="tournoi-hero">
+    <div class="tournoi-hero-inner">
+        <div class="tournoi-kicker">Tournoi</div>
+        <h1 class="tournoi-title">{{ tournoi.name }}</h1>
+        <p class="tournoi-lead">{{ tournoi.game }} · {{ tournoi.typeGame }} · {{ tournoi.typeTournoi|upper }}</p>
+        <div class="tournoi-hero-actions">
+            <a href="{{ path('tournoi_index') }}" class="neo-btn ghost">Retour</a>
+            <a href="{{ path('tournoi_participation_requests') }}" class="neo-btn">Mes demandes</a>
         </div>
     </div>
-</div>
+    <div class="tournoi-hero-glow"></div>
+</section>
+
+<section class="tournoi-shell">
+    <div class="tournoi-panel tournoi-details">
+        <div class="detail-grid">
+            <div>
+                <span>Type de jeu</span>
+                <strong>{{ tournoi.typeGame }}</strong>
+            </div>
+            <div>
+                <span>Type tournoi</span>
+                <strong>{{ tournoi.typeTournoi|upper }}</strong>
+            </div>
+            <div>
+                <span>Statut</span>
+                {% if tournoi.currentStatus == 'planned' %}
+                    <strong class="status warn">Planifie</strong>
+                {% elseif tournoi.currentStatus == 'ongoing' %}
+                    <strong class="status success">En cours</strong>
+                {% else %}
+                    <strong class="status danger">Termine</strong>
+                {% endif %}
+            </div>
+            <div>
+                <span>Debut</span>
+                <strong>{{ tournoi.startDate|date('Y-m-d H:i') }}</strong>
+            </div>
+            <div>
+                <span>Fin</span>
+                <strong>{{ tournoi.endDate|date('Y-m-d H:i') }}</strong>
+            </div>
+            <div>
+                <span>Prize</span>
+                <strong>${{ tournoi.prizeWon }}</strong>
+            </div>
+        </div>
+
+        {% if tournoi.resultat %}
+            <div class="tournoi-alert success">
+                <h4>Results</h4>
+                <p><strong>Rank:</strong> {{ tournoi.resultat.rank }}</p>
+                <p><strong>Score:</strong> {{ tournoi.resultat.score }}</p>
+            </div>
+        {% endif %}
+
+        <div class="tournoi-actions-row">
+            {% if is_granted('ROLE_USER') %}
+                {% set remaining = tournoi.remainingPlaces %}
+                {% if app.user in tournoi.participants %}
+                    <button class="neo-btn" disabled>Inscrit</button>
+                {% elseif remaining is not null and remaining <= 0 %}
+                    <button class="neo-btn" disabled>Complet</button>
+                {% elseif tournoi.currentStatus != 'planned' %}
+                    <button class="neo-btn" disabled>Non disponible</button>
+                {% else %}
+                    <a href="{{ path('tournoi_participate', {id: tournoi.idTournoi}) }}" class="neo-btn">Participer</a>
+                {% endif %}
+            {% endif %}
+            <a href="{{ path('tournoi_index') }}" class="neo-btn ghost">Retour</a>
+        </div>
+    </div>
+</section>
 {% endblock %}

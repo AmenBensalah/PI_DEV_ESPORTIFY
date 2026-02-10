@@ -1,117 +1,106 @@
-{% extends 'admin/layout.html.twig' %}
+﻿{% extends 'admin/layout.html.twig' %}
 
 {% block title %}Gestion des Tournois - Admin{% endblock %}
 {% block page_title %}Gestion des Tournois{% endblock %}
 
 {% block body %}
-<div style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center;">
-    <div>
-        <h2 style="font-family: 'Orbitron', sans-serif; font-size: 24px; margin: 0; color: #fff;">
-            <i class="fas fa-trophy"></i> Tous les Tournois
-        </h2>
-    </div>
-    <a href="{{ path('admin_tournoi_create') }}" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Créer un Tournoi
-    </a>
-</div>
-
-<!-- Filter by Category -->
-<div style="margin-bottom: 30px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
-    <a href="{{ path('admin_tournoi_index') }}" class="btn" style="background: var(--primary-blue); padding: 10px 15px; border-radius: 12px; text-align: center;">
-        Tous
-    </a>
-    <a href="{{ path('admin_tournoi_by_category', {typeGame: 'FPS'}) }}" class="btn" style="background: rgba(67, 97, 238, 0.5); padding: 10px 15px; border-radius: 12px; text-align: center; cursor: pointer;">
-        FPS
-    </a>
-    <a href="{{ path('admin_tournoi_by_category', {typeGame: 'Sports'}) }}" class="btn" style="background: rgba(67, 97, 238, 0.5); padding: 10px 15px; border-radius: 12px; text-align: center; cursor: pointer;">
-        Sports
-    </a>
-    <a href="{{ path('admin_tournoi_by_category', {typeGame: 'Battle_royale'}) }}" class="btn" style="background: rgba(67, 97, 238, 0.5); padding: 10px 15px; border-radius: 12px; text-align: center; cursor: pointer;">
-        Battle Royale
-    </a>
-    <a href="{{ path('admin_tournoi_by_category', {typeGame: 'Mind'}) }}" class="btn" style="background: rgba(67, 97, 238, 0.5); padding: 10px 15px; border-radius: 12px; text-align: center; cursor: pointer;">
-        Mind
-    </a>
-</div>
-
-<!-- Advanced Search Bar -->
-<div style="margin-bottom: 30px; background: rgba(67, 97, 238, 0.1); border: 1px solid rgba(67, 97, 238, 0.3); padding: 20px; border-radius: 12px;">
-    <h4 style="color: #fff; margin-top: 0; margin-bottom: 15px;">
-        <i class="fas fa-search"></i> Recherche Avancée
-    </h4>
-    <form method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-        <div>
-            <label style="display: block; margin-bottom: 5px; font-size: 13px; color: var(--text-muted); text-transform: uppercase;">Nom du Jeu</label>
-            <input type="text" name="game" placeholder="ex: Valorant, Chess..." value="{{ filterGame }}" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 14px;">
-        </div>
-        
-        <div>
-            <label style="display: block; margin-bottom: 5px; font-size: 13px; color: var(--text-muted); text-transform: uppercase;">Type de Jeu</label>
-            <select name="type_game" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 14px;">
-                <option value="">-- Tous --</option>
-                <option value="FPS" {% if filterTypeGame == 'FPS' %}selected{% endif %}>FPS</option>
-                <option value="Sports" {% if filterTypeGame == 'Sports' %}selected{% endif %}>Sports</option>
-                <option value="Battle_royale" {% if filterTypeGame == 'Battle_royale' %}selected{% endif %}>Battle Royale</option>
-                <option value="Mind" {% if filterTypeGame == 'Mind' %}selected{% endif %}>Mind</option>
-            </select>
-        </div>
-        
-        <div>
-            <label style="display: block; margin-bottom: 5px; font-size: 13px; color: var(--text-muted); text-transform: uppercase;">Type de Tournoi</label>
-            <select name="type_tournoi" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 14px;">
-                <option value="">-- Tous --</option>
-                <option value="solo" {% if filterTypeTournoi == 'solo' %}selected{% endif %}>Solo</option>
-                <option value="squad" {% if filterTypeTournoi == 'squad' %}selected{% endif %}>Squad</option>
-            </select>
-        </div>
-        
-        <div>
-            <label style="display: block; margin-bottom: 5px; font-size: 13px; color: var(--text-muted); text-transform: uppercase;">Statut</label>
-            <select name="status" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; font-size: 14px;">
-                <option value="">-- Tous --</option>
-                <option value="planned" {% if filterStatus == 'planned' %}selected{% endif %}>Planifié</option>
-                <option value="ongoing" {% if filterStatus == 'ongoing' %}selected{% endif %}>En cours</option>
-                <option value="finished" {% if filterStatus == 'finished' %}selected{% endif %}>Terminé</option>
-            </select>
-        </div>
-        
-        <div style="display: flex; gap: 10px; align-items: flex-end;">
-            <button type="submit" class="btn btn-primary" style="flex: 1; padding: 10px;">
-                <i class="fas fa-search"></i> Rechercher
-            </button>
-            <a href="{{ path('admin_tournoi_index') }}" class="btn" style="background: rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 8px; text-decoration: none;">
-                <i class="fas fa-redo"></i> Réinitialiser
+<section class="admin-tournament-hero">
+    <div class="admin-tournament-hero-inner">
+        <div class="admin-tournament-kicker">Admin</div>
+        <h2 class="admin-tournament-title">Gestion des Tournois</h2>
+        <p class="admin-tournament-lead">Pilote les tournois, filtre, trie et gère les actions clés.</p>
+        <div class="admin-tournament-hero-actions">
+            <a href="{{ path('admin_tournoi_create') }}" class="admin-tournament-btn">
+                <i class="fas fa-plus"></i> Créer un tournoi
+            </a>
+            <a href="{{ path('admin_tournoi_index') }}" class="admin-tournament-btn ghost">
+                <i class="fas fa-rotate"></i> Rafraîchir
             </a>
         </div>
-    </form>
-
-    <div style="margin-top:12px; display:flex; gap:10px; align-items:center;">
-        <strong style="color: #cfd8e3; margin-right:8px;">Trier :</strong>
-        <a href="{{ path('admin_tournoi_index', app.request.query.all | merge({'sort':'name','order':'asc'})) }}" class="btn">Nom A→Z</a>
-        <a href="{{ path('admin_tournoi_index', app.request.query.all | merge({'sort':'name','order':'desc'})) }}" class="btn">Nom Z→A</a>
-        <a href="{{ path('admin_tournoi_index', app.request.query.all | merge({'sort':'startDate','order':'asc'})) }}" class="btn">Date ↑</a>
-        <a href="{{ path('admin_tournoi_index', app.request.query.all | merge({'sort':'startDate','order':'desc'})) }}" class="btn">Date ↓</a>
     </div>
-</div>
+    <div class="admin-tournament-hero-glow"></div>
+</section>
 
-{% if app.flashes('success') %}
+<section class="admin-tournament-shell">
+    <div class="admin-tournament-tabs">
+        <a href="{{ path('admin_tournoi_index') }}" class="tab {{ app.request.attributes.get('_route') == 'admin_tournoi_index' ? 'active' : '' }}">Tous</a>
+        <a href="{{ path('admin_tournoi_by_category', {typeGame: 'FPS'}) }}" class="tab {{ app.request.attributes.get('_route') == 'admin_tournoi_by_category' and app.request.get('typeGame') == 'FPS' ? 'active' : '' }}">FPS</a>
+        <a href="{{ path('admin_tournoi_by_category', {typeGame: 'Sports'}) }}" class="tab {{ app.request.attributes.get('_route') == 'admin_tournoi_by_category' and app.request.get('typeGame') == 'Sports' ? 'active' : '' }}">Sports</a>
+        <a href="{{ path('admin_tournoi_by_category', {typeGame: 'Battle_royale'}) }}" class="tab {{ app.request.attributes.get('_route') == 'admin_tournoi_by_category' and app.request.get('typeGame') == 'Battle_royale' ? 'active' : '' }}">Battle Royale</a>
+        <a href="{{ path('admin_tournoi_by_category', {typeGame: 'Mind'}) }}" class="tab {{ app.request.attributes.get('_route') == 'admin_tournoi_by_category' and app.request.get('typeGame') == 'Mind' ? 'active' : '' }}">Mind</a>
+    </div>
+
+    <div class="admin-tournament-panel">
+        <div class="admin-tournament-panel-title">
+            <i class="fas fa-search"></i>
+            Recherche avancée
+        </div>
+        <form method="GET" class="admin-tournament-form">
+            <div class="field">
+                <label>Nom du jeu</label>
+                <input type="text" name="game" placeholder="ex: Valorant, Chess..." value="{{ filterGame }}">
+            </div>
+            <div class="field">
+                <label>Type de jeu</label>
+                <select name="type_game">
+                    <option value="">-- Tous --</option>
+                    <option value="FPS" {% if filterTypeGame == 'FPS' %}selected{% endif %}>FPS</option>
+                    <option value="Sports" {% if filterTypeGame == 'Sports' %}selected{% endif %}>Sports</option>
+                    <option value="Battle_royale" {% if filterTypeGame == 'Battle_royale' %}selected{% endif %}>Battle Royale</option>
+                    <option value="Mind" {% if filterTypeGame == 'Mind' %}selected{% endif %}>Mind</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Type de tournoi</label>
+                <select name="type_tournoi">
+                    <option value="">-- Tous --</option>
+                    <option value="solo" {% if filterTypeTournoi == 'solo' %}selected{% endif %}>Solo</option>
+                    <option value="squad" {% if filterTypeTournoi == 'squad' %}selected{% endif %}>Squad</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Statut</label>
+                <select name="status">
+                    <option value="">-- Tous --</option>
+                    <option value="planned" {% if filterStatus == 'planned' %}selected{% endif %}>Planifié</option>
+                    <option value="ongoing" {% if filterStatus == 'ongoing' %}selected{% endif %}>En cours</option>
+                    <option value="finished" {% if filterStatus == 'finished' %}selected{% endif %}>Terminé</option>
+                </select>
+            </div>
+            <div class="admin-tournament-actions">
+                <button type="submit" class="admin-tournament-btn">
+                    <i class="fas fa-search"></i> Rechercher
+                </button>
+                <a href="{{ path('admin_tournoi_index') }}" class="admin-tournament-btn ghost">
+                    <i class="fas fa-rotate"></i> Réinitialiser
+                </a>
+            </div>
+        </form>
+
+        <div class="admin-tournament-sort">
+            <span>Trier :</span>
+            <a href="{{ path('admin_tournoi_index', app.request.query.all | merge({'sort':'name','order':'asc'})) }}">Nom A→Z</a>
+            <a href="{{ path('admin_tournoi_index', app.request.query.all | merge({'sort':'name','order':'desc'})) }}">Nom Z→A</a>
+            <a href="{{ path('admin_tournoi_index', app.request.query.all | merge({'sort':'startDate','order':'asc'})) }}">Date ↑</a>
+            <a href="{{ path('admin_tournoi_index', app.request.query.all | merge({'sort':'startDate','order':'desc'})) }}">Date ↓</a>
+        </div>
+    </div>
+
     {% for message in app.flashes('success') %}
-        <div style="background: rgba(76, 201, 240, 0.2); border-left: 4px solid var(--primary-cyan); padding: 15px; border-radius: 8px; margin-bottom: 20px; color: var(--primary-cyan);">
+        <div class="admin-tournament-alert success">
             <i class="fas fa-check-circle"></i> {{ message }}
         </div>
     {% endfor %}
-{% endif %}
 
-{% if tournois %}
-    <div class="stat-card">
-        <div class="admin-table-container">
-            <table class="admin-table">
+    {% if tournois %}
+        <div class="admin-tournament-table">
+            <table>
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>Nom</th>
-                        <th>Type de Jeu</th>
-                        <th>Type de Tournoi</th>
+                        <th>Type jeu</th>
+                        <th>Type tournoi</th>
                         <th>Jeu</th>
                         <th>Statut</th>
                         <th>Début</th>
@@ -122,19 +111,15 @@
                 </thead>
                 <tbody>
                     {% for tournoi in tournois %}
-                        <tr>
+                        <tr style="animation-delay: {{ loop.index0 * 0.05 }}s;" class="admin-tournament-row">
                             <td>{{ tournoi.idTournoi }}</td>
-                            <td style="font-weight: 600;">{{ tournoi.name }}</td>
-                            <td>
-                                <span class="badge badge-info">{{ tournoi.typeGame }}</span>
-                            </td>
-                            <td>
-                                <span class="badge badge-success">{{ tournoi.typeTournoi|upper }}</span>
-                            </td>
+                            <td class="name">{{ tournoi.name }}</td>
+                            <td><span class="badge badge-info">{{ tournoi.typeGame }}</span></td>
+                            <td><span class="badge badge-success">{{ tournoi.typeTournoi|upper }}</span></td>
                             <td>{{ tournoi.game }}</td>
                             <td>
                                 {% if tournoi.currentStatus == 'planned' %}
-                                    <span class="badge badge-warning">Planifié</span>
+                                    <span class="badge badge-warn">Planifié</span>
                                 {% elseif tournoi.currentStatus == 'ongoing' %}
                                     <span class="badge badge-success">En cours</span>
                                 {% else %}
@@ -145,17 +130,21 @@
                             <td>{{ tournoi.endDate|date('d/m/Y H:i') }}</td>
                             <td>${{ tournoi.prizeWon }}</td>
                             <td>
-                                <div style="display: flex; gap: 8px;">
-                                    <a href="{{ path('admin_tournoi_show', {id: tournoi.idTournoi}) }}" class="btn btn-primary" style="padding: 8px 12px; font-size: 12px;">
+                                <div class="admin-tournament-row-actions">
+                                    <a href="{{ path('admin_tournoi_show', {id: tournoi.idTournoi}) }}" class="admin-tournament-icon" title="Voir">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     {% if tournoi.currentStatus == 'planned' %}
-                                        <a href="{{ path('admin_tournoi_edit', {id: tournoi.idTournoi}) }}" class="btn btn-primary" style="padding: 8px 12px; font-size: 12px; background: var(--primary-cyan); color: #000;">
+                                        <a href="{{ path('admin_tournoi_edit', {id: tournoi.idTournoi}) }}" class="admin-tournament-icon cyan" title="Modifier">
                                             <i class="fas fa-edit"></i>
                                         </a>
+                                    {% else %}
+                                        <span class="admin-tournament-icon cyan disabled" title="Modification indisponible">
+                                            <i class="fas fa-edit"></i>
+                                        </span>
                                     {% endif %}
-                                    <form method="POST" action="{{ path('admin_tournoi_delete', {id: tournoi.idTournoi}) }}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr?');">
-                                        <button type="submit" class="btn btn-danger" style="padding: 8px 12px; font-size: 12px;">
+                                    <form method="POST" action="{{ path('admin_tournoi_delete', {id: tournoi.idTournoi}) }}" onsubmit="return confirm('Êtes-vous sûr ?');">
+                                        <button type="submit" class="admin-tournament-icon danger" title="Supprimer">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
@@ -166,14 +155,15 @@
                 </tbody>
             </table>
         </div>
-    </div>
-{% else %}
-    <div class="stat-card" style="text-align: center; padding: 40px;">
-        <i class="fas fa-inbox" style="font-size: 48px; color: var(--text-muted); margin-bottom: 15px; display: block;"></i>
-        <p style="color: var(--text-muted); margin-bottom: 20px;">Aucun tournoi trouvé</p>
-        <a href="{{ path('admin_tournoi_create') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Créer le premier tournoi
-        </a>
-    </div>
-{% endif %}
+    {% else %}
+        <div class="admin-tournament-empty">
+            <div class="empty-ring"></div>
+            <strong>Aucun tournoi trouvé</strong>
+            <p>Commence par créer un nouveau tournoi.</p>
+            <a href="{{ path('admin_tournoi_create') }}" class="admin-tournament-btn">
+                <i class="fas fa-plus"></i> Créer le premier tournoi
+            </a>
+        </div>
+    {% endif %}
+</section>
 {% endblock %}

@@ -1,135 +1,102 @@
-{% extends 'admin/base.html.twig' %}
+﻿{% extends 'admin/base.html.twig' %}
 
 {% block title %}Nouveau Produit - Admin{% endblock %}
 {% block page_title %}Nouveau Produit{% endblock %}
 
 {% block body %}
-    <div class="form-container animate__animated animate__fadeInUp" style="max-width: 1000px; margin: 0 auto;">
-        <div class="form-card" style="background: linear-gradient(180deg, rgba(12, 16, 28, 0.86), rgba(8, 10, 18, 0.86)); padding: 40px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.03); box-shadow: 0 12px 50px rgba(2, 8, 20, 0.6);">
-            
-            <div class="form-header" style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 20px; margin-bottom: 30px;">
-                <h2 class="section-heading" style="font-family: 'Orbitron', sans-serif; color: var(--primary-blue); display: flex; align-items: center; gap: 15px; font-size: 24px;">
-                    <div style="width: 50px; height: 50px; background: rgba(67, 97, 238, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-box-open"></i>
+<div class="admin-form-wrapper animate__animated animate__fadeInUp">
+    <div class="admin-form-card">
+        <div class="admin-form-header">
+            <div class="admin-form-icon">
+                <i class="fas fa-box-open"></i>
+            </div>
+            <div>
+                <h2 class="admin-form-title">Ajouter un Produit</h2>
+                <p class="admin-form-subtitle">Remplissez les détails du produit pour l'ajouter à la boutique.</p>
+            </div>
+        </div>
+
+        {{ form_start(form, {'attr': {'class': 'admin-form', 'novalidate': 'novalidate'}}) }}
+            <div class="admin-form-error">{{ form_errors(form) }}</div>
+
+            <div class="admin-form-grid">
+                <div>
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">
+                            <i class="fas fa-tag"></i> Nom du produit <span style="color: var(--primary-pink);">*</span>
+                        </label>
+                        {{ form_widget(form.nom, {'attr': {'class': 'admin-form-input', 'placeholder': 'Ex: Casque Gaming Pro'}}) }}
+                        <div class="admin-form-error">{{ form_errors(form.nom) }}</div>
                     </div>
-                    Ajouter un Produit
-                </h2>
-                <p class="form-subtitle" style="color: var(--text-secondary); margin-left: 65px;">Remplissez les détails du produit pour l'ajouter à la boutique.</p>
+
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">
+                            <i class="fas fa-euro-sign"></i> Prix <span style="color: var(--primary-pink);">*</span>
+                        </label>
+                        {{ form_widget(form.prix, {'attr': {'class': 'admin-form-input', 'placeholder': 'Ex: 99.99'}}) }}
+                        <div class="admin-form-error">{{ form_errors(form.prix) }}</div>
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">
+                            <i class="fas fa-cubes"></i> Stock
+                        </label>
+                        {{ form_widget(form.stock, {'attr': {'class': 'admin-form-input', 'placeholder': 'Quantité disponible'}}) }}
+                        <div class="admin-form-error">{{ form_errors(form.stock) }}</div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">
+                            <i class="fas fa-folder"></i> Catégorie
+                        </label>
+                        {{ form_widget(form.categorie, {'attr': {'class': 'admin-form-select'}}) }}
+                        <div class="admin-form-error">{{ form_errors(form.categorie) }}</div>
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">
+                            <i class="fas fa-info-circle"></i> Statut
+                        </label>
+                        {{ form_widget(form.statut, {'attr': {'class': 'admin-form-select'}}) }}
+                        <div class="admin-form-error">{{ form_errors(form.statut) }}</div>
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">
+                            <i class="fas fa-image"></i> Image produit
+                        </label>
+                        <div class="admin-upload-box" data-upload>
+                            <div class="admin-upload-preview" data-preview></div>
+                            <div class="admin-upload-placeholder" data-placeholder>
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                Cliquez ou glissez une image ici
+                            </div>
+                            {{ form_widget(form.imageFile, {'attr': {'class': 'admin-upload-input', 'data-upload-input': '', 'accept': 'image/*'}}) }}
+                        </div>
+                        <div class="admin-form-error">{{ form_errors(form.imageFile) }}</div>
+                    </div>
+                </div>
             </div>
 
-            {{ form_start(form, {'attr': {'class': 'product-form', 'novalidate': 'novalidate'}}) }}
-                
-                <div style="color: #f72585; margin-bottom: 20px;">
-                    {{ form_errors(form) }}
-                </div>
-                
-                <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-                    <!-- LEFT COLUMN -->
-                    <div class="form-column">
-                        <div class="form-group">
-                            <label class="form-label" style="display: block; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; text-transform: uppercase; font-size: 13px;">
-                                <i class="fas fa-tag" style="color: var(--primary-blue); margin-right: 8px;"></i> Nom du Produit <span style="color: var(--primary-pink);">*</span>
-                            </label>
-                            {{ form_widget(form.nom, {'attr': {'class': 'form-input', 'style': 'width: 100%; padding: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; color: white;', 'placeholder': 'Ex: Casque Gaming Pro'}}) }}
-                            <div style="color: #f72585; font-size: 12px; margin-top: 5px;">{{ form_errors(form.nom) }}</div>
-                        </div>
+            <div class="admin-form-group">
+                <label class="admin-form-label">
+                    <i class="fas fa-align-left"></i> Description
+                </label>
+                {{ form_widget(form.description, {'attr': {'class': 'admin-form-textarea', 'rows': 5, 'placeholder': 'Description détaillée du produit...'}}) }}
+                <div class="admin-form-error">{{ form_errors(form.description) }}</div>
+            </div>
 
-                        <div class="form-group">
-                            <label class="form-label" style="display: block; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; text-transform: uppercase; font-size: 13px;">
-                                <i class="fas fa-euro-sign" style="color: var(--primary-blue); margin-right: 8px;"></i> Prix <span style="color: var(--primary-pink);">*</span>
-                            </label>
-                            {{ form_widget(form.prix, {'attr': {'class': 'form-input', 'style': 'width: 100%; padding: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; color: white;', 'placeholder': 'Ex: 99.99'}}) }}
-                            <div style="color: #f72585; font-size: 12px; margin-top: 5px;">{{ form_errors(form.prix) }}</div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label" style="display: block; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; text-transform: uppercase; font-size: 13px;">
-                                <i class="fas fa-cubes" style="color: var(--primary-blue); margin-right: 8px;"></i> Stock
-                            </label>
-                            {{ form_widget(form.stock, {'attr': {'class': 'form-input', 'style': 'width: 100%; padding: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; color: white;', 'placeholder': 'Quantité disponible'}}) }}
-                            <div style="color: #f72585; font-size: 12px; margin-top: 5px;">{{ form_errors(form.stock) }}</div>
-                        </div>
-                    </div>
-
-                    <!-- RIGHT COLUMN -->
-                    <div class="form-column">
-                        <div class="form-group">
-                            <label class="form-label" style="display: block; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; text-transform: uppercase; font-size: 13px;">
-                                <i class="fas fa-folder" style="color: var(--primary-blue); margin-right: 8px;"></i> Catégorie
-                            </label>
-                            {{ form_widget(form.categorie, {'attr': {'class': 'form-select', 'style': 'width: 100%; padding: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; color: white;'}}) }}
-                            <div style="color: #f72585; font-size: 12px; margin-top: 5px;">{{ form_errors(form.categorie) }}</div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label" style="display: block; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; text-transform: uppercase; font-size: 13px;">
-                                <i class="fas fa-info-circle" style="color: var(--primary-blue); margin-right: 8px;"></i> Statut
-                            </label>
-                            {{ form_widget(form.statut, {'attr': {'class': 'form-select', 'style': 'width: 100%; padding: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; color: white;'}}) }}
-                            <div style="color: #f72585; font-size: 12px; margin-top: 5px;">{{ form_errors(form.statut) }}</div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label" style="display: block; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; text-transform: uppercase; font-size: 13px;">
-                                <i class="fas fa-image" style="color: var(--primary-blue); margin-right: 8px;"></i> Image Produit
-                            </label>
-                            <div class="upload-box" style="border: 2px dashed rgba(255,255,255,0.1); padding: 20px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.01); position: relative; overflow: hidden;">
-                                <img id="image-preview" src="#" alt="Aperçu" style="display: none; max-width: 100%; max-height: 200px; border-radius: 10px; margin: 0 auto 15px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-                                
-                                <div id="upload-placeholder">
-                                    <i class="fas fa-cloud-upload-alt" style="font-size: 24px; color: var(--primary-blue); margin-bottom: 10px;"></i>
-                                    <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 10px;">Cliquez ou glissez une image ici</p>
-                                </div>
-                                
-                                {{ form_widget(form.imageFile, {'attr': {'class': 'form-control', 'style': 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;', 'onchange': 'previewImage(event)'}}) }}
-                            </div>
-                            <div style="color: #f72585; font-size: 12px; margin-top: 5px;">{{ form_errors(form.imageFile) }}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group" style="margin-top: 20px;">
-                    <label class="form-label" style="display: block; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; text-transform: uppercase; font-size: 13px;">
-                        <i class="fas fa-align-left" style="color: var(--primary-blue); margin-right: 8px;"></i> Description
-                    </label>
-                    {{ form_widget(form.description, {'attr': {'class': 'form-textarea', 'rows': 5, 'style': 'width: 100%; padding: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; color: white;', 'placeholder': 'Description détaillée du produit...'}}) }}
-                    <div style="color: #f72585; font-size: 12px; margin-top: 5px;">{{ form_errors(form.description) }}</div>
-                </div>
-
-                <div class="form-actions centered" style="display: flex; justify-content: flex-end; gap: 15px; margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05);">
-                    <a href="{{ path('admin_boutique_produit_index') }}" class="btn-outline" style="padding: 12px 30px; text-decoration: none; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 8px; transition: 0.3s;">
-                        <i class="fas fa-arrow-left"></i> Annuler
-                    </a>
-                    <button type="submit" class="btn-gradient" style="padding: 12px 40px; border: none; border-radius: 12px; background: linear-gradient(90deg, #4361ee 0%, #3a0ca3 100%); color: white; font-weight: 700; font-family: 'Orbitron', sans-serif; cursor: pointer; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(67, 97, 238, 0.4);">
-                        <i class="fas fa-save"></i> Enregistrer
-                    </button>
-                </div>
-
-            {{ form_end(form) }}
-        </div>
+            <div class="admin-form-actions">
+                <a href="{{ path('admin_boutique_produit_index') }}" class="admin-form-cancel">
+                    <i class="fas fa-arrow-left"></i> Annuler
+                </a>
+                <button type="submit" class="admin-form-submit">
+                    <i class="fas fa-save"></i> Enregistrer
+                </button>
+            </div>
+        {{ form_end(form) }}
     </div>
-
-    <script>
-        function previewImage(event) {
-            const input = event.target;
-            const preview = document.getElementById('image-preview');
-            const placeholder = document.getElementById('upload-placeholder');
-            
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                    placeholder.style.display = 'none';
-                }
-                
-                reader.readAsDataURL(input.files[0]);
-            } else {
-                preview.src = '#';
-                preview.style.display = 'none';
-                placeholder.style.display = 'block';
-            }
-        }
-    </script>
+</div>
 {% endblock %}

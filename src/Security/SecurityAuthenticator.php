@@ -76,12 +76,9 @@ class SecurityAuthenticator extends AbstractLoginFormAuthenticator
         if (in_array('ROLE_ADMIN', $roles, true)) {
             return new RedirectResponse($this->urlGenerator->generate('admin_dashboard'));
         }
-        if (in_array('ROLE_MANAGER', $roles, true)) {
-            return new RedirectResponse($this->urlGenerator->generate('app_equipes_index'));
-        }
 
         // Default for JOUEUR, ORGANISATEUR, etc.
-        return new RedirectResponse($this->urlGenerator->generate('app_home'));
+        return new RedirectResponse($this->urlGenerator->generate('fil_home'));
     }
 
     protected function getLoginUrl(Request $request): string

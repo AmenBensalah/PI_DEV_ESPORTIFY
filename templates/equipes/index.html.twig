@@ -1,833 +1,277 @@
-﻿{% extends 'equipes/base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
+
+{% block body_class %}page-equipes{% endblock %}
 
 {% block title %}Équipes - E-Sportify{% endblock %}
 
 {% block body %}
-        <!-- Flash Messages -->
-        {% for message in app.flashes('success') %}
-            <div class="flash-success" role="status" aria-live="polite" style="margin:12px 0;">
-                <i class="fas fa-check-circle" style="color: var(--success-color); font-size: 18px; margin-right:10px;"></i>
-                <span style="color: var(--success-color); font-weight:600;">{{ message }}</span>
-            </div>
-        {% endfor %}
-        {% for message in app.flashes('error') %}
-            <div class="flash-error" role="status" aria-live="polite" style="margin:12px 0; background: rgba(255,0,110,0.06); border:1px solid var(--primary-pink); padding:10px 12px; border-radius:8px;">
-                <i class="fas fa-exclamation-circle" style="color: var(--primary-pink); font-size: 18px; margin-right:10px;"></i>
-                <span style="color: var(--primary-pink); font-weight:600;">{{ message }}</span>
-            </div>
-        {% endfor %}
+<div class="equipes-content equipes-hub">
+    {% for message in app.flashes('success') %}
+        <div class="flash-success" role="status" aria-live="polite" style="margin:12px 0;">
+            <i class="fas fa-check-circle" style="color: var(--success-color); font-size: 18px; margin-right:10px;"></i>
+            <span style="color: var(--success-color); font-weight:600;">{{ message }}</span>
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="flash-error" role="status" aria-live="polite" style="margin:12px 0; background: rgba(255,0,110,0.06); border:1px solid var(--primary-pink); padding:10px 12px; border-radius:8px;">
+            <i class="fas fa-exclamation-circle" style="color: var(--primary-pink); font-size: 18px; margin-right:10px;"></i>
+            <span style="color: var(--primary-pink); font-weight:600;">{{ message }}</span>
+        </div>
+    {% endfor %}
 
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const flashes = document.querySelectorAll('.flash-success, .flash-error');
-                if (!flashes.length) return;
-                setTimeout(() => {
-                    flashes.forEach(el => {
-                        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-                        el.style.opacity = '0';
-                        el.style.transform = 'translateY(-8px)';
-                        setTimeout(() => el.remove(), 700);
-                    });
-                }, 3000);
-            });
-        </script>
-
-        <!-- Hero Introduction Section -->
-        <div class="hero-section animate__animated animate__fadeIn" style="margin-bottom: 80px; background: linear-gradient(rgba(10, 14, 35, 0.85), rgba(10, 14, 35, 0.9)), url('{{ asset('images/gaming1.jpg') }}'); background-size: cover; background-position: center; background-attachment: fixed; border-radius: 24px; padding: 60px 40px;">
-            <div class="hero-content" style="text-align: center;">
-                <h1 class="hero-title" style="font-size: 56px; margin-bottom: 20px;">
-                    BIENVENUE SUR E-SPORTIFY
-                </h1>
-                <p class="hero-subtitle" style="font-size: 22px; max-width: 800px; margin: 0 auto 40px;">
-                    La plateforme ultime pour les passionnés d'e-sport. Rejoignez des équipes, participez à des tournois épiques et dominez la compétition mondiale.
-                </p>
-                
-                <!-- Hero Stats -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; max-width: 1000px; margin: 0 auto 50px;">
-                    <div style="text-align: center; padding: 20px; background: rgba(0, 217, 255, 0.05); border-radius: 16px; border: 2px solid rgba(0, 217, 255, 0.2);">
-                        <div style="font-size: 42px; font-family: 'Orbitron', sans-serif; font-weight: 900; color: var(--primary-blue); margin-bottom: 5px;">
-                            21K+
-                        </div>
-                        <div style="color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-                            Joueurs Actifs
-                        </div>
-                    </div>
-                    
-                    <div style="text-align: center; padding: 20px; background: rgba(255, 0, 110, 0.05); border-radius: 16px; border: 2px solid rgba(255, 0, 110, 0.2);">
-                        <div style="font-size: 42px; font-family: 'Orbitron', sans-serif; font-weight: 900; color: var(--primary-pink); margin-bottom: 5px;">
-                            500+
-                        </div>
-                        <div style="color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-                            Équipes Actives
-                        </div>
-                    </div>
-                    
-                    <div style="text-align: center; padding: 20px; background: rgba(123, 47, 255, 0.05); border-radius: 16px; border: 2px solid rgba(123, 47, 255, 0.2);">
-                        <div style="font-size: 42px; font-family: 'Orbitron', sans-serif; font-weight: 900; color: var(--primary-purple); margin-bottom: 5px;">
-                            150+
-                        </div>
-                        <div style="color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-                            Tournois
-                        </div>
-                    </div>
-                    
-                    <div style="text-align: center; padding: 20px; background: rgba(0, 255, 136, 0.05); border-radius: 16px; border: 2px solid rgba(0, 255, 136, 0.2);">
-                        <div style="font-size: 42px; font-family: 'Orbitron', sans-serif; font-weight: 900; color: var(--success-color); margin-bottom: 5px;">
-                            50K€
-                        </div>
-                        <div style="color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-                            Cash Prizes
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Hero CTA Buttons -->
-                <div class="hero-buttons" style="justify-content: center; margin-bottom: 50px;">
-                    {% if myTeam %}
-                        <a href="{{ path('app_equipes_show', {'id': myTeam.id}) }}" class="btn-gradient" style="padding: 18px 45px; font-size: 18px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px;">
-                            <i class="fas fa-eye"></i> Voir mon Équipe
-                        </a>
-                    {% else %}
-                        <a href="{{ path('app_equipes_new') }}" class="btn-gradient" style="padding: 18px 45px; font-size: 18px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px;">
-                            <i class="fas fa-plus-circle"></i> Créer mon Équipe
+    <section class="admin-tournament-hero team-hub-hero">
+        <div class="admin-tournament-hero-inner">
+            <div class="admin-tournament-kicker">HUB ÉQUIPES</div>
+            <h1 class="admin-tournament-title">HUB ÉQUIPES</h1>
+            <p class="admin-tournament-lead team-description">
+                Explorez les rosters, suivez les performances et trouvez votre place dans l’élite E‑sport.
+            </p>
+            <div class="admin-tournament-hero-actions team-hub-actions">
+                {% if myTeam %}
+                    <a href="{{ path('app_equipes_show', {'id': myTeam.id}) }}" class="admin-tournament-btn">
+                        <i class="fas fa-eye"></i> Voir mon équipe
+                    </a>
+                    {% if isManager %}
+                        <a href="{{ path('app_equipes_manage', {'id': myTeam.id}) }}" class="admin-tournament-btn ghost">
+                            <i class="fas fa-user-cog"></i> Gérer mon équipe
                         </a>
                     {% endif %}
-                </div>
+                {% elseif memberTeam %}
+                    <a href="{{ path('app_equipes_show', {'id': memberTeam.id}) }}" class="admin-tournament-btn">
+                        <i class="fas fa-eye"></i> Voir mon équipe
+                    </a>
+                {% endif %}
 
-                <!-- Hero Features -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto;">
-                    <div style="text-align: center; padding: 30px 20px; background: var(--card-bg); border-radius: 20px; border: 2px solid rgba(0, 217, 255, 0.1); transition: var(--transition);" class="hover-lift">
-                        <div style="width: 70px; height: 70px; margin: 0 auto 20px; border-radius: 16px; background: rgba(0, 217, 255, 0.1); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-users" style="font-size: 36px; color: var(--primary-blue);"></i>
-                        </div>
-                        <h3 style="font-family: 'Orbitron', sans-serif; font-size: 20px; margin-bottom: 12px;">
-                            Équipes Compétitives
-                        </h3>
-                        <p style="color: var(--text-secondary); line-height: 1.6; font-size: 15px;">
-                            Rejoignez des équipes et participez à des compétitions de haut niveau
-                        </p>
-                    </div>
+                {% if canCreateTeam %}
+                    <a href="{{ path('app_equipes_new') }}" class="admin-tournament-btn">
+                        <i class="fas fa-plus-circle"></i> Créer mon équipe
+                    </a>
+                {% endif %}
+                <a href="#" class="admin-tournament-btn ghost" aria-disabled="true">
+                    <i class="fas fa-envelope-open"></i> Mes invitations
+                </a>
 
-                    <div style="text-align: center; padding: 30px 20px; background: var(--card-bg); border-radius: 20px; border: 2px solid rgba(255, 0, 110, 0.1); transition: var(--transition);" class="hover-lift">
-                        <div style="width: 70px; height: 70px; margin: 0 auto 20px; border-radius: 16px; background: rgba(255, 0, 110, 0.1); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-trophy" style="font-size: 36px; color: var(--primary-pink);"></i>
-                        </div>
-                        <h3 style="font-family: 'Orbitron', sans-serif; font-size: 20px; margin-bottom: 12px;">
-                            Tournois Épiques
-                        </h3>
-                        <p style="color: var(--text-secondary); line-height: 1.6; font-size: 15px;">
-                            Affrontez les meilleurs joueurs dans des tournois avec des récompenses incroyables
-                        </p>
-                    </div>
-
-                    <div style="text-align: center; padding: 30px 20px; background: var(--card-bg); border-radius: 20px; border: 2px solid rgba(123, 47, 255, 0.1); transition: var(--transition);" class="hover-lift">
-                        <div style="width: 70px; height: 70px; margin: 0 auto 20px; border-radius: 16px; background: rgba(123, 47, 255, 0.1); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-comments" style="font-size: 36px; color: var(--primary-purple);"></i>
-                        </div>
-                        <h3 style="font-family: 'Orbitron', sans-serif; font-size: 20px; margin-bottom: 12px;">
-                            Communauté Active
-                        </h3>
-                        <p style="color: var(--text-secondary); line-height: 1.6; font-size: 15px;">
-                            Connectez-vous avec plus de 21K joueurs passionnés du monde entier
-                        </p>
-                    </div>
-
-                    <div style="text-align: center; padding: 30px 20px; background: var(--card-bg); border-radius: 20px; border: 2px solid rgba(0, 255, 136, 0.1); transition: var(--transition);" class="hover-lift">
-                        <div style="width: 70px; height: 70px; margin: 0 auto 20px; border-radius: 16px; background: rgba(0, 255, 136, 0.1); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-shopping-cart" style="font-size: 36px; color: var(--success-color);"></i>
-                        </div>
-                        <h3 style="font-family: 'Orbitron', sans-serif; font-size: 20px; margin-bottom: 12px;">
-                            Boutique Premium
-                        </h3>
-                        <p style="color: var(--text-secondary); line-height: 1.6; font-size: 15px;">
-                            Accédez à des packs exclusifs et boostez votre progression
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Filters Section -->
-        <div class="filters-section animate__animated animate__fadeInUp">
-            <div class="filters-form">
-                <div class="filters-row">
-                    <div class="filter-group">
-                        <label class="filter-label">
-                            <i class="fas fa-search"></i> Rechercher
-                        </label>
-                        <input type="text" id="live-search-name" class="filter-input" 
-                               placeholder="Nom d'équipe...">
-                    </div>
-
-                    <div class="filter-group">
-                        <label class="filter-label">
-                            <i class="fas fa-medal"></i> Classement
-                        </label>
-                        <select id="live-search-rank" class="filter-select">
-                            <option value="">Tous</option>
-                            <option value="Bronze">Bronze</option>
-                            <option value="Argent">Argent</option>
-                            <option value="Or">Or</option>
-                            <option value="Platine">Platine</option>
-                            <option value="Diamant">Diamant</option>
-                            <option value="Master">Master</option>
-                            <option value="Challenger">Challenger</option>
-                        </select>
-                    </div>
-
-                    <div class="filter-group">
-                        <label class="filter-label">
-                            <i class="fas fa-sort"></i> Trier
-                        </label>
-                        <select id="live-search-sort" class="filter-select">
-                            <option value="recent">Plus récentes</option>
-                            <option value="oldest">Plus anciennes</option>
-                            <option value="name">Nom (A-Z)</option>
-                        </select>
-                    </div>
-
-                    <div class="filter-group">
-                        <button type="button" id="btn-reset-frontfilters" class="btn-filter btn-reset">
-                            <i class="fas fa-redo"></i> Reset
+                {% if not myTeam and not memberTeam and not canCreateTeam %}
+                    {% if canRequestManager %}
+                        <a href="{{ path('app_become_manager') }}" class="admin-tournament-btn ghost">
+                            <i class="fas fa-user-shield"></i> Demander à devenir manager
+                        </a>
+                    {% endif %}
+                    {% if canJoinTeam %}
+                        <button type="button" class="admin-tournament-btn ghost" onclick="openJoinTeamModal()">
+                            <i class="fas fa-users"></i> Rejoindre une équipe
                         </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-       <div class="modal-search-info" id="frontoffice-results-info" style="margin: 20px 0; text-align: center; color: var(--text-secondary); font-size: 14px; font-weight: 600;"></div>
-
-        <div style="margin-bottom: 80px;">
-            <h2 class="section-title" style="margin-bottom: 40px;">
-                <i class="fas fa-star"></i> ÉQUIPES VEDETTES
-            </h2>
-            
-            <div class="partners-grid" id="featured-teams-container">
-                <!-- Team Card 1 - ALFA (STATIQUE) -->
-                <div class="partner-card animate__animated animate__fadeInUp team-card" 
-                     data-name="alpha team"
-                     data-rank="platine"
-                     data-date="1735430400">
-                    <div class="partner-image">
-                        <img src="{{ asset('images/alpha.png') }}" alt="Alfa Gaming">
-                    </div>
-                    <div class="partner-info">
-                        <h3 class="partner-name">ALPHA TEAM</h3>
-                        <div style="text-align: center; margin-bottom: 15px;">
-                            <span class="badge badge-primary">
-                                <i class="fas fa-medal"></i> PLATINE
-                            </span>
-                        </div>
-                        <p class="partner-description">
-                            Une équipe soudée cherchant à atteindre les sommets de la ligue régionale.
-                        </p>
-                        <div class="partner-stats">
-                            <span class="partner-stat">
-                                <i class="fas fa-calendar"></i> 28/12/2024
-                            </span>
-                            <span class="partner-stat">
-                                <i class="fas fa-user-friends"></i> 1 Recrutement
-                            </span>
-                        </div>
-                        <div class="partner-actions" style="display: flex; gap: 10px;">
-                            <a href="{{ path('app_equipes_index') }}" class="btn-partner" style="flex: 1; text-decoration: none; display: flex; align-items: center; justify-content: center; font-size: 13px;">
-                                <i class="fas fa-eye"></i> Détails
-                            </a>
-                            <a href="#" class="btn-gradient" style="flex: 1; text-decoration: none; padding: 10px; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 5px; border-radius: 8px;">
-                                <i class="fas fa-paper-plane"></i> Postuler
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Team Card 2 - BLAZE (STATIQUE - FEATURED) -->
-                <div class="partner-card featured animate__animated animate__fadeInUp team-card" 
-                     style="animation-delay: 0.1s"
-                     data-name="blaze esports"
-                     data-rank="challenger"
-                     data-date="1737936000">
-                    <div class="partner-badge">
-                        <i class="fas fa-crown"></i> TOP 1
-                    </div>
-                    <div class="partner-image">
-                        <img src="{{ asset('images/blaze.jpg') }}" alt="Blaze Esports">
-                    </div>
-                    <div class="partner-info">
-                        <h3 class="partner-name">BLAZE ESPORTS</h3>
-                        <div style="text-align: center; margin-bottom: 15px;">
-                            <span class="badge badge-primary">
-                                <i class="fas fa-star"></i> CHALLENGER
-                            </span>
-                        </div>
-                        <p class="partner-description">
-                            Équipe d'élite spécialisée dans les FPS compétitifs. Nous dominons la compétition !
-                        </p>
-                        <div class="partner-stats">
-                            <span class="partner-stat">
-                                <i class="fas fa-calendar"></i> 27/01/2025
-                            </span>
-                            <span class="partner-stat">
-                                <i class="fas fa-user-friends"></i> 3 Recrutements
-                            </span>
-                        </div>
-                        <div class="partner-actions" style="display: flex; gap: 10px;">
-                            <a href="{{ path('app_equipes_index') }}" class="btn-partner" style="flex: 1; text-decoration: none; display: flex; align-items: center; justify-content: center; font-size: 13px;">
-                                <i class="fas fa-eye"></i> Détails
-                            </a>
-                            <a href="#" class="btn-gradient" style="flex: 1; text-decoration: none; padding: 10px; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 5px; border-radius: 8px;">
-                                <i class="fas fa-paper-plane"></i> Postuler
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Team Card 3 - OMEGA (STATIQUE) -->
-                <div class="partner-card animate__animated animate__fadeInUp team-card" 
-                     style="animation-delay: 0.2s"
-                     data-name="omega squad"
-                     data-rank="master"
-                     data-date="1736640000">
-                    <div class="partner-image">
-                        <img src="{{ asset('images/omega.jpg') }}" alt="Omega Squad">
-                    </div>
-                    <div class="partner-info">
-                        <h3 class="partner-name">OMEGA SQUAD</h3>
-                        <div style="text-align: center; margin-bottom: 15px;">
-                            <span class="badge badge-primary">
-                                <i class="fas fa-crown"></i> MASTER
-                            </span>
-                        </div>
-                        <p class="partner-description">
-                            Masters de la stratégie en MOBA et jeux tactiques. Rejoignez l'excellence !
-                        </p>
-                        <div class="partner-stats">
-                            <span class="partner-stat">
-                                <i class="fas fa-calendar"></i> 12/01/2025
-                            </span>
-                            <span class="partner-stat">
-                                <i class="fas fa-user-friends"></i> 2 Recrutements
-                            </span>
-                        </div>
-                        <div class="partner-actions" style="display: flex; gap: 10px;">
-                            <a href="{{ path('app_equipes_index') }}" class="btn-partner" style="flex: 1; text-decoration: none; display: flex; align-items: center; justify-content: center; font-size: 13px;">
-                                <i class="fas fa-eye"></i> Détails
-                            </a>
-                            <a href="#" class="btn-gradient" style="flex: 1; text-decoration: none; padding: 10px; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 5px; border-radius: 8px;">
-                                <i class="fas fa-paper-plane"></i> Postuler
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- SECTION 2: MON ÉQUIPE (CONSULTATION UNIQUEMENT) -->
-        <div style="margin-bottom: 80px;">
-            <h2 class="section-title" style="margin-bottom: 20px;">
-                <i class="fas fa-user-shield"></i> MON ÉQUIPE
-            </h2>
-            <p class="section-subtitle">
-                Consultez votre équipe actuelle
-            </p>
-
-            <div id="my-team-container">
-                {% if myTeam %}
-                <!-- CAS 2: Le joueur A une équipe (Réel, rendu par Twig Server-Side) -->
-                <div id="has-team-state" style="display: block;">
-                    <div class="partners-grid" style="max-width: 450px; margin: 0 auto;">
-                        <div class="partner-card featured animate__animated animate__fadeInUp">
-                            <div class="partner-badge">
-                                <i class="fas fa-crown"></i> MON ÉQUIPE
-                            </div>
-                            <div class="partner-image">
-                                <img src="{{ myTeam.logo ? asset('uploads/equipes/' ~ myTeam.logo) : asset('images/logo3.png') }}" alt="{{ myTeam.nomEquipe }}">
-                            </div>
-                            <div class="partner-info">
-                                <h3 class="partner-name">{{ myTeam.nomEquipe }}</h3>
-                                <div style="text-align: center; margin-bottom: 15px;">
-                                    <span class="badge badge-primary">
-                                        <i class="fas fa-medal"></i> {{ myTeam.classement }}
-                                    </span>
-                                </div>
-                                <p class="partner-description">
-                                    {{ myTeam.description ? myTeam.description|slice(0, 80) ~ '...' : 'Aucune description' }}
-                                </p>
-                                <div class="partner-stats">
-                                    <span class="partner-stat">
-                                        <i class="fas fa-calendar"></i> {{ myTeam.dateCreation|date('d/m/Y') }}
-                                    </span>
-                                    <span class="partner-stat">
-                                        <i class="fas fa-user-friends"></i> {{ myTeam.recrutements|length }} Demande(s)
-                                    </span>
-                                </div>
-                                <div class="partner-actions" style="display: flex; flex-direction: column; gap: 10px;">
-                                    <a href="{{ path('app_equipes_show', {'id': myTeam.id}) }}" class="btn-partner" style="width: 100%; text-decoration: none; display: flex; align-items: center; justify-content: center;">
-                                        <i class="fas fa-eye" style="margin-right: 8px;"></i> Voir Détails
-                                    </a>
-                                    
-                                    {% if isManager|default(false) %}
-                                        <div style="display: flex; gap: 10px; width: 100%;">
-                                            <a href="{{ path('app_recrutements_manage', {'id': myTeam.id}) }}" class="btn-gradient" style="flex: 1; padding: 10px; text-decoration: none; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 5px;">
-                                                <i class="fas fa-user-plus"></i> Gérer
-                                            </a>
-                                            <a href="{{ path('app_equipes_edit', {'id': myTeam.id}) }}" class="btn-outline" style="flex: 1; padding: 10px; text-decoration: none; font-size: 13px; border: 1px solid #FFC107; color: #FFC107; display: flex; align-items: center; justify-content: center; gap: 5px;">
-                                                <i class="fas fa-edit"></i> Modifier
-                                            </a>
-                                        </div>
-                                        <form method="post" action="{{ path('app_equipes_delete', {'id': myTeam.id}) }}" onsubmit="return confirm('Êtes-vous sûr ?');" style="width: 100%;">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ myTeam.id) }}">
-                                            <button class="btn-outline" style="width: 100%; padding: 10px; border: 1px solid var(--primary-pink); color: var(--primary-pink); background: none; cursor: pointer; font-family: inherit; font-size: 13px;">
-                                                <i class="fas fa-trash-alt"></i> Supprimer l'Équipe
-                                            </button>
-                                        </form>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% else %}
-                <!-- CAS 1: Le joueur N'A PAS d'équipe -->
-                <div id="no-team-state" style="display: block;">
-                    <div class="empty-state">
-                        <div class="empty-icon">
-                            <i class="fas fa-users-slash"></i>
-                        </div>
-                        <h3 class="empty-title">Vous n'avez pas encore d'équipe</h3>
-                        <p class="empty-text">
-                            Créez votre propre équipe pour commencer votre aventure e-sport et gérer vos membres
-                        </p>
-                        <div style="display: flex; gap: 20px; justify-content: center; margin-top: 30px; flex-wrap: wrap;">
-                            <a href="{{ path('app_equipes_new') }}" class="btn-gradient" style="padding: 16px 35px; font-size: 16px; font-weight: 600; border-radius: 12px; text-transform: uppercase; letter-spacing: 1px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px;">
-                                <i class="fas fa-plus-circle"></i> Créer une Équipe
-                            </a>
-                        </div>
-                    </div>
-                </div>
+                    {% endif %}
                 {% endif %}
             </div>
         </div>
+        <div class="admin-tournament-hero-glow"></div>
+    </section>
 
-        <!-- SECTION: FIL D'ACTUALITÉ -->
-        <div style="margin-bottom: 80px;">
-            <h2 class="section-title" style="margin-bottom: 20px;">
-                <i class="fas fa-newspaper"></i> FIL D'ACTUALITÉ
-            </h2>
-            <p class="section-subtitle">
-                Les dernières news de la communauté E-Sportify
-            </p>
-            
-            <!-- News Banner Slider -->
-            <div class="info-card" style="overflow: hidden; position: relative; padding: 20px;">
-                <div id="news-ticker" style="display: flex; gap: 60px; animation: ticker 25s linear infinite; white-space: nowrap;">
-                    <div class="news-item" style="display: flex; align-items: center; gap: 15px;">
-                        <span class="badge badge-success"><i class="fas fa-trophy"></i> TOURNOI</span>
-                        <span style="color: var(--text-primary); font-weight: 600;">🏆 Le Tournoi Winter Cup 2025 commence le 15 Février !</span>
-                    </div>
-                    <div class="news-item" style="display: flex; align-items: center; gap: 15px;">
-                        <span class="badge badge-primary"><i class="fas fa-users"></i> ÉQUIPE</span>
-                        <span style="color: var(--text-primary); font-weight: 600;">💪 Blaze Esports remporte le championnat régional</span>
-                    </div>
-                    <div class="news-item" style="display: flex; align-items: center; gap: 15px;">
-                        <span class="badge" style="background: var(--warning-color); border: none;"><i class="fas fa-gift"></i> PROMO</span>
-                        <span style="color: var(--text-primary); font-weight: 600;">🎁 -30% sur tous les packs premium cette semaine !</span>
-                    </div>
-                    <div class="news-item" style="display: flex; align-items: center; gap: 15px;">
-                        <span class="badge badge-primary"><i class="fas fa-star"></i> NOUVEAU</span>
-                        <span style="color: var(--text-primary); font-weight: 600;">✨ Nouveau système de classement disponible</span>
-                    </div>
-                    <!-- Duplicate for infinite scroll -->
-                    <div class="news-item" style="display: flex; align-items: center; gap: 15px;">
-                        <span class="badge badge-success"><i class="fas fa-trophy"></i> TOURNOI</span>
-                        <span style="color: var(--text-primary); font-weight: 600;">🏆 Le Tournoi Winter Cup 2025 commence le 15 Février !</span>
-                    </div>
-                    <div class="news-item" style="display: flex; align-items: center; gap: 15px;">
-                        <span class="badge badge-primary"><i class="fas fa-users"></i> ÉQUIPE</span>
-                        <span style="color: var(--text-primary); font-weight: 600;">💪 Blaze Esports remporte le championnat régional</span>
-                    </div>
-                    <div class="news-item" style="display: flex; align-items: center; gap: 15px;">
-                        <span class="badge" style="background: var(--warning-color); border: none;"><i class="fas fa-gift"></i> PROMO</span>
-                        <span style="color: var(--text-primary); font-weight: 600;">🎁 -30% sur tous les packs premium cette semaine !</span>
-                    </div>
-                    <div class="news-item" style="display: flex; align-items: center; gap: 15px;">
-                        <span class="badge badge-primary"><i class="fas fa-star"></i> NOUVEAU</span>
-                        <span style="color: var(--text-primary); font-weight: 600;">✨ Nouveau système de classement disponible</span>
-                    </div>
-                </div>
-            </div>
+    <section class="team-shell">
+        <div class="admin-tournament-tabs team-tabs" id="team-tabs">
+            <button type="button" class="tab active" data-game="">Tous</button>
+            <button type="button" class="tab" data-game="fps">FPS</button>
+            <button type="button" class="tab" data-game="moba">MOBA</button>
+            <button type="button" class="tab" data-game="sports">Sports</button>
+            <button type="button" class="tab" data-game="battle">Battle Royale</button>
         </div>
 
-        <style>
-            @keyframes ticker {
-                0% { transform: translateX(0); }
-                100% { transform: translateX(-50%); }
-            }
-            #news-ticker:hover {
-                animation-play-state: paused;
-            }
-        </style>
-
-
-        <!-- SECTION 4: BOUTIQUE -->
-        <div style="margin-bottom: 80px;">
-            <h2 class="section-title" style="margin-bottom: 20px;">
-                <i class="fas fa-shopping-cart"></i> BOUTIQUE E-SPORT
-            </h2>
-            <p class="section-subtitle">
-                Découvrez nos articles exclusifs pour booster votre expérience gaming
-            </p>
-
-            <div class="partners-grid">
-                <!-- Product 1 -->
-                <div class="card" style="overflow: hidden;">
-                    <div style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
-                        <i class="fas fa-trophy" style="font-size: 80px; color: rgba(255, 255, 255, 0.3);"></i>
-                        <span class="badge badge-danger" style="position: absolute; top: 15px; right: 15px; font-size: 13px;">
-                            -20%
-                        </span>
-                    </div>
-                    <div style="padding: 20px;">
-                        <h3 style="font-family: 'Orbitron', sans-serif; font-size: 18px; margin-bottom: 10px;">
-                            Pack Premium
-                        </h3>
-                        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 15px;">
-                            Accès illimité aux tournois premium + 3 mois VIP
-                        </p>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <span style="font-size: 24px; font-weight: 900; color: var(--primary-blue); font-family: 'Orbitron', sans-serif;">39€</span>
-                                <span style="font-size: 16px; color: var(--text-secondary); text-decoration: line-through; margin-left: 8px;">49€</span>
-                            </div>
-                            <button class="btn-gradient" style="padding: 10px 20px;">
-                                <i class="fas fa-cart-plus"></i>
-                            </button>
-                        </div>
-                    </div>
+        <div class="admin-tournament-panel team-search-panel">
+            <div class="admin-tournament-panel-title">
+                <i class="fas fa-search"></i> Recherche avancée
+            </div>
+            <div class="admin-tournament-form team-filter-grid">
+                <div class="field">
+                    <label><i class="fas fa-font"></i> Nom</label>
+                    <input type="text" id="team-filter-name" placeholder="Nom de l'équipe">
                 </div>
-
-                <!-- Product 2 -->
-                <div class="card" style="overflow: hidden;">
-                    <div style="height: 200px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); display: flex; align-items: center; justify-content: center; position: relative;">
-                        <i class="fas fa-star" style="font-size: 80px; color: rgba(255, 255, 255, 0.3);"></i>
-                        <span class="badge badge-success" style="position: absolute; top: 15px; right: 15px; font-size: 13px;">
-                            POPULAIRE
-                        </span>
-                    </div>
-                    <div style="padding: 20px;">
-                        <h3 style="font-family: 'Orbitron', sans-serif; font-size: 18px; margin-bottom: 10px;">
-                            Boost XP x2
-                        </h3>
-                        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 15px;">
-                            Doublez vos gains d'XP pendant 7 jours
-                        </p>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <span style="font-size: 24px; font-weight: 900; color: var(--primary-pink); font-family: 'Orbitron', sans-serif;">9€</span>
-                            </div>
-                            <button class="btn-gradient" style="padding: 10px 20px;">
-                                <i class="fas fa-cart-plus"></i>
-                            </button>
-                        </div>
-                    </div>
+                <div class="field">
+                    <label><i class="fas fa-gamepad"></i> Jeu</label>
+                    <input type="text" id="team-filter-game" placeholder="Ex: Valorant, LoL...">
                 </div>
-
-                <!-- Product 3 -->
-                <div class="card" style="overflow: hidden;">
-                    <div style="height: 200px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); display: flex; align-items: center; justify-content: center; position: relative;">
-                        <i class="fas fa-shield-alt" style="font-size: 80px; color: rgba(255, 255, 255, 0.3);"></i>
-                        <span class="badge badge-warning" style="position: absolute; top: 15px; right: 15px; font-size: 13px; background: var(--warning-color); border: none;">
-                            NOUVEAU
-                        </span>
-                    </div>
-                    <div style="padding: 20px;">
-                        <h3 style="font-family: 'Orbitron', sans-serif; font-size: 18px; margin-bottom: 10px;">
-                            Badge Personnalisé
-                        </h3>
-                        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 15px;">
-                            Créez votre badge unique pour votre profil
-                        </p>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <span style="font-size: 24px; font-weight: 900; color: var(--primary-blue); font-family: 'Orbitron', sans-serif;">14€</span>
-                            </div>
-                            <button class="btn-gradient" style="padding: 10px 20px;">
-                                <i class="fas fa-cart-plus"></i>
-                            </button>
-                        </div>
-                    </div>
+                <div class="field">
+                    <label><i class="fas fa-medal"></i> Niveau</label>
+                    <select id="team-filter-rank">
+                        <option value="">Tous</option>
+                        <option value="bronze">Bronze</option>
+                        <option value="argent">Argent</option>
+                        <option value="or">Or</option>
+                        <option value="platine">Platine</option>
+                        <option value="diamant">Diamant</option>
+                        <option value="master">Master</option>
+                        <option value="challenger">Challenger</option>
+                    </select>
                 </div>
-
-                <!-- Product 4 -->
-                <div class="card" style="overflow: hidden;">
-                    <div style="height: 200px; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); display: flex; align-items: center; justify-content: center; position: relative;">
-                        <i class="fas fa-crown" style="font-size: 80px; color: rgba(255, 255, 255, 0.3);"></i>
-                    </div>
-                    <div style="padding: 20px;">
-                        <h3 style="font-family: 'Orbitron', sans-serif; font-size: 18px; margin-bottom: 10px;">
-                            Statut VIP
-                        </h3>
-                        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 15px;">
-                            Accès à toutes les fonctionnalités premium
-                        </p>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <span style="font-size: 24px; font-weight: 900; color: var(--primary-pink); font-family: 'Orbitron', sans-serif;">29€</span>
-                                <span style="font-size: 14px; color: var(--text-secondary);">/mois</span>
-                            </div>
-                            <button class="btn-gradient" style="padding: 10px 20px;">
-                                <i class="fas fa-cart-plus"></i>
-                            </button>
-                        </div>
-                    </div>
+                <div class="field">
+                    <label><i class="fas fa-user-check"></i> Recrutement</label>
+                    <select id="team-filter-recruitment">
+                        <option value="">Tous</option>
+                        <option value="open">Ouvert</option>
+                        <option value="closed">Fermé</option>
+                    </select>
                 </div>
             </div>
-
-            <!-- View All Button -->
-            <div style="text-align: center; margin-top: 40px;">
-                <button class="btn-outline" style="padding: 16px 40px;" onclick="window.location.href='shop.html'">
-                    <i class="fas fa-store"></i> Voir Toute la Boutique
+            <div class="admin-tournament-actions">
+                <button type="button" class="admin-tournament-btn" id="team-filter-apply">
+                    <i class="fas fa-filter"></i> Rechercher
+                </button>
+                <button type="button" class="admin-tournament-btn ghost" id="team-filter-reset">
+                    <i class="fas fa-rotate"></i> Réinitialiser
                 </button>
             </div>
         </div>
 
-        <!-- CTA Section -->
-        <section class="cta-section" style="margin-top: 60px;">
-            <h2 class="cta-title">Rejoignez la Communauté E-Sport</h2>
-            <p class="cta-text">
-                Connectez-vous avec d'autres joueurs et développez votre équipe
-            </p>
-            <button class="btn-cta" onclick="window.location.href='#'">
-                <i class="fas fa-rocket"></i> EXPLORER LES TOURNOIS
+        <div class="team-grid" id="team-grid">
+            {% for team in featuredTeams %}
+                {% set recruitmentStatus = team.recrutements|length > 0 ? 'open' : 'closed' %}
+                <article class="team-card" data-name="{{ team.nomEquipe|lower }}" data-rank="{{ team.classement|lower }}" data-game="{{ (team.description|default('') ~ ' ' ~ (team.tag|default('')) ~ ' ' ~ (team.region|default(''))) | lower }}" data-recruit="{{ recruitmentStatus }}">
+                    <div class="team-logo-wrap">
+                        <img src="{{ team.logo ? asset('uploads/equipes/' ~ team.logo) : asset('images/logo3.png') }}" alt="{{ team.nomEquipe }}">
+                    </div>
+                    <div class="team-card-body">
+                        <h3 class="team-card-title">{{ team.nomEquipe }}</h3>
+                        <div class="team-badges">
+                            <span class="badge badge-info"><i class="fas fa-medal"></i> {{ team.classement|upper }}</span>
+                            {% if recruitmentStatus == 'open' %}
+                                <span class="badge badge-success">Recrutement ouvert</span>
+                            {% else %}
+                                <span class="badge badge-muted">Recrutement fermé</span>
+                            {% endif %}
+                        </div>
+                        <p class="team-card-desc team-description">{{ team.description ? team.description|slice(0, 120) ~ '...' : 'Aucune description pour le moment.' }}</p>
+                        <div class="team-card-actions">
+                            <a href="{{ path('app_equipes_show', {'id': team.id}) }}" class="btn-gradient">Voir le profil</a>
+                        </div>
+                    </div>
+                </article>
+            {% else %}
+                <div class="team-empty">
+                    <i class="fas fa-ghost"></i>
+                    <h3>Aucune équipe trouvée</h3>
+                    <p>Revenez plus tard ou ajustez vos filtres.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    {% if canJoinTeam %}
+    <div id="join-team-modal" class="team-join-modal" style="display: none;">
+        <div class="team-join-modal-card">
+            <button onclick="closeJoinTeamModal()" class="team-join-close">
+                <i class="fas fa-times"></i>
             </button>
-        </section>
+            <h2 class="team-join-title"><i class="fas fa-sign-in-alt"></i> Rejoindre une équipe</h2>
+            <p class="team-join-subtitle">Recherchez une équipe et postulez directement.</p>
 
-        <!-- Join Team Modal -->
-        <div id="join-team-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 9999; overflow-y: auto; padding: 40px 20px;">
-            <div style="max-width: 900px; margin: 0 auto; background: var(--card-bg); border-radius: var(--radius-xl); padding: 40px; border: 2px solid var(--primary-blue); position: relative;">
-                <!-- Close Button -->
-                <button onclick="closeJoinTeamModal()" style="position: absolute; top: 20px; right: 20px; background: transparent; border: 2px solid var(--primary-pink); color: var(--primary-pink); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; transition: var(--transition);">
-                    <i class="fas fa-times"></i>
-                </button>
+            <div class="team-join-search">
+                <input type="text" id="team-search" placeholder="Rechercher une équipe...">
+                <button class="admin-tournament-btn" onclick="searchTeams()"><i class="fas fa-search"></i> Rechercher</button>
+            </div>
 
-                <!-- Modal Header -->
-                <h2 style="font-family: 'Orbitron', sans-serif; font-size: 32px; margin-bottom: 10px; color: var(--primary-blue);">
-                    <i class="fas fa-sign-in-alt"></i> REJOINDRE UNE ÉQUIPE
-                </h2>
-                <p style="color: var(--text-secondary); margin-bottom: 40px; font-size: 16px;">
-                    Recherchez une équipe et postulez pour les rejoindre
-                </p>
-
-                <!-- Search Bar -->
-                <div style="margin-bottom: 30px;">
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" id="team-search" placeholder="Rechercher une équipe..." 
-                               style="flex: 1; padding: 15px; border-radius: var(--radius-md); border: 2px solid rgba(0, 217, 255, 0.2); background: var(--darker-bg); color: var(--text-primary); font-family: 'Rajdhani', sans-serif; font-size: 15px;">
-                        <button class="btn-gradient" onclick="searchTeams()" style="padding: 15px 30px;">
-                            <i class="fas fa-search"></i> Rechercher
+            <div id="available-teams" class="team-join-list">
+                {% for team in featuredTeams %}
+                <div class="team-join-item">
+                    <img src="{{ team.logo ? asset('uploads/equipes/' ~ team.logo) : asset('images/logo3.png') }}" alt="{{ team.nomEquipe }}">
+                    <div class="team-join-info">
+                        <h4>{{ team.nomEquipe }}</h4>
+                        <span class="badge badge-info"><i class="fas fa-medal"></i> {{ team.classement }}</span>
+                    </div>
+                    <div class="team-join-actions">
+                        <button class="admin-tournament-btn" onclick="applyToTeam({{ team.id }}, '{{ team.nomEquipe|e('js') }}')">
+                            <i class="fas fa-paper-plane"></i> Postuler
                         </button>
+                        <a class="admin-tournament-btn ghost" href="{{ path('app_equipes_show', {'id': team.id}) }}">Profil</a>
                     </div>
                 </div>
+                {% endfor %}
+            </div>
 
-                <!-- Available Teams List -->
-                <div id="available-teams" style="display: grid; gap: 20px;">
-                    {% for team in featuredTeams %}
-                    <div class="card animate__animated animate__fadeIn" style="padding: 25px;">
-                        <div style="display: flex; gap: 20px; align-items: start;">
-                            <img src="{{ team.logo ? asset('uploads/equipes/' ~ team.logo) : asset('images/logo3.png') }}" alt="{{ team.nomEquipe }}" 
-                                 style="width: 80px; height: 80px; border-radius: 16px; border: 3px solid var(--primary-blue); object-fit: cover; flex-shrink: 0;">
-                            <div style="flex: 1;">
-                                <h3 style="font-family: 'Orbitron', sans-serif; font-size: 22px; margin-bottom: 8px;">
-                                    {{ team.nomEquipe }}
-                                </h3>
-                                <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
-                                    <span class="badge badge-primary">
-                                        <i class="fas fa-medal"></i> {{ team.classement }}
-                                    </span>
-                                    <span class="badge badge-success">
-                                        <i class="fas fa-door-open"></i> RECRUTEMENT OUVERT
-                                    </span>
-                                </div>
-                                <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 15px;">
-                                    {{ team.description|slice(0, 100) }}...
-                                </p>
-                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                    <button class="btn-gradient" onclick="applyToTeam({{ team.id }}, '{{ team.nomEquipe|e('js') }}')" style="padding: 12px 24px;">
-                                        <i class="fas fa-paper-plane"></i> Postuler
-                                    </button>
-                                    <button class="btn-outline" onclick="window.location.href='{{ path('app_equipes_show', {'id': team.id}) }}'" style="padding: 12px 24px;">
-                                        <i class="fas fa-eye"></i> Voir Détails
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% else %}
-                    <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                        <i class="fas fa-search" style="font-size: 48px; margin-bottom: 20px; opacity: 0.5;"></i>
-                        <p>Aucune équipe en vedette pour le moment. Utilisez la recherche pour trouver une équipe.</p>
-                    </div>
-                    {% endfor %}
-                </div>
-
-                <!-- No Results State -->
-                <div id="no-teams-found" style="display: none; text-align: center; padding: 60px 20px;">
-                    <i class="fas fa-search" style="font-size: 80px; color: var(--text-secondary); margin-bottom: 20px; opacity: 0.5;"></i>
-                    <h3 style="color: var(--text-secondary); font-size: 20px;">Aucune équipe trouvée</h3>
-                    <p style="color: var(--text-secondary); margin-top: 10px;">Essayez une autre recherche</p>
-                </div>
+            <div id="no-teams-found" class="team-join-empty" style="display: none;">
+                <i class="fas fa-search"></i>
+                <p>Aucune équipe trouvée</p>
             </div>
         </div>
+    </div>
+    {% endif %}
+</div>
 
-        <!-- Footer -->
-        <footer class="footer" style="margin-left: 0; margin-top: 60px;">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>Navigation</h3>
-                    <ul>
-                        <li><a href="{{ path('app_home') }}">Accueil</a></li>
-                        <li><a href="#">Tournois</a></li>
-                        <li><a href="{{ path('app_equipes_index') }}">Équipes</a></li>
-                        <li><a href="#">Recrutement</a></li>
-                        <li><a href="#">Shop</a></li>
-                    </ul>
-                </div>
+<script>
+    function openJoinTeamModal() {
+        const modal = document.getElementById('join-team-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    }
 
-                <div class="footer-section">
-                    <h3>Support</h3>
-                    <ul>
-                        <li><a href="#">FAQ</a></li>
-                        <li><a href="#">Contact</a></li>
-                        <li><a href="#">Règlement</a></li>
-                        <li><a href="#">Conditions d'utilisation</a></li>
-                        <li><a href="#">Politique de confidentialité</a></li>
-                    </ul>
-                </div>
+    function closeJoinTeamModal() {
+        const modal = document.getElementById('join-team-modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
 
-                <div class="footer-section">
-                    <h3>Newsletter</h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 15px;">
-                        Inscrivez-vous pour recevoir les dernières actualités
-                    </p>
-                    <form style="display: flex; gap: 10px;">
-                        <input type="email" placeholder="Votre email" 
-                               style="flex: 1; padding: 12px; border-radius: 8px; border: 2px solid var(--primary-blue); 
-                                      background: var(--card-bg); color: var(--text-primary);">
-                        <button type="submit" 
-                                style="padding: 12px 24px; border-radius: 8px; border: none; 
-                                       background: var(--gradient-1); color: white; cursor: pointer; font-weight: 700;">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </form>
-                </div>
-            </div>
+    document.addEventListener('DOMContentLoaded', () => {
+        const grid = document.getElementById('team-grid');
+        const nameInput = document.getElementById('team-filter-name');
+        const gameInput = document.getElementById('team-filter-game');
+        const rankSelect = document.getElementById('team-filter-rank');
+        const recruitSelect = document.getElementById('team-filter-recruitment');
+        const applyBtn = document.getElementById('team-filter-apply');
+        const resetBtn = document.getElementById('team-filter-reset');
+        const tabs = document.querySelectorAll('#team-tabs .tab');
 
-            <div class="footer-bottom">
-                <p>&copy; 2025 ESportify. Tous droits réservés. Développé avec ❤️ pour la communauté e-sport.</p>
-            </div>
-        </footer>
+        if (!grid) return;
 
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const searchName = document.getElementById('live-search-name');
-                const searchRank = document.getElementById('live-search-rank');
-                const searchSort = document.getElementById('live-search-sort');
-                const btnReset = document.getElementById('btn-reset-frontfilters');
-                const resultsInfo = document.getElementById('frontoffice-results-info');
+        const applyFilters = () => {
+            const nameValue = (nameInput?.value || '').toLowerCase().trim();
+            const gameValue = (gameInput?.value || '').toLowerCase().trim();
+            const rankValue = (rankSelect?.value || '').toLowerCase();
+            const recruitValue = (recruitSelect?.value || '').toLowerCase();
 
-                // Live filtering and sorting function
-                function applyFilters() {
-                    const nameValue = searchName.value.toLowerCase().trim();
-                    const rankValue = searchRank.value.toLowerCase();
-                    const sortValue = searchSort.value;
-                    
-                    let cards = Array.from(document.querySelectorAll('.team-card'));
-                    let visibleCount = 0;
+            let visible = 0;
+            grid.querySelectorAll('.team-card').forEach(card => {
+                const name = card.dataset.name || '';
+                const game = card.dataset.game || '';
+                const rank = card.dataset.rank || '';
+                const recruit = card.dataset.recruit || '';
 
-                    // Filter cards
-                    cards.forEach(card => {
-                        const name = card.dataset.name || '';
-                        const rank = card.dataset.rank || '';
+                let match = true;
+                if (nameValue && !name.includes(nameValue)) match = false;
+                if (gameValue && !game.includes(gameValue)) match = false;
+                if (rankValue && rankValue !== rank) match = false;
+                if (recruitValue && recruitValue !== recruit) match = false;
 
-                        let matches = true;
-
-                        // Filter by name
-                        if (nameValue && !name.includes(nameValue)) {
-                            matches = false;
-                        }
-
-                        // Filter by rank
-                        if (rankValue && rank !== rankValue) {
-                            matches = false;
-                        }
-
-                        if (matches) {
-                            card.style.display = '';
-                            visibleCount++;
-                        } else {
-                            card.style.display = 'none';
-                        }
-                    });
-
-                    // Sort visible cards
-                    const container = document.getElementById('featured-teams-container');
-                    const visibleCards = cards.filter(card => card.style.display !== 'none');
-
-                    visibleCards.sort((a, b) => {
-                        if (sortValue === 'name') {
-                            const nameA = a.dataset.name || '';
-                            const nameB = b.dataset.name || '';
-                            return nameA.localeCompare(nameB);
-                        } else if (sortValue === 'recent') {
-                            const dateA = parseInt(a.dataset.date) || 0;
-                            const dateB = parseInt(b.dataset.date) || 0;
-                            return dateB - dateA; // Plus récent en premier
-                        } else if (sortValue === 'oldest') {
-                            const dateA = parseInt(a.dataset.date) || 0;
-                            const dateB = parseInt(b.dataset.date) || 0;
-                            return dateA - dateB; // Plus ancien en premier
-                        }
-                        return 0;
-                    });
-
-                    // Re-append sorted cards
-                    visibleCards.forEach(card => container.appendChild(card));
-
-                    // Update result count
-                    if (resultsInfo) {
-                        if (visibleCount === 0 && (nameValue !== '' || rankValue !== '')) {
-                            resultsInfo.innerHTML = '<i class="fas fa-search"></i> Aucune équipe trouvée';
-                            resultsInfo.style.color = 'var(--primary-pink)';
-                        } else if (nameValue !== '' || rankValue !== '' || sortValue !== 'recent') {
-                            resultsInfo.innerHTML = `<i class="fas fa-filter"></i> ${visibleCount} équipe(s) trouvée(s)`;
-                            resultsInfo.style.color = 'var(--primary-blue)';
-                        } else {
-                            resultsInfo.innerHTML = '';
-                        }
-                    }
-                }
-
-                // Event listeners for live search
-                if (searchName) {
-                    searchName.addEventListener('input', applyFilters);
-                }
-                if (searchRank) {
-                    searchRank.addEventListener('change', applyFilters);
-                }
-                if (searchSort) {
-                    searchSort.addEventListener('change', applyFilters);
-                }
-
-                // Reset filters
-                if (btnReset) {
-                    btnReset.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        searchName.value = '';
-                        searchRank.value = '';
-                        searchSort.value = 'recent';
-                        applyFilters();
-                    });
-                }
+                card.style.display = match ? '' : 'none';
+                if (match) visible++;
             });
-        </script>
-{% endblock %}
+        };
 
+        applyBtn?.addEventListener('click', applyFilters);
+        resetBtn?.addEventListener('click', () => {
+            if (nameInput) nameInput.value = '';
+            if (gameInput) gameInput.value = '';
+            if (rankSelect) rankSelect.value = '';
+            if (recruitSelect) recruitSelect.value = '';
+            tabs.forEach(tab => tab.classList.remove('active'));
+            if (tabs[0]) tabs[0].classList.add('active');
+            applyFilters();
+        });
+
+        [nameInput, gameInput, rankSelect, recruitSelect].forEach(el => {
+            if (!el) return;
+            el.addEventListener('input', applyFilters);
+            el.addEventListener('change', applyFilters);
+        });
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                if (gameInput) gameInput.value = tab.dataset.game || '';
+                applyFilters();
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,22 +1,40 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div class="container mt-5">
-        <h1>Resultat du Paiement</h1>
+<section class="payment-hero">
+    <div class="payment-hero-inner">
+        <div class="payment-kicker">Payment</div>
+        <h1 class="payment-title">Resultat du paiement</h1>
+        <p class="payment-lead">Confirmation et recapitulatif de votre transaction.</p>
+        <div class="payment-hero-actions">
+            <a href="{{ path('app_front_produit_index') }}" class="pay-btn ghost">Retour boutique</a>
+        </div>
+    </div>
+    <div class="payment-hero-glow"></div>
+</section>
 
+<section class="payment-shell">
+    <div class="payment-card payment-result">
         {% if success and payment %}
-            <div class="alert alert-success">
-                <h4>Paiement accepte.</h4>
+            <div class="payment-state success">
+                <h2>Paiement accepte</h2>
                 <p>Votre commande #{{ payment.commande.id }} est validee.</p>
-                <p>Montant paye: <strong>{{ payment.amount }} EUR</strong></p>
+            </div>
+            <div class="payment-meta">
+                <div><span>Commande</span><strong>#{{ payment.commande.id }}</strong></div>
+                <div><span>Montant</span><strong>{{ payment.amount / 100 }} EUR</strong></div>
             </div>
         {% else %}
-            <div class="alert alert-danger">
-                <h4>Erreur lors du paiement</h4>
+            <div class="payment-state danger">
+                <h2>Erreur lors du paiement</h2>
                 <p>{{ error|default('Une erreur est survenue lors du traitement de votre paiement.') }}</p>
             </div>
         {% endif %}
 
-        <a href="{{ path('app_front_produit_index') }}" class="pro-btn pro-btn-primary">Retour a la boutique</a>
+        <div class="payment-actions">
+            <a href="{{ path('app_front_produit_index') }}" class="pay-btn">Retour a la boutique</a>
+            <a href="{{ path('front_order_cart') }}" class="pay-btn ghost">Voir le panier</a>
+        </div>
     </div>
+</section>
 {% endblock %}

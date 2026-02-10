@@ -1,0 +1,167 @@
+﻿<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}E-sportify{% endblock %}</title>
+
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/lucide-static/font/lucide.css">
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+</head>
+
+<body>
+
+<!-- BACKGROUND -->
+<div class="background"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+    <button id="sidebar-toggle" class="sidebar-toggle" title="Ouvrir / Fermer" aria-label="Ouvrir / Fermer">
+        <i class="fa-solid fa-bars"></i>
+        <span class="link-text">Menu</span>
+    </button>
+
+        <div class="sidebar-top">
+            <a href="{{ path('fil_home') }}"
+               class="sidebar-link {{ app.request.get('_route') starts with 'fil_' ? 'active' : '' }}">
+                <i class="fa-solid fa-newspaper"></i>
+                <span class="link-text">Fil d'actualite</span>
+            </a>
+        <a href="{{ path('app_equipes_index') }}"
+           class="sidebar-link {{ app.request.get('_route') starts with 'app_equipes' ? 'active' : '' }}">
+            <i class="fa-solid fa-users"></i>
+            <span class="link-text">Equipes</span>
+        </a>
+        <a href="{{ path('tournoi_index') }}"
+           class="sidebar-link {{ app.request.get('_route') starts with 'tournoi_' ? 'active' : '' }}">
+            <i class="fa-solid fa-trophy"></i>
+            <span class="link-text">Tournois</span>
+        </a>
+        <a href="{{ path('app_front_produit_index') }}"
+           class="sidebar-link {{ app.request.get('_route') starts with 'app_front_produit' ? 'active' : '' }}">
+            <i class="fa-solid fa-store"></i>
+            <span class="link-text">Boutique</span>
+        </a>
+        <a href="{{ path('front_order_cart') }}"
+           class="sidebar-link {{ app.request.get('_route') starts with 'front_order' ? 'active' : '' }}">
+            <i class="fa-solid fa-bag-shopping"></i>
+            <span class="link-text">Commandes</span>
+        </a>
+        <a href="{{ path('app_profile') }}"
+           class="sidebar-link {{ app.request.get('_route') starts with 'app_profile' ? 'active' : '' }}">
+            <i class="fa-solid fa-user"></i>
+            <span class="link-text">Profil</span>
+        </a>
+        {% if is_granted('ROLE_ADMIN') %}
+            <a href="{{ path('admin_dashboard') }}"
+               class="sidebar-link {{ app.request.get('_route') starts with 'admin_' ? 'active' : '' }}">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span class="link-text">Admin</span>
+            </a>
+        {% endif %}
+    </div>
+
+    <div class="sidebar-bottom">
+        <button id="theme-toggle" class="theme-toggle-btn" title="Changer le thème" aria-label="Changer le thème">
+            <svg id="theme-icon" viewBox="0 0 24 24" class="icon">
+                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+            </svg>
+            <span class="link-text">Thème</span>
+        </button>
+        {% if is_granted('IS_AUTHENTICATED_REMEMBERED') %}
+            <a href="{{ path('app_logout') }}" class="sidebar-logout" title="D&eacute;connexion" aria-label="D&eacute;connexion">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span class="link-text">D&eacute;connexion</span>
+            </a>
+        {% endif %}
+    </div>
+</aside>
+
+
+
+<!-- MAIN -->
+<div class="main">
+
+    <!-- TOPBAR -->
+    
+    <header class="topbar">
+
+    
+    <div class="topbar-left">
+        <img src="{{ asset('images/logo-esportify.png') }}" class="logo" alt="E-sportify">
+        <span class="brand">E-sportify</span>
+    </div>
+
+    <div class="topbar-center">
+        <input type="text" placeholder="Search players, teams, tournaments..." class="search-input">
+    </div>
+
+    <div class="topbar-right">
+    <button class="icon-btn" title="Notifications">
+        <svg viewBox="0 0 24 24" class="icon">
+            <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 01-3.46 0" />
+        </svg>
+    </button>
+
+    <button class="icon-btn" title="Messages">
+        <svg viewBox="0 0 24 24" class="icon">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+        </svg>
+    </button>
+
+    <button class="icon-btn" title="Paramètres">
+        <svg viewBox="0 0 24 24" class="icon">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33
+                     1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09
+                     a1.65 1.65 0 00-1-1.51
+                     1.65 1.65 0 00-1.82.33l-.06.06
+                     a2 2 0 01-2.83-2.83l.06-.06
+                     a1.65 1.65 0 00.33-1.82
+                     1.65 1.65 0 00-1.51-1H3
+                     a2 2 0 010-4h.09
+                     a1.65 1.65 0 001.51-1
+                     1.65 1.65 0 00-.33-1.82l-.06-.06
+                     a2 2 0 012.83-2.83l.06.06
+                     a1.65 1.65 0 001.82.33
+                     1.65 1.65 0 001-1.51V3
+                     a2 2 0 014 0v.09
+                     a1.65 1.65 0 001 1.51
+                     1.65 1.65 0 001.82-.33l.06-.06
+                     a2 2 0 012.83 2.83l-.06.06
+                     a1.65 1.65 0 00-.33 1.82
+                     1.65 1.65 0 001.51 1H21
+                     a2 2 0 010 4h-.09
+                     a1.65 1.65 0 00-1.51 1z" />
+        </svg>
+    </button>
+
+    
+</div>
+
+<!-- Dragon décoratif en arrière-plan -->
+    <div class="topbar-dragon">
+        <img src="{{ asset('images/dragon.png') }}" 
+             alt="Dragon" class="dragon-bottom-right">
+    </div>
+
+
+</header>
+
+
+    <!-- CONTENT -->
+    <main class="content">
+        {% block body %}{% endblock %}
+    </main>
+
+</div>
+
+<script src="{{ asset('js/app.js') }}"></script>
+</body>
+</html>
+

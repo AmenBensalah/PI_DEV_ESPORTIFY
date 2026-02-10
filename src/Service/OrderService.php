@@ -74,6 +74,34 @@ class OrderService
         $this->entityManager->flush();
     }
 
+    public function updateLineQuantity(Commande $commande, LigneCommande $ligne, int $quantite): void
+    {
+        if ($quantite <= 0) {
+            $commande->removeLigneCommande($ligne);
+            $this->entityManager->remove($ligne);
+            $this->entityManager->flush();
+            $this->recalculateTotal($commande);
+            return;
+        }
+
+        $produit = $ligne->getProduit();
+        if ($produit && $produit->getStock() < $quantite) {
+            throw new \Exception("Not enough stock.");
+        }
+
+        $ligne->setQuantite($quantite);
+        $this->entityManager->flush();
+        $this->recalculateTotal($commande);
+    }
+
+    public function removeLine(Commande $commande, LigneCommande $ligne): void
+    {
+        $commande->removeLigneCommande($ligne);
+        $this->entityManager->remove($ligne);
+        $this->entityManager->flush();
+        $this->recalculateTotal($commande);
+    }
+
     public function cancelOrder(Commande $commande): void
     {
         $commande->setStatut('cancelled');

@@ -1,0 +1,114 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block admin_body %}
+<div class="admin-page-header">
+    <div class="admin-page-title">Éditer publication #{{ post.id }}</div>
+    <a class="admin-link-btn" href="{{ path('fil_admin_post_index') }}">Retour</a>
+</div>
+
+<div class="admin-card">
+    {{ form_start(form, {attr: {class: 'admin-form', 'data-admin-event-form': ''}}) }}
+        <div class="admin-form-group">
+            <label class="admin-form-label">
+                <i class="fas fa-align-left"></i> Contenu
+            </label>
+            {{ form_widget(form.content, {'attr': {'class': 'admin-form-textarea', 'rows': 6}}) }}
+            <div class="admin-form-error">{{ form_errors(form.content) }}</div>
+        </div>
+
+        <div class="admin-form-grid">
+            <div class="admin-form-group">
+                <label class="admin-form-label">
+                    <i class="fas fa-image"></i> Image (URL)
+                </label>
+                {{ form_widget(form.imagePath, {'attr': {'class': 'admin-form-input'}}) }}
+                <div class="admin-form-error">{{ form_errors(form.imagePath) }}</div>
+            </div>
+            <div class="admin-form-group">
+                <label class="admin-form-label">
+                    <i class="fas fa-video"></i> Lien vidéo
+                </label>
+                {{ form_widget(form.videoUrl, {'attr': {'class': 'admin-form-input'}}) }}
+                <div class="admin-form-error">{{ form_errors(form.videoUrl) }}</div>
+            </div>
+        </div>
+
+        <div class="admin-form-grid">
+            <div class="admin-form-group">
+                <label class="admin-form-label">
+                    <i class="fas fa-cloud-upload-alt"></i> Fichier image
+                </label>
+                <div class="admin-upload-box" data-upload>
+                    <div class="admin-upload-preview" data-preview>
+                        {% if post.imagePath %}
+                            <img src="{{ asset(post.imagePath starts with 'http' ? post.imagePath : 'uploads/' ~ post.imagePath) }}" alt="media">
+                        {% endif %}
+                    </div>
+                    <div class="admin-upload-placeholder" data-placeholder>
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        Cliquez ou glissez une image ici
+                    </div>
+                    {{ form_widget(form.mediaFile, {'attr': {'class': 'admin-upload-input', 'data-upload-input': '', 'accept': 'image/*'}}) }}
+                </div>
+                <div class="admin-form-error">{{ form_errors(form.mediaFile) }}</div>
+            </div>
+            <div class="admin-form-group">
+                <label class="admin-form-label">
+                    <i class="fas fa-bolt"></i> Publication événement
+                </label>
+                <div class="admin-form-input admin-form-checkbox">
+                    {{ form_widget(form.isEvent, {'attr': {'data-event-toggle': ''}}) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="event-accordion admin-event-accordion" data-event-accordion {% if post.isEvent %}style="display: block;"{% endif %}>
+            <div class="event-accordion-header">
+                <div class="event-accordion-title">
+                    <i class="fas fa-trophy"></i> Détails de l'événement
+                </div>
+                <div class="event-accordion-subtitle">Ces champs sont obligatoires pour un post événement.</div>
+            </div>
+            <div class="admin-form-grid">
+                <div class="admin-form-group">
+                    <label class="admin-form-label">
+                        <i class="fas fa-trophy"></i> Titre de l'événement
+                    </label>
+                    {{ form_widget(form.eventTitle, {'attr': {'class': 'admin-form-input'}}) }}
+                    <div class="admin-form-error">{{ form_errors(form.eventTitle) }}</div>
+                </div>
+                <div class="admin-form-group">
+                    <label class="admin-form-label">
+                        <i class="fas fa-calendar-alt"></i> Date et heure
+                    </label>
+                    {{ form_widget(form.eventDate, {'attr': {'class': 'admin-form-input'}}) }}
+                    <div class="admin-form-error">{{ form_errors(form.eventDate) }}</div>
+                </div>
+                <div class="admin-form-group">
+                    <label class="admin-form-label">
+                        <i class="fas fa-location-dot"></i> Lieu / Lien
+                    </label>
+                    {{ form_widget(form.eventLocation, {'attr': {'class': 'admin-form-input'}}) }}
+                    <div class="admin-form-error">{{ form_errors(form.eventLocation) }}</div>
+                </div>
+                <div class="admin-form-group">
+                    <label class="admin-form-label">
+                        <i class="fas fa-users"></i> Nombre de places
+                    </label>
+                    {{ form_widget(form.maxParticipants, {'attr': {'class': 'admin-form-input', 'min': 1}}) }}
+                    <div class="admin-form-error">{{ form_errors(form.maxParticipants) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-form-actions">
+            <a href="{{ path('fil_admin_post_index') }}" class="admin-form-cancel">
+                <i class="fas fa-arrow-left"></i> Annuler
+            </a>
+            <button type="submit" class="admin-form-submit">
+                <i class="fas fa-save"></i> Enregistrer
+            </button>
+        </div>
+    {{ form_end(form) }}
+</div>
+{% endblock %}

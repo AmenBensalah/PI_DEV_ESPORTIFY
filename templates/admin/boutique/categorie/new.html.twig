@@ -1,16 +1,43 @@
-{% extends 'admin/base.html.twig' %}
+﻿{% extends 'admin/base.html.twig' %}
 
 {% block title %}Nouvelle catégorie{% endblock %}
 {% block page_title %}Nouvelle catégorie{% endblock %}
 
 {% block body %}
-<div class="stat-card" style="max-width: 400px;">
-    {{ form_start(form) }}
-    {{ form_widget(form) }}
-    <div style="margin-top: 20px;">
-        <button type="submit" class="btn-gradient" style="padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer;">Créer</button>
-        <a href="{{ path('admin_boutique_categorie_index') }}" style="margin-left: 12px; color: var(--text-muted);">Annuler</a>
+<div class="admin-form-wrapper animate__animated animate__fadeInUp">
+    <div class="admin-form-card">
+        <div class="admin-form-header">
+            <div class="admin-form-icon">
+                <i class="fas fa-tags"></i>
+            </div>
+            <div>
+                <h2 class="admin-form-title">Ajouter une Catégorie</h2>
+                <p class="admin-form-subtitle">Créez une catégorie pour organiser vos produits.</p>
+            </div>
+        </div>
+
+        {{ form_start(form, {attr: {class: 'admin-form', novalidate: 'novalidate'}}) }}
+            <div class="admin-form-error">{{ form_errors(form) }}</div>
+
+            <div class="admin-form-grid single">
+                <div class="admin-form-group">
+                    <label class="admin-form-label">
+                        <i class="fas fa-tag"></i> Nom de la catégorie
+                    </label>
+                    {{ form_widget(form.nom, {'attr': {'class': 'admin-form-input', 'placeholder': 'Ex: Accessoires'}}) }}
+                    <div class="admin-form-error">{{ form_errors(form.nom) }}</div>
+                </div>
+            </div>
+
+            <div class="admin-form-actions">
+                <a href="{{ path('admin_boutique_categorie_index') }}" class="admin-form-cancel">
+                    <i class="fas fa-arrow-left"></i> Annuler
+                </a>
+                <button type="submit" class="admin-form-submit">
+                    <i class="fas fa-save"></i> Créer
+                </button>
+            </div>
+        {{ form_end(form) }}
     </div>
-    {{ form_end(form) }}
 </div>
 {% endblock %}

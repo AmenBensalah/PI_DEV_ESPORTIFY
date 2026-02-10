@@ -17,6 +17,11 @@ security:
             lazy: true
             provider: app_user_provider
             custom_authenticator: App\Security\SecurityAuthenticator
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 1209600 # 14 days
+                path: /
+                always_remember_me: true
             logout:
                 path: app_logout
                 target: app_login
@@ -26,8 +31,9 @@ security:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/register, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
-        - { path: ^/profile, roles: IS_AUTHENTICATED_FULLY }
-        - { path: ^/home, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/profile, roles: IS_AUTHENTICATED_REMEMBERED }
+        - { path: ^/fil, roles: IS_AUTHENTICATED_REMEMBERED }
+        - { path: ^/enregistrements, roles: IS_AUTHENTICATED_REMEMBERED }
 
 when@test:
     security:

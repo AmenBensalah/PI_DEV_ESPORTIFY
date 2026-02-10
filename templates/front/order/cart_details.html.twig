@@ -1,35 +1,114 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
+
+{% block title %}Votre Panier{% endblock %}
 
 {% block body %}
-    <div class="cart-page">
-        <h1>Votre Panier</h1>
+<section class="order-hero">
+    <div class="order-hero-inner">
+        <div class="order-kicker">Cart</div>
+        <h1 class="order-title">Votre Panier</h1>
+        <p class="order-lead">Vérifie les produits avant validation.</p>
+        <div class="order-hero-actions">
+            <a href="{{ path('front_order_cart') }}" class="order-btn ghost">Retour infos</a>
+            <a href="{{ path('app_front_produit_index') }}" class="order-btn">Boutique</a>
+        </div>
+    </div>
+    <div class="order-hero-glow"></div>
+</section>
 
-        {% if commande and commande.lignesCommande|length > 0 %}
-            <div class="pro-card" style="max-width: 980px; margin: 0 auto;">
-                <h2>Resume de la commande</h2>
-                <div class="cart-actions" style="margin-top: 8px;">
-                    <input id="cart_search" class="form-control" placeholder="Rechercher un produit..." style="max-width: 320px;">
+<section class="order-shell">
+    {% if commande and commande.lignesCommande|length > 0 %}
+        <div class="order-flow">
+            <div class="order-steps">
+                <div class="order-step active">
+                    <span class="step-index">1</span>
+                    <span class="step-label">Panier</span>
+                </div>
+                <div class="order-step">
+                    <span class="step-index">2</span>
+                    <span class="step-label">Livraison</span>
+                </div>
+                <div class="order-step">
+                    <span class="step-index">3</span>
+                    <span class="step-label">Paiement</span>
+                </div>
+                <div class="order-step">
+                    <span class="step-index">4</span>
+                    <span class="step-label">Confirmation</span>
+                </div>
+            </div>
+            <div class="order-progress" style="--progress: 25%">
+                <span></span>
+            </div>
+        </div>
+
+        {% set subtotal = 0 %}
+        {% for ligne in commande.lignesCommande %}
+            {% set subtotal = subtotal + (ligne.prix * ligne.quantite) %}
+        {% endfor %}
+        {% set shipping = 0 %}
+        {% set total = subtotal + shipping %}
+
+        <div class="cart-grid">
+            <div class="order-card cart-items">
+                <div class="cart-header">
+                    <h2>Récapitulatif du panier</h2>
+                    <span class="cart-count">{{ total_quantite }} article(s)</span>
                 </div>
                 <ul class="cart-list">
                     {% for ligne in commande.lignesCommande %}
-                        <li class="cart-item" data-search="{{ ligne.produit.nom }} {{ ligne.quantite }}">
-                            <span>{{ ligne.produit.nom }} x {{ ligne.quantite }}</span>
-                            <strong>{{ ligne.prix / 100 }} EUR</strong>
+                        {% set productImage = ligne.produit.image ? (ligne.produit.image starts with 'http' ? ligne.produit.image : asset(ligne.produit.image)) : asset('images/logo3.png') %}
+                        <li class="cart-item">
+                            <div class="cart-thumb">
+                                <img src="{{ productImage }}" alt="{{ ligne.produit.nom }}" onerror="this.src='{{ asset('images/logo3.png') }}'">
+                            </div>
+                            <div class="cart-meta">
+                                <div class="cart-title">{{ ligne.produit.nom }}</div>
+                            <div class="cart-unit">Prix unitaire: {{ ligne.prix|number_format(2, '.', ' ') }} EUR</div>
+                            </div>
+                            <form action="{{ path('front_order_line_update', {id: ligne.id}) }}" method="post" class="qty-form" data-qty-form>
+                                <input type="hidden" name="redirect" value="{{ app.request.get('_route') }}">
+                                <button type="button" class="qty-btn" data-qty-minus>-</button>
+                                <input class="qty-input" data-qty-input type="number" name="quantite" min="1" max="{{ ligne.produit.stock ?? 99 }}" value="{{ ligne.quantite }}">
+                                <button type="button" class="qty-btn" data-qty-plus>+</button>
+                            </form>
+                            <div class="cart-price">{{ (ligne.prix * ligne.quantite)|number_format(2, '.', ' ') }} EUR</div>
+                            <form action="{{ path('front_order_line_remove', {id: ligne.id}) }}" method="post" class="cart-remove">
+                                <input type="hidden" name="redirect" value="{{ app.request.get('_route') }}">
+                                <button type="submit" class="trash-btn" title="Supprimer">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
                         </li>
                     {% endfor %}
                 </ul>
-                <div class="cart-total">Quantite totale: {{ total_quantite }}</div>
-                <div class="cart-actions">
-                    <a class="pro-btn pro-btn-primary" href="{{ path('front_order_cart') }}">Passer commande</a>
-                    <a class="pro-link" href="{{ path('front_order_cart') }}">Retour aux informations</a>
-                    <a class="pro-link" href="{{ path('app_front_produit_index') }}">Retour a la boutique</a>
+            </div>
+
+            <aside class="order-card cart-summary">
+                <h2>Résumé de la commande</h2>
+                <div class="summary-row">
+                    <span>Sous-total</span>
+                    <strong>{{ subtotal|number_format(2, '.', ' ') }} EUR</strong>
                 </div>
-            </div>
-        {% else %}
-            <div class="pro-card">
-                <p>Votre panier est vide.</p>
-                <a class="pro-link" href="{{ path('app_front_produit_index') }}">Retour a la boutique</a>
-            </div>
-        {% endif %}
-    </div>
+                <div class="summary-row">
+                    <span>Livraison</span>
+                    <strong>{{ shipping > 0 ? (shipping|number_format(2, '.', ' ') ~ ' EUR') : 'Gratuite' }}</strong>
+                </div>
+                <div class="summary-row summary-total">
+                    <span>Total</span>
+                    <strong>{{ total|number_format(2, '.', ' ') }} EUR</strong>
+                </div>
+                <div class="summary-cta">
+                    <a class="order-btn primary" href="{{ path('front_order_cart') }}">Passer commande</a>
+                    <a class="order-btn ghost" href="{{ path('app_front_produit_index') }}">Continuer mes achats</a>
+                </div>
+            </aside>
+        </div>
+    {% else %}
+        <div class="order-card empty">
+            <p>Votre panier est vide.</p>
+            <a class="order-link" href="{{ path('app_front_produit_index') }}">Retour a la boutique</a>
+        </div>
+    {% endif %}
+</section>
 {% endblock %}

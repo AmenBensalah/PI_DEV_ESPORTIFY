@@ -1,62 +1,254 @@
-{% extends 'admin/layout.html.twig' %}
+﻿{% extends 'admin/layout.html.twig' %}
 
 {% block title %}Demandes de participation{% endblock %}
 {% block page_title %}Demandes de participation{% endblock %}
 
 {% block body %}
-<div class="card">
-    <div class="card-body">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Tournoi</th>
-                    <th>Utilisateur</th>
-                    <th>Message</th>
-                    <th>Statut</th>
-                    <th>Créé le</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for r in requests %}
-                    <tr>
-                        <td>{{ r.id }}</td>
-                        <td>{{ r.tournoi.name }}</td>
-                        <td>
-                            {% if r.user %}
-                                {{ r.user.pseudo|default(r.user.nom)|default(r.user.email) }} ({{ r.user.email }})
-                            {% else %}
-                                <em class="text-muted">Anonyme</em>
-                            {% endif %}
-                        </td>
-                        <td>{{ r.message }}</td>
-                        <td>
-                            {% if r.status == 'en_attente' or r.status == 'pending' %}
-                                <span class="badge badge-info">En attente</span>
-                            {% elseif r.status == 'approuvée' or r.status == 'approved' %}
-                                <span class="badge badge-success">Approuvée</span>
-                            {% elseif r.status == 'rejetée' or r.status == 'rejected' %}
-                                <span class="badge badge-danger">Rejetée</span>
-                            {% else %}
-                                {{ r.status }}
-                            {% endif %}
-                        </td>
-                        <td>{{ r.createdAt|date('Y-m-d H:i') }}</td>
-                        <td>
-                            {% if r.status == 'en_attente' or r.status == 'pending' %}
-                                <a href="{{ path('admin_participation_approve', {id: r.id}) }}" class="btn btn-sm btn-success">Approuver</a>
-                                <a href="{{ path('admin_participation_reject', {id: r.id}) }}" class="btn btn-sm btn-danger">Rejeter</a>
-                            {% else %}
-                                <span class="text-muted">-</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% else %}
-                    <tr><td colspan="7">Aucune demande trouvée.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<section class="admin-tournament-hero">
+    <div class="admin-tournament-hero-inner">
+        <div class="admin-tournament-kicker">Admin</div>
+        <h2 class="admin-tournament-title">Demandes de participation</h2>
+        <p class="admin-tournament-lead">Gérez les inscriptions aux tournois en attente de validation.</p>
+        <div class="admin-tournament-hero-actions">
+            <a href="{{ path('admin_participation_index') }}" class="admin-tournament-btn ghost">
+                <i class="fas fa-rotate"></i> Rafraîchir
+            </a>
+        </div>
     </div>
-</div>
+    <div class="admin-tournament-hero-glow"></div>
+</section>
+
+<section class="admin-tournament-shell">
+    <div class="admin-tournament-tabs">
+        <a href="#" class="tab active" data-status="">Tous</a>
+        <a href="#" class="tab" data-status="pending">En attente</a>
+        <a href="#" class="tab" data-status="approved">Approuvées</a>
+        <a href="#" class="tab" data-status="rejected">Rejetées</a>
+    </div>
+
+    <div class="admin-tournament-panel">
+        <div class="admin-tournament-panel-title">
+            <i class="fas fa-search"></i>
+            Recherche avancée
+        </div>
+        <form class="admin-tournament-form" data-filter-form>
+            <div class="field">
+                <label>Tournoi</label>
+                <input type="text" name="tournoi" placeholder="Nom du tournoi">
+            </div>
+            <div class="field">
+                <label>Utilisateur</label>
+                <input type="text" name="user" placeholder="Pseudo ou email">
+            </div>
+            <div class="field">
+                <label>Statut</label>
+                <select name="status">
+                    <option value="">-- Tous --</option>
+                    <option value="pending">En attente</option>
+                    <option value="approved">Approuvée</option>
+                    <option value="rejected">Rejetée</option>
+                </select>
+            </div>
+            <div class="admin-tournament-actions">
+                <button type="submit" class="admin-tournament-btn">
+                    <i class="fas fa-search"></i> Rechercher
+                </button>
+                <button type="reset" class="admin-tournament-btn ghost">
+                    <i class="fas fa-rotate"></i> Réinitialiser
+                </button>
+            </div>
+        </form>
+
+        <div class="admin-tournament-sort">
+            <span>Trier :</span>
+            <a href="#" data-sort="createdAt:desc">Date ↓</a>
+            <a href="#" data-sort="createdAt:asc">Date ↑</a>
+            <a href="#" data-sort="status:asc">Statut A→Z</a>
+            <a href="#" data-sort="status:desc">Statut Z→A</a>
+        </div>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="admin-tournament-alert success">
+            <i class="fas fa-check-circle"></i> {{ message }}
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div class="admin-tournament-alert">
+            <i class="fas fa-exclamation-triangle"></i> {{ message }}
+        </div>
+    {% endfor %}
+
+    {% if requests %}
+        <div class="admin-tournament-table">
+            <table data-table="participations">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tournoi</th>
+                        <th>Utilisateur</th>
+                        <th>Message</th>
+                        <th>Statut</th>
+                        <th>Créée le</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in requests %}
+                        {% set normalizedStatus = (r.status == 'en_attente' or r.status == 'pending') ? 'pending' : (r.status == 'approuvée' or r.status == 'approved') ? 'approved' : (r.status == 'rejetée' or r.status == 'rejected') ? 'rejected' : r.status %}
+                        <tr class="admin-tournament-row"
+                            data-search="{{ r.id }} {{ r.tournoi ? r.tournoi.name : '' }} {{ r.user ? (r.user.pseudo|default(r.user.nom)|default(r.user.email)) : '' }} {{ r.message }}"
+                            data-status="{{ normalizedStatus }}"
+                            data-created="{{ r.createdAt ? r.createdAt|date('YmdHis') : '' }}">
+                            <td>{{ r.id }}</td>
+                            <td>{{ r.tournoi ? r.tournoi.name : '-' }}</td>
+                            <td>
+                                {% if r.user %}
+                                    {{ r.user.pseudo|default(r.user.nom)|default(r.user.email) }}
+                                {% else %}
+                                    <span class="badge badge-muted">Anonyme</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ r.message }}</td>
+                            <td>
+                                {% if r.status == 'en_attente' or r.status == 'pending' %}
+                                    <span class="badge badge-warn">En attente</span>
+                                {% elseif r.status == 'approuvée' or r.status == 'approved' %}
+                                    <span class="badge badge-success">Approuvée</span>
+                                {% elseif r.status == 'rejetée' or r.status == 'rejected' %}
+                                    <span class="badge badge-danger">Rejetée</span>
+                                {% else %}
+                                    <span class="badge badge-info">{{ r.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ r.createdAt|date('d/m/Y H:i') }}</td>
+                            <td>
+                                <div class="admin-tournament-row-actions">
+                                    {% if r.tournoi %}
+                                        <a href="{{ path('admin_tournoi_show', {id: r.tournoi.idTournoi}) }}" class="admin-tournament-icon" title="Voir le tournoi">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    {% else %}
+                                        <span class="admin-tournament-icon disabled" title="Tournoi indisponible">
+                                            <i class="fas fa-eye"></i>
+                                        </span>
+                                    {% endif %}
+                                    {% if r.status == 'en_attente' or r.status == 'pending' %}
+                                        <a href="{{ path('admin_participation_approve', {id: r.id}) }}" class="admin-tournament-icon cyan" title="Approuver" onclick="return confirm('Approuver cette demande ?');">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{{ path('admin_participation_reject', {id: r.id}) }}" class="admin-tournament-icon danger" title="Rejeter" onclick="return confirm('Rejeter cette demande ?');">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    {% else %}
+                                        <span class="admin-tournament-icon cyan disabled" title="Déjà traité">
+                                            <i class="fas fa-edit"></i>
+                                        </span>
+                                        <span class="admin-tournament-icon danger disabled" title="Déjà traité">
+                                            <i class="fas fa-trash"></i>
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="admin-tournament-empty">
+            <div class="empty-ring"></div>
+            <strong>Aucune demande trouvée</strong>
+            <p>Les nouvelles participations s'afficheront ici.</p>
+        </div>
+    {% endif %}
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.querySelector('[data-filter-form]');
+        const tabs = document.querySelectorAll('.admin-tournament-tabs .tab');
+        const rows = Array.from(document.querySelectorAll('[data-table=\"participations\"] tbody tr'));
+        const sortLinks = document.querySelectorAll('.admin-tournament-sort a[data-sort]');
+
+        const applyFilters = () => {
+            const formData = new FormData(form);
+            const queryTournoi = (formData.get('tournoi') || '').toLowerCase();
+            const queryUser = (formData.get('user') || '').toLowerCase();
+            const queryStatus = (formData.get('status') || '').toLowerCase();
+
+            rows.forEach(row => {
+                const search = (row.dataset.search || '').toLowerCase();
+                const status = (row.dataset.status || '').toLowerCase();
+
+                const matchesTournoi = !queryTournoi || search.includes(queryTournoi);
+                const matchesUser = !queryUser || search.includes(queryUser);
+                const matchesStatus = !queryStatus || status.includes(queryStatus);
+
+                row.style.display = matchesTournoi && matchesUser && matchesStatus ? '' : 'none';
+            });
+        };
+
+        const applySort = (field, direction) => {
+            const tbody = rows[0] ? rows[0].closest('tbody') : null;
+            if (!tbody) {
+                return;
+            }
+
+            const sorted = rows.slice().sort((a, b) => {
+                if (field === 'createdAt') {
+                    const aVal = a.dataset.created || '';
+                    const bVal = b.dataset.created || '';
+                    return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                }
+                if (field === 'status') {
+                    const aVal = a.dataset.status || '';
+                    const bVal = b.dataset.status || '';
+                    return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                }
+                return 0;
+            });
+
+            sorted.forEach(row => tbody.appendChild(row));
+        };
+
+        if (form) {
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                applyFilters();
+            });
+            form.addEventListener('reset', () => {
+                setTimeout(() => {
+                    tabs.forEach(tab => tab.classList.remove('active'));
+                    if (tabs[0]) {
+                        tabs[0].classList.add('active');
+                    }
+                    applyFilters();
+                }, 0);
+            });
+        }
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', (event) => {
+                event.preventDefault();
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const status = tab.dataset.status || '';
+                if (form) {
+                    form.querySelector('select[name=\"status\"]').value = status;
+                    applyFilters();
+                }
+            });
+        });
+
+        sortLinks.forEach(link => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
+                const [field, direction] = (link.dataset.sort || '').split(':');
+                applySort(field, direction);
+            });
+        });
+    });
+</script>
 {% endblock %}

@@ -1,41 +1,80 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
+
+{% block title %}Commande #{{ commande.id }}{% endblock %}
 
 {% block body %}
-    <div class="cart-page">
-        <h1>Informations de la commande #{{ commande.id }}</h1>
+<section class="order-hero">
+    <div class="order-hero-inner">
+        <div class="order-kicker">Order</div>
+        <h1 class="order-title">Commande #{{ commande.id }}</h1>
+        <p class="order-lead">Details client et produits.</p>
+        <div class="order-hero-actions">
+            <a class="order-btn ghost" href="{{ path('front_order_history') }}">Retour a mes commandes</a>
+        </div>
+    </div>
+    <div class="order-hero-glow"></div>
+</section>
 
-        <div class="cart-shell">
-            <div class="pro-card">
-                <h2>Produits</h2>
-                <ul class="cart-list">
-                    {% for ligne in commande.lignesCommande %}
-                        <li class="cart-item">
-                            <span>{{ ligne.produit.nom }} x {{ ligne.quantite }}</span>
-                            <strong>{{ ligne.prix / 100 }} EUR</strong>
-                        </li>
-                    {% endfor %}
-                </ul>
-                <div class="cart-total">Statut: {{ commande.statut }}</div>
+<section class="order-shell">
+    <div class="order-grid">
+        <div class="order-card">
+            <h2>Produits</h2>
+            <ul class="order-list">
+                {% for ligne in commande.lignesCommande %}
+                    <li class="order-item">
+                        <span>{{ ligne.produit.nom }} x {{ ligne.quantite }}</span>
+                        <strong>{{ ligne.prix|number_format(2, '.', ' ') }} EUR</strong>
+                    </li>
+                {% endfor %}
+            </ul>
+            <div class="order-total">Statut: {{ commande.statut }}</div>
+        </div>
+
+        <div class="order-card">
+            <h2>Client</h2>
+            <div class="order-summary">
+                <div>
+                    <span>Nom</span>
+                    <strong>{{ commande.nom }}</strong>
+                </div>
+                <div>
+                    <span>Prenom</span>
+                    <strong>{{ commande.prenom }}</strong>
+                </div>
+                <div>
+                    <span>Telephone</span>
+                    <strong>{{ commande.numtel }}</strong>
+                </div>
+                <div>
+                    <span>Quantite</span>
+                    <strong>{{ commande.quantite }}</strong>
+                </div>
             </div>
 
-            <div class="pro-card">
-                <h2>Client</h2>
-                <p><strong>Nom:</strong> {{ commande.nom }}</p>
-                <p><strong>Prenom:</strong> {{ commande.prenom }}</p>
-                <p><strong>Telephone:</strong> {{ commande.numtel }}</p>
-                <p><strong>Quantite:</strong> {{ commande.quantite }}</p>
-                <hr>
-                <h2>Adresse</h2>
-                <p><strong>Pays:</strong> {{ commande.pays }}</p>
-                <p><strong>Gouvernerat:</strong> {{ commande.gouvernerat }}</p>
-                <p><strong>Code postal:</strong> {{ commande.codePostal }}</p>
-                <p><strong>Adresse:</strong> {{ commande.adresse }}</p>
-                <p><strong>Adresse exacte:</strong> {{ commande.adresseDetail }}</p>
-
-                <div class="cart-actions">
-                    <a class="pro-link" href="{{ path('front_order_history') }}">Retour a mes commandes</a>
+            <h2>Adresse</h2>
+            <div class="order-summary">
+                <div>
+                    <span>Pays</span>
+                    <strong>{{ commande.pays }}</strong>
+                </div>
+                <div>
+                    <span>Gouvernerat</span>
+                    <strong>{{ commande.gouvernerat }}</strong>
+                </div>
+                <div>
+                    <span>Code postal</span>
+                    <strong>{{ commande.codePostal }}</strong>
+                </div>
+                <div>
+                    <span>Adresse</span>
+                    <strong>{{ commande.adresse }}</strong>
+                </div>
+                <div>
+                    <span>Adresse exacte</span>
+                    <strong>{{ commande.adresseDetail }}</strong>
                 </div>
             </div>
         </div>
     </div>
+</section>
 {% endblock %}

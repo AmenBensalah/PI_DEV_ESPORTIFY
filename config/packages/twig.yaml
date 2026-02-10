@@ -1,4 +1,5 @@
 twig:
+    charset: 'UTF-8'
     file_name_pattern: '*.twig'
 
 when@test:

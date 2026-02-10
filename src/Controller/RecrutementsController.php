@@ -90,7 +90,7 @@ final class RecrutementsController extends AbstractController
         
         if (!$isAdmin && !$isManager) {
              $this->addFlash('error', 'Accès refusé.');
-             return $this->redirectToRoute('app_home');
+             return $this->redirectToRoute('fil_home');
         }
 
         $candidature->setStatut('Accepté');
@@ -110,7 +110,7 @@ final class RecrutementsController extends AbstractController
         
         if (!$isAdmin && !$isManager) {
              $this->addFlash('error', 'Accès refusé.');
-             return $this->redirectToRoute('app_home');
+             return $this->redirectToRoute('fil_home');
         }
 
         $candidature->setStatut('Refusé');

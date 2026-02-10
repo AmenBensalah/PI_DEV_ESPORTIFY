@@ -8,6 +8,7 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     gemini_api_key: '%env(GEMINI_API_KEY)%'
+    uploads_dir: '%kernel.project_dir%/public/uploads'
 
 services:
     # default configuration for services in *this* file
@@ -27,6 +28,10 @@ services:
     App\Service\GeminiService:
         arguments:
             $geminiApiKey: '%gemini_api_key%'
+
+    App\Service\FileUploader:
+        arguments:
+            $uploadDir: '%uploads_dir%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

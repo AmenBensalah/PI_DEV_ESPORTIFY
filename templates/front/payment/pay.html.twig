@@ -1,55 +1,118 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
+
+{% block title %}Paiement{% endblock %}
 
 {% block body %}
-    <div class="cart-page">
-        <div class="cart-shell single">
-            <div class="pro-card">
-                <h2>Paiement de votre commande</h2>
-
-                <div class="form-section-title">Informations client</div>
-                <div class="info-list">
-                    <div class="info-item">{{ commande.nom }}</div>
-                    <div class="info-item">{{ commande.prenom }}</div>
-                    <div class="info-item">{{ commande.numtel }}</div>
-                    <div class="info-item">{{ commande.quantite }}</div>
-                </div>
-
-                <div class="form-section-title" style="margin-top: 18px;">Informations adresse</div>
-                <div class="info-list">
-                    <div class="info-item">{{ commande.pays }}</div>
-                    <div class="info-item">{{ commande.gouvernerat }}</div>
-                    <div class="info-item">{{ commande.codePostal }}</div>
-                    <div class="info-item">{{ commande.adresse }}</div>
-                    <div class="info-item">{{ commande.adresseDetail }}</div>
-                </div>
-
-                <div class="form-section-title" style="margin-top: 18px;">Recapitulatif</div>
-                <ul class="cart-list">
-                    {% set total = 0 %}
-                    {% for ligne in commande.lignesCommande %}
-                        {% set total = total + (ligne.prix * ligne.quantite) %}
-                        <li class="cart-item">
-                            <span>{{ ligne.produit.nom }} x {{ ligne.quantite }}</span>
-                            <strong>{{ (ligne.prix * ligne.quantite) / 100 }} EUR</strong>
-                        </li>
-                    {% endfor %}
-                </ul>
-
-                <div class="cart-total">Total a payer: {{ total / 100 }} EUR</div>
-
-                <div style="margin-top: 16px;">
-                    <div class="form-section-title">Proceder au paiement</div>
-                    <p style="color: #6b7280; font-size: 13px; margin: 6px 0 12px;">
-                        Cliquez sur le bouton ci-dessous pour finaliser votre paiement.
-                    </p>
-                    <form action="{{ path('front_payment_process', {id: commande.id}) }}" method="post" class="cart-actions">
-                        <button type="submit" class="pro-btn pro-btn-primary">
-                            Payer {{ total / 100 }} EUR
-                        </button>
-                        <a href="{{ path('front_order_cart') }}" class="pro-btn">Retour au panier</a>
-                    </form>
-                </div>
-            </div>
+<section class="payment-hero">
+    <div class="payment-hero-inner">
+        <div class="payment-kicker">Payment</div>
+        <h1 class="payment-title">Finaliser le paiement</h1>
+        <p class="payment-lead">Vérifie les informations avant validation.</p>
+        <div class="payment-hero-actions">
+            <a href="{{ path('front_order_cart') }}" class="pay-btn ghost">Retour panier</a>
         </div>
     </div>
+    <div class="payment-hero-glow"></div>
+</section>
+
+<section class="payment-shell">
+    <div class="order-flow">
+        <div class="order-steps">
+            <div class="order-step completed">
+                <span class="step-index">1</span>
+                <span class="step-label">Panier</span>
+            </div>
+            <div class="order-step completed">
+                <span class="step-index">2</span>
+                <span class="step-label">Livraison</span>
+            </div>
+            <div class="order-step active">
+                <span class="step-index">3</span>
+                <span class="step-label">Paiement</span>
+            </div>
+            <div class="order-step">
+                <span class="step-index">4</span>
+                <span class="step-label">Confirmation</span>
+            </div>
+        </div>
+        <div class="order-progress" style="--progress: 75%">
+            <span></span>
+        </div>
+    </div>
+
+    {% set subtotal = 0 %}
+    {% for ligne in commande.lignesCommande %}
+        {% set subtotal = subtotal + (ligne.prix * ligne.quantite) %}
+    {% endfor %}
+    {% set shipping = 0 %}
+    {% set total = subtotal + shipping %}
+
+    <div class="cart-grid">
+        <div class="payment-card">
+            <h2>Informations client</h2>
+            <div class="payment-grid">
+                <div><span>Nom</span><strong>{{ commande.nom }}</strong></div>
+                <div><span>Prénom</span><strong>{{ commande.prenom }}</strong></div>
+                <div><span>Téléphone</span><strong>{{ commande.numtel }}</strong></div>
+                <div><span>Quantité</span><strong>{{ commande.quantite }}</strong></div>
+            </div>
+
+            <h2>Adresse</h2>
+            <div class="payment-grid">
+                <div><span>Pays</span><strong>{{ commande.pays }}</strong></div>
+                <div><span>Gouvernorat</span><strong>{{ commande.gouvernerat }}</strong></div>
+                <div><span>Code postal</span><strong>{{ commande.codePostal }}</strong></div>
+                <div><span>Adresse</span><strong>{{ commande.adresse }}</strong></div>
+                <div><span>Adresse exacte</span><strong>{{ commande.adresseDetail }}</strong></div>
+            </div>
+
+            <h2>Méthode de paiement</h2>
+            <form id="payment-form" action="{{ path('front_payment_process', {id: commande.id}) }}" method="post">
+                <div class="payment-methods">
+                    <div class="payment-method">
+                        <input type="radio" id="pay-card" name="payment_method" value="card" checked>
+                        <label for="pay-card">
+                            <i class="fa-solid fa-credit-card"></i>
+                            <span>Carte Bancaire</span>
+                        </label>
+                    </div>
+                    <div class="payment-method">
+                        <input type="radio" id="pay-paypal" name="payment_method" value="paypal">
+                        <label for="pay-paypal">
+                            <i class="fa-brands fa-paypal"></i>
+                            <span>PayPal</span>
+                        </label>
+                    </div>
+                    <div class="payment-method">
+                        <input type="radio" id="pay-cash" name="payment_method" value="cash">
+                        <label for="pay-cash">
+                            <i class="fa-solid fa-wallet"></i>
+                            <span>Paiement à la livraison</span>
+                        </label>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <aside class="payment-card cart-summary">
+            <h2>Résumé de la commande</h2>
+            <div class="summary-row">
+                <span>Sous-total</span>
+                <strong>{{ subtotal|number_format(2, '.', ' ') }} EUR</strong>
+            </div>
+            <div class="summary-row">
+                <span>Livraison</span>
+                <strong>{{ shipping > 0 ? (shipping|number_format(2, '.', ' ') ~ ' EUR') : 'Gratuite' }}</strong>
+            </div>
+            <div class="summary-row summary-total">
+                <span>Total</span>
+                <strong>{{ total|number_format(2, '.', ' ') }} EUR</strong>
+            </div>
+            <div class="summary-cta">
+                <button type="submit" form="payment-form" class="pay-btn primary">Valider la commande</button>
+                <a href="{{ path('front_order_cart') }}" class="pay-btn ghost">Retour au panier</a>
+            </div>
+        </aside>
+    </div>
+</section>
 {% endblock %}

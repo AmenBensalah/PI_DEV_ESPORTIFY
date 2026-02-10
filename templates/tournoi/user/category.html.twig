@@ -1,70 +1,68 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
 
 {% block title %}{{ category }} Tournaments{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <h1 class="mb-4">{{ category }} Tournaments</h1>
+<section class="tournoi-hero">
+    <div class="tournoi-hero-inner">
+        <div class="tournoi-kicker">Categorie</div>
+        <h1 class="tournoi-title">{{ category }}</h1>
+        <p class="tournoi-lead">Selection par type de jeu.</p>
+        <div class="tournoi-hero-actions">
+            <a href="{{ path('tournoi_index') }}" class="neo-btn ghost">Retour</a>
+        </div>
+    </div>
+    <div class="tournoi-hero-glow"></div>
+</section>
 
-    <a href="{{ path('tournoi_index') }}" class="btn btn-secondary mb-4">← Back</a>
-
+<section class="tournoi-shell">
     {% if tournois %}
-        <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Name</th>
-                        <th>Tournament Type</th>
-                        <th>Game</th>
-                        <th>Status</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                        <th>Prize</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for tournoi in tournois %}
-                        <tr>
-                            <td><strong>{{ tournoi.name }}</strong></td>
-                            <td>
-                                <span class="badge bg-secondary">{{ tournoi.typeTournoi|upper }}</span>
-                            </td>
-                            <td>{{ tournoi.game }}</td>
-                            <td>
-                                {% if tournoi.status == 'planned' %}
-                                    <span class="badge bg-warning">Planned</span>
-                                {% elseif tournoi.status == 'ongoing' %}
-                                    <span class="badge bg-success">Ongoing</span>
-                                {% else %}
-                                    <span class="badge bg-danger">Finished</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ tournoi.startDate|date('Y-m-d H:i') }}</td>
-                            <td>{{ tournoi.endDate|date('Y-m-d H:i') }}</td>
-                            <td>${{ tournoi.prizeWon }}</td>
-                            <td>
-                                <a href="{{ path('tournoi_show', {id: tournoi.idTournoi}) }}" class="btn btn-sm btn-info">View</a>
-                                {% if tournoi.currentStatus == 'planned' and (tournoi.remainingPlaces is null or tournoi.remainingPlaces > 0) %}
-                                    <a href="{{ path('tournoi_participate', {id: tournoi.idTournoi}) }}" class="btn btn-sm btn-primary">Rejoindre</a>
-                                {% endif %}
-                                {% if is_granted('ROLE_USER') %}
-                                    {% if app.user in tournoi.participants %}
-                                        <button class="btn btn-sm btn-outline-success" disabled>Inscrit</button>
-                                    {% else %}
-                                        <a href="{{ path('tournoi_participate', {id: tournoi.idTournoi}) }}" class="btn btn-sm btn-primary">Participer</a>
-                                    {% endif %}
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="tournoi-grid">
+            {% for tournoi in tournois %}
+                <article class="tournoi-card" style="animation-delay: {{ loop.index0 * 0.05 }}s;">
+                    <header>
+                        <div class="name">{{ tournoi.name }}</div>
+                        <div class="badges">
+                            <span class="badge muted">{{ tournoi.typeTournoi|upper }}</span>
+                            {% if tournoi.status == 'planned' %}
+                                <span class="badge warn">Planned</span>
+                            {% elseif tournoi.status == 'ongoing' %}
+                                <span class="badge success">Ongoing</span>
+                            {% else %}
+                                <span class="badge danger">Finished</span>
+                            {% endif %}
+                        </div>
+                    </header>
+
+                    <div class="meta">
+                        <div>
+                            <span>Game</span>
+                            <strong>{{ tournoi.game }}</strong>
+                        </div>
+                        <div>
+                            <span>Debut</span>
+                            <strong>{{ tournoi.startDate|date('Y-m-d H:i') }}</strong>
+                        </div>
+                        <div>
+                            <span>Fin</span>
+                            <strong>{{ tournoi.endDate|date('Y-m-d H:i') }}</strong>
+                        </div>
+                    </div>
+
+                    <footer class="actions">
+                        <a href="{{ path('tournoi_show', {id: tournoi.idTournoi}) }}" class="neo-btn ghost">Voir</a>
+                        {% if tournoi.currentStatus == 'planned' and (tournoi.remainingPlaces is null or tournoi.remainingPlaces > 0) %}
+                            <a href="{{ path('tournoi_participate', {id: tournoi.idTournoi}) }}" class="neo-btn">Rejoindre</a>
+                        {% endif %}
+                    </footer>
+                </article>
+            {% endfor %}
         </div>
     {% else %}
-        <div class="alert alert-info">
+        <div class="tournoi-empty">
+            <div class="empty-ring"></div>
             <strong>No {{ category }} tournaments found.</strong>
         </div>
     {% endif %}
-</div>
+</section>
 {% endblock %}

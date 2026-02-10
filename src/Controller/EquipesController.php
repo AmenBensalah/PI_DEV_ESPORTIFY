@@ -60,34 +60,44 @@ final class EquipesController extends AbstractController
             return $this->redirectToRoute('admin_equipes');
         }
 
-        // 2. Member/Player Restriction: If already has a team, redirect to it. If NOT, tell them.
-        if ($user && $this->isGranted('ROLE_JOUEUR')) {
-            $membership = $candidatureRepository->findOneBy([
-                'user' => $user,
-                'statut' => 'Accepté'
-            ]);
-            if ($membership) {
-                return $this->redirectToRoute('app_equipes_show', ['id' => $membership->getEquipe()->getId()]);
-            } else {
-                $this->addFlash('info', 'Tu n\'as pas encore d\'équipe.');
-                return $this->redirectToRoute('app_home');
-            }
-        }
-
-        // 3. For Managers/Admins, we show the landing page (index)
+        // 2. For Managers/Players, we show the landing page (index)
         $myTeamId = $session->get('my_team_id');
         $myTeam = null;
         if ($myTeamId) {
             $myTeam = $equipeRepository->find($myTeamId);
         }
 
+        // 3. Detect membership (accepted candidature)
+        $memberTeam = null;
+        $isMember = false;
+        if ($user) {
+            $membership = $candidatureRepository->findOneBy([
+                'user' => $user,
+                'statut' => 'Accepté'
+            ]);
+            if ($membership && $membership->getEquipe()) {
+                $memberTeam = $membership->getEquipe();
+                $isMember = true;
+            }
+        }
+
         // 4. Calculate Manager status for the view
-        $isManager = $isAdmin || ($this->isGranted('ROLE_MANAGER') && $myTeam && $myTeamId == $myTeam->getId());
+        $hasManagerRole = $this->isGranted('ROLE_MANAGER') || $this->isGranted('ROLE_ADMIN');
+        $isManager = $hasManagerRole && $myTeam && $myTeamId == $myTeam->getId();
+
+        $canCreateTeam = $hasManagerRole && !$myTeam;
+        $canRequestManager = !$hasManagerRole && !$isMember;
+        $canJoinTeam = !$hasManagerRole && !$isMember;
 
         return $this->render('equipes/index.html.twig', [
             'featuredTeams' => $equipeRepository->findBy([], ['id' => 'DESC'], 4),
             'myTeam' => $myTeam,
             'isManager' => $isManager,
+            'isMember' => $isMember,
+            'memberTeam' => $memberTeam,
+            'canCreateTeam' => $canCreateTeam,
+            'canRequestManager' => $canRequestManager,
+            'canJoinTeam' => $canJoinTeam,
         ]);
     }
 
@@ -118,6 +128,13 @@ final class EquipesController extends AbstractController
     public function apiCreate(Request $request, EntityManagerInterface $entityManager): Response
     {
         try {
+            if (!$this->isGranted('ROLE_MANAGER') && !$this->isGranted('ROLE_ADMIN')) {
+                return new \Symfony\Component\HttpFoundation\JsonResponse([
+                    'success' => false,
+                    'message' => 'Accès refusé : vous devez être manager pour créer une équipe.'
+                ], 403);
+            }
+
             $equipe = new Equipe();
             
             // Récupérer les données du formulaire
@@ -234,7 +251,8 @@ final class EquipesController extends AbstractController
             return new \Symfony\Component\HttpFoundation\JsonResponse([
                 'success' => true,
                 'message' => 'Équipe créée avec succès',
-                'id' => $equipe->getId()
+                'id' => $equipe->getId(),
+                'redirect' => $this->generateUrl('app_equipes_show', ['id' => $equipe->getId()]),
             ]);
             
         } catch (\Exception $e) {
@@ -248,6 +266,11 @@ final class EquipesController extends AbstractController
     #[Route('/new', name: 'app_equipes_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
+        if (!$this->isGranted('ROLE_MANAGER') && !$this->isGranted('ROLE_ADMIN')) {
+            $this->addFlash('error', 'Vous devez être manager pour créer une équipe.');
+            return $this->redirectToRoute('app_become_manager');
+        }
+
         $equipe = new Equipe();
         $form = $this->createForm(EquipeType::class, $equipe);
         $form->handleRequest($request);
@@ -282,7 +305,7 @@ final class EquipesController extends AbstractController
             if ($this->isGranted('ROLE_ADMIN') || str_contains($request->headers->get('referer', ''), '/admin')) {
                 return $this->redirectToRoute('admin_equipes');
             }
-            return $this->redirectToRoute('app_equipes_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_equipes_show', ['id' => $equipe->getId()], Response::HTTP_SEE_OTHER);
         }
 
         // Si c'est une requête AJAX avec erreur de validation
@@ -321,15 +344,14 @@ final class EquipesController extends AbstractController
         }
 
         // Check Member Status (Accepted Candidature)
+        $membershipAny = null;
         if ($user) {
-            $userEmail = $user->getUserIdentifier(); // Assuming email is the identifier
-            $membership = $candidatureRepository->findOneBy([
-                'equipe' => $equipe,
+            $membershipAny = $candidatureRepository->findOneBy([
                 'user' => $user,
                 'statut' => 'Accepté'
             ]);
-            
-            if ($membership) {
+
+            if ($membershipAny && $membershipAny->getEquipe() && $membershipAny->getEquipe()->getId() === $equipe->getId()) {
                 $isMember = true;
             }
         }
@@ -347,15 +369,19 @@ final class EquipesController extends AbstractController
                 'id' => $memberUser ? $memberUser->getId() : null,
                 'nom' => $memberUser ? $memberUser->getNom() : 'Utilisateur',
                 'pseudo' => $memberUser ? $memberUser->getPseudo() : 'Joueur',
-                'email' => $memberUser ? $memberUser->getEmail() : 'N/A'
+                'email' => $memberUser ? $memberUser->getEmail() : 'N/A',
+                'date' => $cand->getDateCandidature() ? $cand->getDateCandidature()->format('d/m/Y') : null
             ];
         }
+
+        $canJoinTeam = !$isAdmin && !$hasManagerRole && !$isMember && !$membershipAny;
 
         return $this->render('equipes/show.html.twig', [
             'equipe' => $equipe,
             'isManager' => $isManager,
             'isMember' => $isMember,
-            'members' => $members
+            'members' => $members,
+            'canJoinTeam' => $canJoinTeam,
         ]);
     }
 
@@ -442,7 +468,7 @@ final class EquipesController extends AbstractController
             $entityManager->flush();
 
             $this->addFlash('success', 'Votre candidature a bien été envoyée.');
-            return $this->redirectToRoute('app_home');
+            return $this->redirectToRoute('fil_home');
         }
 
         return $this->render('equipes/apply.html.twig', [
@@ -487,7 +513,7 @@ final class EquipesController extends AbstractController
         }
 
         $this->addFlash('success', 'Vous avez quitté l\'équipe ' . $equipe->getNomEquipe() . '.');
-        return $this->redirectToRoute('app_home');
+        return $this->redirectToRoute('fil_home');
     }
 
     #[Route('/{id}/manage', name: 'app_equipes_manage', methods: ['GET'])]
@@ -754,3 +780,4 @@ final class EquipesController extends AbstractController
         return $this->redirectToRoute('app_equipes_manage', ['id' => $equipe->getId()]);
     }
 }
+

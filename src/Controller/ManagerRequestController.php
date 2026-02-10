@@ -25,14 +25,14 @@ class ManagerRequestController extends AbstractController
         // Check internal status
         if ($this->isGranted('ROLE_MANAGER') || $this->isGranted('ROLE_ADMIN')) {
              $this->addFlash('info', 'Vous êtes déjà Manager ou Admin.');
-             return $this->redirectToRoute('app_home');
+             return $this->redirectToRoute('fil_home');
         }
 
         // Check if pending request exists
         $existingRequest = $repo->findOneBy(['user' => $user, 'status' => 'pending']);
         if ($existingRequest) {
             $this->addFlash('warning', 'Vous avez déjà une demande en attente.');
-            return $this->redirectToRoute('app_home');
+            return $this->redirectToRoute('fil_home');
         }
 
         // Get form data
@@ -43,7 +43,7 @@ class ManagerRequestController extends AbstractController
         // Validation
         if (empty($nom) || empty($experience) || empty($motivation)) {
             $this->addFlash('error', 'Veuillez remplir tous les champs.');
-            return $this->redirectToRoute('app_home'); // Fallback, assume form is on home or linked from there
+            return $this->redirectToRoute('fil_home'); // Fallback, assume form is on home or linked from there
         }
 
         // Create Entity
@@ -52,12 +52,12 @@ class ManagerRequestController extends AbstractController
         $managerRequest->setNom($nom);
         $managerRequest->setExperience($experience);
         $managerRequest->setMotivation($motivation);
-        
+
         $entityManager->persist($managerRequest);
         $entityManager->flush();
 
         $this->addFlash('success', 'Votre demande a été envoyée avec succès.');
-        return $this->redirectToRoute('app_home');
+        return $this->redirectToRoute('app_equipes_index');
     }
 
     // Optional: Route to show form if not embedded elsewhere

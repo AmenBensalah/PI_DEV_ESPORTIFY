@@ -1,21 +1,28 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
 
 {% block title %}Delete Tournament{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <h1 class="mb-4">Delete Tournament</h1>
-
-    <div class="alert alert-danger" role="alert">
-        <h4 class="alert-heading">Are you sure?</h4>
-        <p>You are about to delete the tournament: <strong>{{ tournoi.name }}</strong></p>
-        <hr>
-        <p class="mb-0">This action cannot be undone.</p>
+<section class="tournoi-hero">
+    <div class="tournoi-hero-inner">
+        <div class="tournoi-kicker">Danger</div>
+        <h1 class="tournoi-title">Supprimer le tournoi</h1>
+        <p class="tournoi-lead">Cette action est irreversible.</p>
     </div>
+    <div class="tournoi-hero-glow"></div>
+</section>
 
-    <form method="POST" action="{{ path('admin_tournoi_delete', {id: tournoi.idTournoi}) }}" class="d-flex gap-2">
-        <button type="submit" class="btn btn-danger">Yes, Delete</button>
-        <a href="{{ path('tournoi_show', {id: tournoi.idTournoi}) }}" class="btn btn-secondary">Cancel</a>
-    </form>
-</div>
+<section class="tournoi-shell">
+    <div class="tournoi-panel">
+        <div class="tournoi-alert danger">
+            <h4>Confirmer la suppression</h4>
+            <p>Vous allez supprimer : <strong>{{ tournoi.name }}</strong></p>
+        </div>
+
+        <form method="POST" action="{{ path('admin_tournoi_delete', {id: tournoi.idTournoi}) }}" class="tournoi-actions-row">
+            <button type="submit" class="neo-btn">Oui, supprimer</button>
+            <a href="{{ path('tournoi_show', {id: tournoi.idTournoi}) }}" class="neo-btn ghost">Annuler</a>
+        </form>
+    </div>
+</section>
 {% endblock %}

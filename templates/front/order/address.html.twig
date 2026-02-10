@@ -1,40 +1,95 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
+
+{% block title %}Adresse de livraison{% endblock %}
 
 {% block body %}
-    <div class="cart-page">
-        <div class="cart-shell single">
-            <div class="pro-card">
-                <h2>Adresse de livraison</h2>
-                <form action="{{ path('front_order_step2') }}" method="post">
-                    <div class="form-rows">
-                        <div class="form-row">
-                            <label class="pro-label" for="pays">Pays</label>
-                            <input id="pays" name="pays" class="pro-input" value="{{ commande.pays ?? '' }}" placeholder="Pays">
-                        </div>
-                        <div class="form-row">
-                            <label class="pro-label" for="gouvernerat">Gouvernerat</label>
-                            <input id="gouvernerat" name="gouvernerat" class="pro-input" value="{{ commande.gouvernerat ?? '' }}" placeholder="Gouvernerat">
-                        </div>
-                        <div class="form-row">
-                            <label class="pro-label" for="code_postal">Code postal</label>
-                            <input id="code_postal" name="code_postal" class="pro-input" value="{{ commande.codePostal ?? '' }}" placeholder="Code postal">
-                        </div>
-                        <div class="form-row">
-                            <label class="pro-label" for="adresse">Adresse</label>
-                            <input id="adresse" name="adresse" class="pro-input" value="{{ commande.adresse ?? '' }}" placeholder="Adresse">
-                        </div>
-                        <div class="form-row">
-                            <label class="pro-label" for="adresse_detail">Adresse exacte / description</label>
-                            <input id="adresse_detail" name="adresse_detail" class="pro-input" value="{{ commande.adresseDetail ?? '' }}" placeholder="Adresse exacte">
-                        </div>
-                    </div>
+<section class="order-hero">
+    <div class="order-hero-inner">
+        <div class="order-kicker">Shipping</div>
+        <h1 class="order-title">Adresse de livraison</h1>
+        <p class="order-lead">Renseigne les détails pour finaliser ta commande.</p>
+    </div>
+    <div class="order-hero-glow"></div>
+</section>
 
-                    <div class="cart-actions">
-                        <button type="submit" class="pro-btn pro-btn-primary">Aller au paiement</button>
-                        <a class="pro-link" href="{{ path('front_order_cart') }}">Retour</a>
-                    </div>
-                </form>
+<section class="order-shell">
+    <div class="order-flow">
+        <div class="order-steps">
+            <div class="order-step completed">
+                <span class="step-index">1</span>
+                <span class="step-label">Panier</span>
+            </div>
+            <div class="order-step active">
+                <span class="step-index">2</span>
+                <span class="step-label">Livraison</span>
+            </div>
+            <div class="order-step">
+                <span class="step-index">3</span>
+                <span class="step-label">Paiement</span>
+            </div>
+            <div class="order-step">
+                <span class="step-index">4</span>
+                <span class="step-label">Confirmation</span>
             </div>
         </div>
+        <div class="order-progress" style="--progress: 50%">
+            <span></span>
+        </div>
     </div>
+
+    {% set subtotal = 0 %}
+    {% for ligne in commande.lignesCommande %}
+        {% set subtotal = subtotal + (ligne.prix * ligne.quantite) %}
+    {% endfor %}
+    {% set shipping = 0 %}
+    {% set total = subtotal + shipping %}
+
+    <div class="cart-grid">
+        <div class="order-card">
+            <h2>Informations de livraison</h2>
+            <form id="order-shipping-form" action="{{ path('front_order_step2') }}" method="post" class="order-form two-cols">
+                <div class="field">
+                    <label for="pays"><i class="fa-solid fa-globe"></i> Pays</label>
+                    <input id="pays" name="pays" value="{{ commande.pays ?? '' }}" placeholder="Pays">
+                </div>
+                <div class="field">
+                    <label for="gouvernerat"><i class="fa-solid fa-map"></i> Gouvernorat</label>
+                    <input id="gouvernerat" name="gouvernerat" value="{{ commande.gouvernerat ?? '' }}" placeholder="Gouvernorat">
+                </div>
+                <div class="field">
+                    <label for="code_postal"><i class="fa-solid fa-hashtag"></i> Code postal</label>
+                    <input id="code_postal" name="code_postal" value="{{ commande.codePostal ?? '' }}" placeholder="Code postal">
+                </div>
+                <div class="field">
+                    <label for="adresse"><i class="fa-solid fa-location-dot"></i> Adresse</label>
+                    <input id="adresse" name="adresse" value="{{ commande.adresse ?? '' }}" placeholder="Adresse">
+                </div>
+                <div class="field" style="grid-column: 1 / -1;">
+                    <label for="adresse_detail"><i class="fa-solid fa-pen"></i> Adresse exacte / description</label>
+                    <input id="adresse_detail" name="adresse_detail" value="{{ commande.adresseDetail ?? '' }}" placeholder="Adresse exacte">
+                </div>
+            </form>
+        </div>
+
+        <aside class="order-card cart-summary">
+            <h2>Résumé de la commande</h2>
+            <div class="summary-row">
+                <span>Sous-total</span>
+                <strong>{{ subtotal|number_format(2, '.', ' ') }} EUR</strong>
+            </div>
+            <div class="summary-row">
+                <span>Livraison</span>
+                <strong>{{ shipping > 0 ? (shipping|number_format(2, '.', ' ') ~ ' EUR') : 'Gratuite' }}</strong>
+            </div>
+            <div class="summary-row summary-total">
+                <span>Total</span>
+                <strong>{{ total|number_format(2, '.', ' ') }} EUR</strong>
+            </div>
+            <div class="summary-cta">
+                <button type="submit" form="order-shipping-form" class="order-btn primary">Aller au paiement</button>
+                <a class="order-btn ghost" href="{{ path('front_order_cart') }}">Retour au panier</a>
+            </div>
+        </aside>
+    </div>
+</section>
 {% endblock %}

@@ -1,8 +1,10 @@
 ﻿<form method="post" action="{{ path('app_equipes_delete', {'id': equipe.id}) }}" 
-      onsubmit="return confirm('âš ï¸ ÃŠtes-vous sÃ»r de vouloir supprimer cette Ã©quipe ? Cette action est irrÃ©versible.')"
+      onsubmit="return confirm('⚠️ Êtes-vous sûr de vouloir supprimer cette équipe  Cette action est irréversible.')"
       style="display: inline;">
     <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ equipe.id) }}">
     <button class="btn-danger" style="padding: 14px 30px; border-radius: 12px; border: 2px solid var(--primary-pink); background: rgba(255, 0, 110, 0.1); color: var(--primary-pink); font-family: 'Orbitron', sans-serif; font-weight: 700; cursor: pointer; transition: all 0.3s;">
         <i class="fas fa-trash-alt"></i> Supprimer
     </button>
 </form>
+
+

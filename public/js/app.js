@@ -1,592 +1,297 @@
-/**
- * E-Sportify - Main JavaScript File
- * Centralised JavaScript for all pages
- */
+// ────────────────────────────────────────────────
+// Thème clair / sombre + persistance
+// ────────────────────────────────────────────────
+const themeToggle = document.getElementById('theme-toggle');
+const themeIcon   = document.getElementById('theme-icon');
+const htmlElement = document.documentElement;
 
-// ========================================
-// THEME TOGGLE
-// ========================================
-document.addEventListener('DOMContentLoaded', function () {
-    const themeToggle = document.getElementById('themeToggle');
-    if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
-            const body = document.body;
-            const currentTheme = body.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            body.setAttribute('data-theme', newTheme);
+function setTheme(theme) {
+    htmlElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
 
-            const icon = themeToggle.querySelector('i');
-            const text = themeToggle.querySelector('span');
-            if (newTheme === 'light') {
-                icon.className = 'fas fa-sun';
-                text.textContent = 'Mode Jour';
-            } else {
-                icon.className = 'fas fa-moon';
-                text.textContent = 'Mode Nuit';
-            }
-
-            // Save preference
-            localStorage.setItem('theme', newTheme);
-        });
-
-        // Load saved theme
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) {
-            document.body.setAttribute('data-theme', savedTheme);
-            const icon = themeToggle.querySelector('i');
-            const text = themeToggle.querySelector('span');
-            if (savedTheme === 'light') {
-                icon.className = 'fas fa-sun';
-                text.textContent = 'Mode Jour';
-            }
-        }
-    }
-});
-
-// ========================================
-// MANAGER TEAM FUNCTIONS (index.html.twig)
-// ========================================
-window.myTeamId = null;
-
-function confirmDeleteMyTeam() {
-    if (confirm('⚠️ Êtes-vous sûr de vouloir supprimer votre équipe ?\n\nCette action est irréversible et vous pourrez en créer une nouvelle après.')) {
-        window.location.href = 'delete.html?id=' + window.myTeamId;
+    if (themeIcon) {
+        themeIcon.innerHTML = theme === 'dark'
+            ? '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>'
+            : '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
     }
 }
 
-// ========================================
-// UI Helpers (global)
-// - radio highlight
-// - flash auto-hide
-// - forward server flashes stored in hidden container
-// ========================================
-function initRadioHighlights() {
-    document.querySelectorAll('input[type="radio"]').forEach(radio => {
-        radio.addEventListener('change', function () {
-            const group = document.querySelectorAll(`input[name="${this.name}"]`);
-            group.forEach(r => {
-                if (r.parentElement) {
-                    r.parentElement.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                    r.parentElement.style.background = 'transparent';
-                }
-            });
-            if (this.parentElement) {
-                this.parentElement.style.borderColor = 'var(--primary-blue)';
-                this.parentElement.style.background = 'rgba(0, 217, 255, 0.1)';
-            }
-        });
+if (themeToggle) {
+    // Chargement initial
+    const savedTheme = localStorage.getItem('theme') ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+    setTheme(savedTheme);
+
+    themeToggle.addEventListener('click', () => {
+        const current = htmlElement.getAttribute('data-theme');
+        setTheme(current === 'dark' ? 'light' : 'dark');
     });
 }
 
-function initFlashAutoHide() {
-    const flashes = document.querySelectorAll('.flash-success, .flash-error');
-    if (!flashes.length) return;
-    setTimeout(() => {
-        flashes.forEach(el => {
-            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(-8px)';
-            setTimeout(() => el.remove(), 700);
-        });
-    }, 3000);
-}
+// --------------------------------------------------
+// Sidebar toggle (bouton = ouvrir/fermer)
+// --------------------------------------------------
+const sidebar = document.getElementById('sidebar');
+const sidebarToggle = document.getElementById('sidebar-toggle');
 
-function initFlashForwarding() {
-    try {
-        const el = document.getElementById('flash-data');
-        if (!el) return;
-        const success = el.getAttribute('data-flashes-success');
-        const error = el.getAttribute('data-flashes-error');
-        const flashes = [];
-        try { if (success) JSON.parse(success).forEach(m => flashes.push({ message: m })); } catch (e) { }
-        try { if (error) JSON.parse(error).forEach(m => flashes.push({ message: m })); } catch (e) { }
-
-        const forwarded = flashes.filter(f => {
-            const s = (f.message || '').toLowerCase();
-            return s.includes('cré') || s.includes('supprim') || s.includes('sélection');
-        });
-
-        if (forwarded.length > 0) {
-            localStorage.setItem('flash_for_manage', JSON.stringify(forwarded));
-        }
-    } catch (e) {
-        // noop
+if (sidebar && sidebarToggle) {
+    const savedState = localStorage.getItem('sidebar');
+    if (savedState === 'expanded') {
+        sidebar.classList.add('expanded');
     }
+
+    sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('expanded');
+        localStorage.setItem('sidebar', sidebar.classList.contains('expanded') ? 'expanded' : 'collapsed');
+    });
 }
 
-// Initialize global UI helpers on DOM ready
-document.addEventListener('DOMContentLoaded', function () {
-    initRadioHighlights();
-    initFlashAutoHide();
-    initFlashForwarding();
+// --------------------------------------------------
+// Sidebar accordion navigation
+// --------------------------------------------------
+document.querySelectorAll('.sidebar-accordion-toggle').forEach((toggle) => {
+    toggle.addEventListener('click', () => {
+        const group = toggle.closest('.sidebar-group');
+        if (!group) {
+            return;
+        }
+
+        const isOpen = group.classList.contains('open');
+        document.querySelectorAll('.sidebar-group.open').forEach((openGroup) => {
+            if (openGroup === group) {
+                return;
+            }
+
+            openGroup.classList.remove('open');
+            const openToggle = openGroup.querySelector('.sidebar-accordion-toggle');
+            if (openToggle) {
+                openToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        group.classList.toggle('open', !isOpen);
+        toggle.setAttribute('aria-expanded', (!isOpen).toString());
+    });
 });
 
-function loadManagerTeam() {
-    // Simulation: Le manager n'a pas d'équipe
-    const hasTeam = false;
+// ────────────────────────────────────────────────
+// Animation curseur sidebar (hover = expand)
+// ────────────────────────────────────────────────
 
-    if (hasTeam) {
-        const myTeam = {
-            id: 4,
-            name: "Phoenix Legends",
-            rank: "Platine",
-            description: "Notre équipe vise l'excellence dans tous les tournois !",
-            date: "28/01/2025",
-            recruits: 2,
-            image: "images/phoenix.jpg"
-        };
-        displayManagerTeam(myTeam);
-    } else {
-        displayNoTeam();
+// --------------------------------------------------
+// Admin composer (posts/annonces)
+// --------------------------------------------------
+function setupAdminComposer(form) {
+    const contentInput = form.querySelector('[data-content]');
+    const mediaTypeInput = form.querySelector('[data-media-type]');
+    const mediaFilenameInput = form.querySelector('[data-media-filename]');
+    const linkInput = form.querySelector('[data-link]');
+    const mediaFileInput = form.querySelector('[data-media-file]');
+    const mediaPreview = form.querySelector('[data-media-preview]');
+    const buttons = form.querySelectorAll('[data-media-button]');
+
+    if (!contentInput || !mediaTypeInput || !mediaFilenameInput) {
+        return;
     }
-}
 
-function displayManagerTeam(team) {
-    window.myTeamId = team.id;
+    const urlRegex = /(https?:\/\/[^\s]+)/i;
 
-    const noTeamState = document.getElementById('no-team-state');
-    const hasTeamState = document.getElementById('has-team-state');
+    const setMediaType = (type) => {
+        mediaTypeInput.value = type;
+    };
 
-    if (noTeamState) noTeamState.style.display = 'none';
-    if (hasTeamState) hasTeamState.style.display = 'block';
+    const clearMedia = () => {
+        if (mediaTypeInput) {
+            mediaTypeInput.value = '';
+        }
+        if (mediaFilenameInput) {
+            mediaFilenameInput.value = '';
+        }
+        if (mediaFileInput) {
+            mediaFileInput.value = '';
+        }
+        if (mediaPreview) {
+            mediaPreview.style.display = 'none';
+            mediaPreview.innerHTML = '';
+        }
+    };
 
-    // Remplir les données
-    const teamName = document.getElementById('team-name');
-    const teamRank = document.getElementById('team-rank');
-    const teamDescription = document.getElementById('team-description');
-    const teamDate = document.getElementById('team-date');
-    const teamRecruits = document.getElementById('team-recruits');
-    const teamImage = document.getElementById('team-image');
+    const setPreview = (file) => {
+        if (!mediaPreview) {
+            return;
+        }
 
-    if (teamName) teamName.textContent = team.name;
-    if (teamRank) teamRank.innerHTML = `<i class="fas fa-medal"></i> ${team.rank}`;
-    if (teamDescription) teamDescription.textContent = team.description;
-    if (teamDate) teamDate.textContent = team.date;
-    if (teamRecruits) teamRecruits.textContent = team.recruits;
-    if (teamImage) teamImage.src = team.image;
-}
+        if (!file) {
+            mediaPreview.style.display = 'none';
+            mediaPreview.innerHTML = '';
+            return;
+        }
 
-function displayNoTeam() {
-    const noTeamState = document.getElementById('no-team-state');
-    const hasTeamState = document.getElementById('has-team-state');
+        const mime = file.type || '';
+        const url = URL.createObjectURL(file);
 
-    if (noTeamState) noTeamState.style.display = 'block';
-    if (hasTeamState) hasTeamState.style.display = 'none';
-}
-
-// ========================================
-
-// Load manager team on index page
-if (document.getElementById('my-team-container')) {
-    loadManagerTeam();
-}
-
-// ========================================
-// JOIN TEAM MODAL
-// ========================================
-function showJoinTeamModal() {
-    const modal = document.getElementById('join-team-modal');
-    if (modal) {
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
-    }
-}
-
-function closeJoinTeamModal() {
-    const modal = document.getElementById('join-team-modal');
-    if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
-}
-
-function searchTeams() {
-    const searchInput = document.getElementById('team-search');
-    if (!searchInput) return;
-
-    const searchTerm = searchInput.value.toLowerCase().trim();
-    const availableTeams = document.getElementById('available-teams');
-    const noTeamsFound = document.getElementById('no-teams-found');
-
-    if (!availableTeams) return;
-
-    const teamCards = availableTeams.querySelectorAll('.card');
-    let visibleCount = 0;
-
-    teamCards.forEach(card => {
-        const teamName = card.querySelector('h3')?.textContent.toLowerCase() || '';
-        if (searchTerm === '' || teamName.includes(searchTerm)) {
-            card.style.display = 'block';
-            visibleCount++;
+        if (mime.startsWith('video/')) {
+            mediaPreview.innerHTML = `<video controls src="${url}"></video>`;
+        } else if (mime.startsWith('image/')) {
+            mediaPreview.innerHTML = `<img src="${url}" alt="aperçu">`;
         } else {
-            card.style.display = 'none';
+            mediaPreview.innerHTML = '';
         }
+
+        if (mediaPreview.innerHTML) {
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'media-remove-btn';
+            removeBtn.textContent = 'Retirer';
+            removeBtn.addEventListener('click', clearMedia);
+            mediaPreview.appendChild(removeBtn);
+        }
+
+        mediaPreview.style.display = 'block';
+    };
+
+    const detectLink = () => {
+        if (mediaFileInput && mediaFileInput.files && mediaFileInput.files.length > 0) {
+            return;
+        }
+        const match = contentInput.value.match(urlRegex);
+        if (match) {
+            setMediaType('link');
+            mediaFilenameInput.value = match[1];
+            if (linkInput) {
+                linkInput.value = match[1];
+            }
+        }
+    };
+
+    contentInput.addEventListener('input', detectLink);
+    detectLink();
+
+    buttons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const type = btn.getAttribute('data-media-button');
+            if (type === 'link') {
+                setMediaType('link');
+                detectLink();
+                contentInput.focus();
+                return;
+            }
+
+            setMediaType(type);
+            if (mediaFileInput) {
+                mediaFileInput.click();
+            }
+        });
     });
 
-    if (visibleCount === 0) {
-        availableTeams.style.display = 'none';
-        if (noTeamsFound) noTeamsFound.style.display = 'block';
-    } else {
-        availableTeams.style.display = 'grid';
-        if (noTeamsFound) noTeamsFound.style.display = 'none';
-    }
-}
-
-function applyToTeam(teamId, teamName) {
-    // Redirection directe vers le formulaire
-    window.location.href = '/equipe/' + teamId + '/postuler';
-}
-
-// Close modal on ESC
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        closeJoinTeamModal();
-        closeEditModal();
-        closeDeleteModal();
-    }
-});
-
-// Search on Enter key
-document.addEventListener('DOMContentLoaded', () => {
-    const teamSearch = document.getElementById('team-search');
-    if (teamSearch) {
-        teamSearch.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                searchTeams();
+    if (mediaFileInput) {
+        mediaFileInput.addEventListener('change', () => {
+            if (mediaFileInput.files && mediaFileInput.files.length > 0) {
+                const file = mediaFileInput.files[0];
+                const mime = file.type || '';
+                setMediaType(mime.startsWith('video/') ? 'video' : 'image');
+                mediaFilenameInput.value = '';
+                setPreview(file);
+            } else {
+                setPreview(null);
             }
         });
     }
-});
 
-// ========================================
-// TEAM CREATION FUNCTIONS (new.html.twig)
-// ========================================
-let teamData = null;
+    if (mediaPreview && mediaPreview.innerHTML.trim() !== '') {
+        mediaPreview.style.display = 'block';
+        const existingRemove = mediaPreview.querySelector('.media-remove-btn');
+        if (existingRemove) {
+            existingRemove.addEventListener('click', clearMedia);
+        }
+    }
+}
 
-// Initialize page for team creation
-document.addEventListener('DOMContentLoaded', function () {
-    const teamDateInput = document.getElementById('teamDate');
-    const teamIdInput = document.getElementById('teamId');
+window.setupAdminComposer = setupAdminComposer;
+document.querySelectorAll('form[data-composer]').forEach(setupAdminComposer);
+document.querySelectorAll('[data-composer-front]').forEach(setupAdminComposer);
 
-    if (teamDateInput) {
-        const today = new Date().toISOString().split('T')[0];
-        teamDateInput.value = today;
+// --------------------------------------------------
+// Admin upload preview (drag & drop zone)
+// --------------------------------------------------
+document.querySelectorAll('[data-upload]').forEach((box) => {
+    const input = box.querySelector('[data-upload-input]');
+    const preview = box.querySelector('[data-preview]');
+    const placeholder = box.querySelector('[data-placeholder]');
+
+    if (!input || !preview || !placeholder) {
+        return;
     }
 
-    if (teamIdInput) {
-        teamIdInput.value = 'EQ-' + Math.random().toString(36).substr(2, 8).toUpperCase();
-    }
+    input.addEventListener('change', () => {
+        const file = input.files && input.files[0] ? input.files[0] : null;
+        if (!file) {
+            preview.style.display = 'none';
+            preview.innerHTML = '';
+            placeholder.style.display = 'block';
+            return;
+        }
 
-    // Check if team already exists in localStorage
-    const savedTeam = localStorage.getItem('myTeam');
-    if (savedTeam && document.getElementById('team-created-section')) {
-        teamData = JSON.parse(savedTeam);
-        showTeamCreatedSection();
-        showTeamManagement();
-    }
-
-    // Add hover effect to logo upload
-    const logoContainer = document.getElementById('logoPreviewContainer');
-    const uploadOverlay = document.getElementById('uploadOverlay');
-    if (logoContainer && uploadOverlay) {
-        logoContainer.addEventListener('mouseenter', function () {
-            uploadOverlay.style.opacity = '1';
-        });
-        logoContainer.addEventListener('mouseleave', function () {
-            uploadOverlay.style.opacity = '0';
-        });
-    }
-});
-
-// Preview uploaded logo
-function previewLogo(input) {
-    if (input.files && input.files[0]) {
         const reader = new FileReader();
-        reader.onload = function (e) {
-            const preview = document.getElementById('logoPreview');
-            if (preview) {
-                preview.src = e.target.result;
-                preview.style.border = '3px solid var(--primary-blue)';
-            }
-            window.teamLogoData = e.target.result;
-        };
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-
-// Update visibility label
-function updateVisibilityLabel() {
-    const isPrivate = document.getElementById('teamPrivate')?.checked;
-    const visibilityLabel = document.getElementById('visibilityLabel');
-    const visibilityDescription = document.getElementById('visibilityDescription');
-
-    if (visibilityLabel) {
-        visibilityLabel.textContent = isPrivate ? 'Équipe Privée' : 'Équipe Publique';
-    }
-    if (visibilityDescription) {
-        visibilityDescription.textContent = isPrivate
-            ? 'Seuls les joueurs invités peuvent rejoindre votre équipe'
-            : 'Tout le monde peut voir et demander à rejoindre votre équipe';
-    }
-}
-
-function updateEditVisibilityLabel() {
-    const isPrivate = document.getElementById('editTeamPrivate')?.checked;
-    const editVisibilityLabel = document.getElementById('editVisibilityLabel');
-
-    if (editVisibilityLabel) {
-        editVisibilityLabel.textContent = isPrivate ? 'Équipe Privée' : 'Équipe Publique';
-    }
-}
-
-// Create team
-function createTeam(event) {
-    event.preventDefault();
-    const form = event.target;
-    const formData = new FormData(form);
-
-    // Add logo data if present from some global variable (legacy support)
-    if (window.teamLogoData && !formData.has('logo')) {
-        formData.append('logo', window.teamLogoData);
-    }
-
-    const apiUrl = form.dataset.apiUrl || '/api/equipes/create';
-
-    console.log('Tentative de création d\'équipe via:', apiUrl);
-
-    fetch(apiUrl, {
-        method: 'POST',
-        body: formData
-    })
-        .then(response => response.json().then(data => ({ status: response.status, body: data })))
-        .then(result => {
-            console.log('Réponse du serveur:', result);
-            if (result.status === 200 || result.status === 201 || result.body.success) {
-                const indexUrl = form.dataset.indexUrl || '/equipe/';
-                window.location.href = indexUrl;
+        reader.onload = (event) => {
+            const mime = file.type || '';
+            if (mime.startsWith('video/')) {
+                preview.innerHTML = `<video controls src="${event.target.result}"></video>`;
             } else {
-                // AFFICHAGE DES ERREURS DU CONTROLLER
-                if (result.body.errors && Array.isArray(result.body.errors)) {
-                    // On affiche chaque erreur individuellement
-                    result.body.errors.forEach(msg => {
-                        showNotification(msg, 'error');
-                    });
-                } else {
-                    // Message de secours si le format est différent
-                    showNotification(result.body.message || "Une erreur est survenue lors de la création.", 'error');
-                }
+                preview.innerHTML = `<img src="${event.target.result}" alt="Aperçu">`;
             }
-        })
-        .catch(error => {
-            console.error('Erreur réseau:', error);
-            showNotification('Erreur réseau ou serveur: ' + (error.message || 'Inconnue'), 'error');
-        });
-
-    return false;
-}
-
-function showTeamCreatedSection() {
-    const createSection = document.getElementById('create-team-section');
-    const createdSection = document.getElementById('team-created-section');
-
-    if (createSection) createSection.style.display = 'none';
-    if (createdSection) createdSection.style.display = 'block';
-
-    if (teamData) {
-        updateDisplayedTeamInfo();
-    }
-}
-
-function showTeamManagement() {
-    const management = document.getElementById('team-management');
-    const successCard = document.querySelector('.success-card');
-
-    if (management) management.style.display = 'block';
-    if (successCard) successCard.style.display = 'none';
-
-    updateDisplayedTeamInfo();
-}
-
-function updateDisplayedTeamInfo() {
-    if (!teamData) return;
-
-    const displayTeamName = document.getElementById('displayTeamName');
-    const displayId = document.getElementById('displayId');
-    const displayTag = document.getElementById('displayTag');
-    const displayDate = document.getElementById('displayDate');
-    const displayMaxMembers = document.getElementById('displayMaxMembers');
-    const displayRegion = document.getElementById('displayRegion');
-    const displayVisibility = document.getElementById('displayVisibility');
-    const displayDescription = document.getElementById('displayDescription');
-    const maxMemberDisplay = document.getElementById('maxMemberDisplay');
-
-    if (displayTeamName) displayTeamName.textContent = '[' + teamData.tag + '] ' + teamData.name;
-    if (displayId) displayId.textContent = teamData.id;
-    if (displayTag) displayTag.textContent = '[' + teamData.tag + ']';
-    if (displayDate) displayDate.textContent = formatDate(teamData.date);
-    if (displayMaxMembers) displayMaxMembers.textContent = teamData.maxMembers + ' Membres';
-    if (displayRegion) displayRegion.textContent = teamData.region;
-    if (displayVisibility) displayVisibility.textContent = teamData.isPrivate ? '🔒 Privée' : '🌐 Publique';
-    if (displayDescription) displayDescription.textContent = teamData.description;
-    if (maxMemberDisplay) maxMemberDisplay.textContent = teamData.maxMembers;
-}
-
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
-// ========================================
-// EDIT/DELETE MODALS
-// ========================================
-function openEditModal() {
-    const modal = document.getElementById('editModal');
-    if (!modal || !teamData) return;
-
-    modal.style.display = 'block';
-
-    const editTeamName = document.getElementById('editTeamName');
-    const editMaxMembers = document.getElementById('editMaxMembers');
-    const editRegion = document.getElementById('editRegion');
-    const editTeamPrivate = document.getElementById('editTeamPrivate');
-    const editDescription = document.getElementById('editDescription');
-
-    if (editTeamName) editTeamName.value = teamData.name;
-    if (editMaxMembers) editMaxMembers.value = teamData.maxMembers;
-    if (editRegion) editRegion.value = teamData.region;
-    if (editTeamPrivate) editTeamPrivate.checked = teamData.isPrivate;
-    if (editDescription) editDescription.value = teamData.description;
-
-    updateEditVisibilityLabel();
-    document.body.style.overflow = 'hidden';
-}
-
-function closeEditModal() {
-    const modal = document.getElementById('editModal');
-    if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
-}
-
-function updateTeam(event) {
-    event.preventDefault();
-
-    if (!teamData) return false;
-
-    teamData.name = document.getElementById('editTeamName')?.value || teamData.name;
-    teamData.maxMembers = document.getElementById('editMaxMembers')?.value || teamData.maxMembers;
-    teamData.region = document.getElementById('editRegion')?.value || teamData.region;
-    teamData.isPrivate = document.getElementById('editTeamPrivate')?.checked || false;
-    teamData.description = document.getElementById('editDescription')?.value || teamData.description;
-
-    localStorage.setItem('myTeam', JSON.stringify(teamData));
-    updateDisplayedTeamInfo();
-    closeEditModal();
-
-    showNotification('Équipe mise à jour avec succès !', 'success');
-
-    return false;
-}
-
-function openDeleteModal() {
-    const modal = document.getElementById('deleteModal');
-    if (modal) {
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
-    }
-}
-
-function closeDeleteModal() {
-    const modal = document.getElementById('deleteModal');
-    if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
-}
-
-function deleteTeam() {
-    localStorage.removeItem('myTeam');
-    teamData = null;
-    closeDeleteModal();
-
-    // Redirect to index page
-    const indexUrl = document.body.dataset.indexUrl || '/equipe';
-    window.location.href = indexUrl;
-}
-
-// Close modals on outside click
-document.addEventListener('DOMContentLoaded', function () {
-    const editModal = document.getElementById('editModal');
-    const deleteModal = document.getElementById('deleteModal');
-
-    if (editModal) {
-        editModal.addEventListener('click', function (e) {
-            if (e.target === this) closeEditModal();
-        });
-    }
-
-    if (deleteModal) {
-        deleteModal.addEventListener('click', function (e) {
-            if (e.target === this) closeDeleteModal();
-        });
-    }
+            preview.style.display = 'block';
+            placeholder.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    });
 });
 
-// ========================================
-// NOTIFICATIONS
-// ========================================
-function showNotification(message, type) {
-    const notification = document.createElement('div');
-    notification.className = 'notification notification-' + type;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 20px 30px;
-        background: ${type === 'success' ? 'var(--success-color)' : 'var(--primary-pink)'};
-        color: white;
-        border-radius: 12px;
-        font-weight: 600;
-        z-index: 10000;
-        animation: slideIn 0.3s ease;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    `;
-    notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
-    document.body.appendChild(notification);
+// --------------------------------------------------
+// Cart quantity controls (+ / -)
+// --------------------------------------------------
+document.querySelectorAll('[data-qty-form]').forEach((form) => {
+  const input = form.querySelector('[data-qty-input]');
+  const minus = form.querySelector('[data-qty-minus]');
+  const plus = form.querySelector('[data-qty-plus]');
 
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
+  if (!input) {
+    return;
+  }
 
-// ========================================
-// RECRUITMENT FILTER FUNCTIONS
-// ========================================
-function filterRequests(status) {
-    // Update active tab
-    document.querySelectorAll('.filter-tab').forEach(tab => {
-        tab.classList.remove('active');
-        // Simple check based on text content or data attribute if simpler
-        // Here we rely on the text content mapping from the original code
-        const tabText = tab.textContent.toLowerCase();
-        if ((status === 'all' && tabText.includes('toutes')) ||
-            (status === 'pending' && tabText.includes('en attente')) ||
-            (status === 'accepted' && tabText.includes('acceptées')) ||
-            (status === 'refused' && tabText.includes('refusées'))) {
-            tab.classList.add('active');
-        }
+  const getMin = () => parseInt(input.min || '1', 10);
+  const getMax = () => parseInt(input.max || '999', 10);
+
+  const clamp = (value) => {
+    const min = getMin();
+    const max = getMax();
+    const num = Number.isNaN(value) ? min : value;
+    return Math.min(Math.max(num, min), max);
+  };
+
+  const submit = () => {
+    form.submit();
+  };
+
+  if (minus) {
+    minus.addEventListener('click', () => {
+      const next = clamp(parseInt(input.value || '1', 10) - 1);
+      input.value = next;
+      submit();
     });
+  }
 
-    // Filter cards
-    document.querySelectorAll('.recruitment-card').forEach(card => {
-        if (status === 'all' || card.dataset.status === status) {
-            card.style.display = 'block';
-            card.classList.add('animate__fadeIn');
-        } else {
-            card.style.display = 'none';
-            card.classList.remove('animate__fadeIn');
-        }
+  if (plus) {
+    plus.addEventListener('click', () => {
+      const next = clamp(parseInt(input.value || '1', 10) + 1);
+      input.value = next;
+      submit();
     });
-}
+  }
+
+  input.addEventListener('change', () => {
+    input.value = clamp(parseInt(input.value || '1', 10));
+    submit();
+  });
+});

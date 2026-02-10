@@ -3,53 +3,49 @@
 {% block title %}Modifier Profil - E-Sportify{% endblock %}
 
 {% block body %}
-<div class="page-header animate__animated animate__fadeIn">
-    <h1 class="hero-title">Modifier Profil</h1>
-    <p class="hero-subtitle">Mettez à jour vos informations personnelles</p>
-</div>
+<section class="profile-hero">
+    <div class="profile-hero-inner">
+        <div class="profile-kicker">Edit</div>
+        <h1 class="profile-title">Modifier le profil</h1>
+        <p class="profile-lead">Mettez a jour vos informations personnelles.</p>
+    </div>
+    <div class="profile-hero-glow"></div>
+</section>
 
-<div class="form-container animate__animated animate__fadeInUp" style="max-width: 700px; margin-top: -20px;">
-    <div class="form-card">
-        <div class="form-header">
-            <h2 class="section-heading"><i class="fas fa-user-edit"></i> Édition</h2>
-            <p class="form-subtitle">Modifiez les champs ci-dessous pour mettre à jour votre compte.</p>
-        </div>
-
-        {{ form_start(form, {'attr': {'class': 'form-column', 'novalidate': 'novalidate'}}) }}
-            
-            <div class="form-group">
-                <label class="form-label"><i class="fas fa-signature"></i> Nom Complet</label>
-                {{ form_widget(form.nom, {'attr': {'class': 'form-input', 'placeholder': 'Votre nom'}}) }}
-                <div class="form-help" style="color: var(--error-color);">{{ form_errors(form.nom) }}</div>
+<section class="profile-shell">
+    <div class="profile-card">
+        <div class="profile-section-title">Edition</div>
+        {{ form_start(form, {'attr': {'class': 'profile-form', 'novalidate': 'novalidate'}}) }}
+            <div class="profile-field">
+                <label><i class="fas fa-signature"></i> Nom complet</label>
+                {{ form_widget(form.nom, {'attr': {'class': 'profile-input', 'placeholder': 'Votre nom'}}) }}
+                <div class="profile-help error">{{ form_errors(form.nom) }}</div>
             </div>
 
             {% if form.pseudo is defined %}
-            <div class="form-group">
-                <label class="form-label"><i class="fas fa-user-tag"></i> Pseudo</label>
-                {{ form_widget(form.pseudo, {'attr': {'class': 'form-input', 'placeholder': 'Votre pseudo'}}) }}
-                <div class="form-help" style="color: var(--error-color);">{{ form_errors(form.pseudo) }}</div>
+            <div class="profile-field">
+                <label><i class="fas fa-user-tag"></i> Pseudo</label>
+                {{ form_widget(form.pseudo, {'attr': {'class': 'profile-input', 'placeholder': 'Votre pseudo'}}) }}
+                <div class="profile-help error">{{ form_errors(form.pseudo) }}</div>
             </div>
             {% endif %}
 
-            <div class="form-group">
-                <label class="form-label"><i class="fas fa-lock"></i> Nouveau Mot de passe (optionnel)</label>
-                {{ form_widget(form.plainPassword, {'attr': {'class': 'form-input', 'placeholder': 'Laisser vide pour ne pas changer'}}) }}
-                <div class="form-help" style="color: var(--text-secondary); font-size: 12px; margin-top: 5px;">
-                    Min. 6 caractères, 1 lettre et 1 chiffre.
-                </div>
-                <div class="form-help" style="color: var(--error-color);">{{ form_errors(form.plainPassword) }}</div>
+            <div class="profile-field">
+                <label><i class="fas fa-lock"></i> Nouveau mot de passe (optionnel)</label>
+                {{ form_widget(form.plainPassword, {'attr': {'class': 'profile-input', 'placeholder': 'Laisser vide pour ne pas changer'}}) }}
+                <div class="profile-help">Min. 6 caracteres, 1 lettre et 1 chiffre.</div>
+                <div class="profile-help error">{{ form_errors(form.plainPassword) }}</div>
             </div>
 
-            <div class="form-actions centered" style="margin-top: 40px;">
-                <button type="submit" class="btn-gradient" style="flex: 1; justify-content: center;">
+            <div class="profile-actions">
+                <button type="submit" class="profile-btn">
                     <i class="fas fa-save"></i> Enregistrer
                 </button>
-                <a href="{{ path('app_profile') }}" class="btn-outline" style="flex: 1; justify-content: center; text-decoration: none; color: white; border-color: rgba(255,255,255,0.3);">
+                <a href="{{ path('app_profile') }}" class="profile-btn ghost">
                     <i class="fas fa-times"></i> Annuler
                 </a>
             </div>
-            
         {{ form_end(form) }}
     </div>
-</div>
+</section>
 {% endblock %}

@@ -1,23 +1,70 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
+
+{% block title %}Commande Confirmee{% endblock %}
 
 {% block body %}
-    <h1>Commande Confirmée</h1>
-    <p>Merci pour votre commande ! Elle est en attente de paiement.</p>
-    
-    {% if commande %}
-        <p><strong>Numéro de commande:</strong> {{ commande.id }}</p>
-        <p><strong>Statut:</strong> {{ commande.statut }}</p>
-        
-        <h2>Détails de la commande</h2>
-        <ul>
-            {% for ligne in commande.lignesCommande %}
-                <li>{{ ligne.produit.nom }} x {{ ligne.quantite }} - {{ ligne.prix / 100 }} €</li>
-            {% endfor %}
-        </ul>
-        
-        <a href="{{ path('front_payment_init', {'id': commande.id}) }}" class="pro-btn pro-btn-primary">Payer maintenant</a>
-    {% endif %}
-    
-    <br><br>
-    <a href="{{ path('app_front_produit_index') }}">Retour à la boutique</a>
+<section class="order-hero">
+    <div class="order-hero-inner">
+        <div class="order-kicker">Confirmed</div>
+        <h1 class="order-title">Commande confirmee</h1>
+        <p class="order-lead">Merci ! Votre commande est en attente de paiement.</p>
+    </div>
+    <div class="order-hero-glow"></div>
+</section>
+
+<section class="order-shell">
+    <div class="order-flow">
+        <div class="order-steps">
+            <div class="order-step completed">
+                <span class="step-index">1</span>
+                <span class="step-label">Panier</span>
+            </div>
+            <div class="order-step completed">
+                <span class="step-index">2</span>
+                <span class="step-label">Livraison</span>
+            </div>
+            <div class="order-step completed">
+                <span class="step-index">3</span>
+                <span class="step-label">Paiement</span>
+            </div>
+            <div class="order-step active">
+                <span class="step-index">4</span>
+                <span class="step-label">Confirmation</span>
+            </div>
+        </div>
+        <div class="order-progress" style="--progress: 100%">
+            <span></span>
+        </div>
+    </div>
+
+    <div class="order-card">
+        {% if commande %}
+            <div class="order-summary">
+                <div>
+                    <span>Numero</span>
+                    <strong>#{{ commande.id }}</strong>
+                </div>
+                <div>
+                    <span>Statut</span>
+                    <strong>{{ commande.statut }}</strong>
+                </div>
+            </div>
+
+            <h2>Details de la commande</h2>
+            <ul class="order-list">
+                {% for ligne in commande.lignesCommande %}
+                    <li class="order-item">
+                        <span>{{ ligne.produit.nom }} x {{ ligne.quantite }}</span>
+                        <strong>{{ ligne.prix|number_format(2, '.', ' ') }} €</strong>
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <div class="order-actions">
+                <a href="{{ path('front_payment_init', {'id': commande.id}) }}" class="order-btn">Payer maintenant</a>
+                <a href="{{ path('app_front_produit_index') }}" class="order-link">Retour a la boutique</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
 {% endblock %}

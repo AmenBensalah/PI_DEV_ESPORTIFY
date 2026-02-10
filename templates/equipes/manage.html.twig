@@ -1,10 +1,12 @@
-﻿{% extends 'equipes/base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
+
+{% block body_class %}page-equipes{% endblock %}
 
 {% block title %}Gérer {{ equipe.nomEquipe }} - E-Sportify{% endblock %}
 
 {% block body %}
 
-{# ─── PAGE HEADER ─── #}
+{# --- PAGE HEADER --- #}
 <div class="page-header animate__animated animate__fadeIn">
     <h1 class="hero-title">
         <i class="fas fa-cog"></i> GESTION D'ÉQUIPE
@@ -14,7 +16,7 @@
     </p>
 </div>
 
-{# ─── QUICK STATS ROW ─── #}
+{# --- QUICK STATS ROW --- #}
 <div class="stats-section animate__animated animate__fadeInUp" style="max-width: 900px; margin: 0 auto 50px;">
     <div class="stat-card">
         <div class="stat-icon"><i class="fas fa-users"></i></div>
@@ -38,11 +40,11 @@
     </div>
 </div>
 
-{# ─── MAIN MANAGEMENT CARD ─── #}
+{# --- MAIN MANAGEMENT CARD --- #}
 <div class="form-container animate__animated animate__fadeInUp" style="max-width: 960px;">
     <div class="management-card">
 
-        {# ─── HEADER : Nom équipe + actions ─── #}
+        {# --- HEADER : Nom équipe + actions --- #}
         <div class="management-header">
             <h3><i class="fas fa-shield-alt"></i> {{ equipe.nomEquipe }}</h3>
             <div class="management-actions" style="flex-wrap: wrap; gap: 10px;">
@@ -61,7 +63,7 @@
             </div>
         </div>
 
-        {# ─── LOGO + DESCRIPTION SIDE BY SIDE ─── #}
+        {# --- LOGO + DESCRIPTION SIDE BY SIDE --- #}
         <div style="display: grid; grid-template-columns: auto 1fr; gap: 35px; align-items: center; margin-bottom: 35px; padding-bottom: 35px; border-bottom: 2px solid rgba(0,217,255,0.1);">
             {# Logo bloc #}
             <div style="text-align: center;">
@@ -93,7 +95,7 @@
             </div>
         </div>
 
-        {# ─── INFO GRID : ID, Date, Classement, Statut ─── #}
+        {# --- INFO GRID : ID, Date, Classement, Statut --- #}
         <div class="team-info-grid" style="margin-bottom: 40px;">
             <div class="info-item">
                 <div class="info-item-label"><i class="fas fa-hashtag"></i> ID de l'Équipe</div>
@@ -125,7 +127,7 @@
             </div>
         </div>
 
-        {# ─── MEMBRES ─── #}
+        {# --- MEMBRES --- #}
         <div class="members-section">
             <div class="members-header">
                 <h4><i class="fas fa-users"></i> Membres de l'Équipe
@@ -141,7 +143,7 @@
             </div>
 
             <div class="members-list">
-                {# ─── Créateur / Capitaine ─── #}
+                {# --- Créateur / Capitaine --- #}
                 <div class="member-item" style="border-color: rgba(255,215,0,0.25); background: linear-gradient(135deg, var(--darker-bg), rgba(255,215,0,0.04));">
                     <div class="member-avatar" style="border: 3px solid #FFD700; box-shadow: 0 0 14px rgba(255,215,0,0.35);">
                         <i class="fas fa-user"></i>
@@ -153,7 +155,7 @@
                     <span class="member-badge captain"><i class="fas fa-crown"></i> Capitaine</span>
                 </div>
 
-                {# ─── Autres membres (loop dynamique) ─── #}
+                {# --- Autres membres (loop dynamique) --- #}
                 {% if equipe.membres is defined and equipe.membres|length > 1 %}
                     {% for membre in equipe.membres %}
                         {% if membre != equipe.createur %}
@@ -171,7 +173,7 @@
                             </div>
                             <div style="display:flex; align-items:center; gap:10px;">
                                 <span class="member-badge member">Joueur</span>
-                                <form method="post" action="{{ path('app_equipes_remove_member', {'id': equipe.id}) }}" onsubmit="return confirm('Voulez-vous vraiment retirer ce membre ?');">
+                                <form method="post" action="{{ path('app_equipes_remove_member', {'id': equipe.id}) }}" onsubmit="return confirm('Voulez-vous vraiment retirer ce membre ');">
                                     <input type="hidden" name="user_id" value="{{ membre.id }}">
                                     <button type="submit" class="btn-action delete" style="padding: 8px 14px; font-size: 12px; cursor: pointer;" title="Retirer {{ membre.nomUtilisateur }}">
                                         <i class="fas fa-times"></i>
@@ -183,7 +185,7 @@
                     {% endfor %}
                 {% endif %}
 
-                {# ─── Slots libres visuels ─── #}
+                {# --- Slots libres visuels --- #}
                 {% set nombreMembres = equipe.membres|length|default(1) %}
                 {% for i in range(nombreMembres + 1, 10) %}
                     <div class="member-item" style="border-style: dashed; border-color: rgba(255,255,255,0.1); opacity: 0.45;">
@@ -202,7 +204,7 @@
             </div>
         </div>
 
-        {# ─── BACK BUTTON ─── #}
+        {# --- BACK BUTTON --- #}
         <div style="text-align: center; margin-top: 45px; padding-top: 30px; border-top: 2px solid rgba(0,217,255,0.1);">
             <a href="{{ path('app_equipes_index') }}" class="btn-secondary" style="padding: 14px 38px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; border-radius: var(--radius-full); font-weight: 700; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; transition: var(--transition);"
                onmouseover="this.style.background='var(--primary-blue)'; this.style.color='white'; this.style.transform='translateY(-3px)';"
@@ -213,13 +215,13 @@
     </div>
 </div>
 
-{# ─── DELETE MODAL ─── #}
+{# --- DELETE MODAL --- #}
 <div id="deleteModal" class="modal-overlay delete-modal">
     <div class="modal-content">
         <div class="delete-icon">
             <i class="fas fa-exclamation-triangle"></i>
         </div>
-        <h2 class="delete-title">Supprimer l'Équipe ?</h2>
+        <h2 class="delete-title">Supprimer l'Équipe </h2>
         <p class="delete-text">
             Cette action est <strong style="color: var(--primary-pink);">irréversible</strong>. 
             Tous les membres seront retirés et toutes les données de <strong style="color: var(--text-primary);">{{ equipe.nomEquipe }}</strong> seront perdues définitivement.
@@ -238,7 +240,7 @@
     </div>
 </div>
 
-{# ─── ADD MEMBER MODAL ─── #}
+{# --- ADD MEMBER MODAL --- #}
 <div id="addMemberModal" class="modal-overlay">
     <div class="modal-content" style="max-width: 500px;">
         <div style="text-align: center; margin-bottom: 25px;">
@@ -273,7 +275,7 @@
     </div>
 </div>
 
-{# ─── SCRIPTS ─── #}
+{# --- SCRIPTS --- #}
 <script>
     function openDeleteModal() {
         const modal = document.getElementById('deleteModal');

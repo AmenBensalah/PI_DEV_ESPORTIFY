@@ -1,0 +1,52 @@
+﻿{% extends 'admin/base.html.twig' %}
+
+{% block admin_body %}
+<div class="admin-page-header">
+    <div class="admin-page-title">Editer annonce #{{ announcement.id }}</div>
+    <a class="admin-link-btn" href="{{ path('fil_admin_announcement_index') }}">Retour</a>
+</div>
+
+<div class="admin-card">
+    {{ form_start(form, {attr: {class: 'admin-form', 'data-composer': 'announcement'}}) }}
+        {{ form_row(form.title) }}
+        {{ form_row(form.tag) }}
+
+        <div class="composer admin-composer">
+            <div class="composer-header">
+                <div class="avatar">A</div>
+                <strong>Admin</strong>
+            </div>
+            {{ form_widget(form.content, {attr: {class: 'composer-input', placeholder: "Ecrire une annonce, ajouter une image, une video, un lien...", 'data-content': ''}}) }}
+            <div class="admin-media-preview" data-media-preview {% if announcement.mediaFilename %}style="display: block;"{% endif %}>
+                {% if announcement.mediaType == 'image' and announcement.mediaFilename %}
+                    <img src="{{ asset(announcement.mediaFilename starts with 'http' ? announcement.mediaFilename : 'uploads/' ~ announcement.mediaFilename) }}" alt="media">
+                    <button type="button" class="media-remove-btn">Retirer</button>
+                {% elseif announcement.mediaType == 'video' and announcement.mediaFilename %}
+                    <video controls>
+                        <source src="{{ asset(announcement.mediaFilename starts with 'http' ? announcement.mediaFilename : 'uploads/' ~ announcement.mediaFilename) }}">
+                    </video>
+                    <button type="button" class="media-remove-btn">Retirer</button>
+                {% elseif announcement.mediaType == 'link' and announcement.mediaFilename %}
+                    <div class="media-placeholder">{{ announcement.mediaFilename }}</div>
+                    <button type="button" class="media-remove-btn">Retirer</button>
+                {% endif %}
+            </div>
+            <div class="composer-actions">
+                <div class="action-group">
+                    <button class="chip-btn" type="button" data-media-button="image"><i class="fa-regular fa-image"></i> Image</button>
+                    <button class="chip-btn" type="button" data-media-button="video"><i class="fa-solid fa-video"></i> Video</button>
+                    <button class="chip-btn" type="button" data-media-button="link"><i class="fa-solid fa-link"></i> Lien</button>
+                </div>
+                <button class="publish-btn" type="submit">Mettre a jour</button>
+            </div>
+        </div>
+
+        <div class="admin-hidden">
+            {{ form_row(form.link, {attr: {'data-link': ''}}) }}
+            {{ form_row(form.mediaType, {attr: {'data-media-type': ''}}) }}
+            {{ form_row(form.mediaFilename, {attr: {'data-media-filename': ''}}) }}
+        </div>
+        {{ form_widget(form.mediaFile, {attr: {class: 'admin-file-input', 'data-media-file': '', accept: 'image/*,video/*'}}) }}
+    {{ form_end(form) }}
+</div>
+{% endblock %}
