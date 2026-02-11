@@ -39,9 +39,15 @@
                 <div class="team-cover-actions">
                     {% if isMember %}
                         <span class="badge badge-success"><i class="fas fa-check-circle"></i> Membre officiel</span>
+                        <form method="post" action="{{ path('app_equipes_leave', {'id': equipe.id}) }}" onsubmit="return confirm('Confirmer la sortie de l\\'équipe ?');" style="display:inline;">
+                            <input type="hidden" name="_token" value="{{ csrf_token('leave' ~ equipe.id) }}">
+                            <button type="submit" class="btn-outline">
+                                <i class="fas fa-sign-out-alt"></i> Quitter l'équipe
+                            </button>
+                        </form>
                     {% endif %}
 
-                    {% if canJoinTeam %}
+                    {% if canJoinTeam and not isMember %}
                         <a href="{{ path('app_equipes_apply', {'id': equipe.id}) }}" class="btn-gradient">
                             <i class="fas fa-paper-plane"></i> Postuler
                         </a>
@@ -103,6 +109,9 @@
                         <th>Rôle</th>
                         <th>Date d'entrée</th>
                         <th>Profil</th>
+                        {% if isManager %}
+                            <th>Action</th>
+                        {% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -112,6 +121,9 @@
                             <td><span class="badge badge-info">Manager</span></td>
                             <td>{{ equipe.dateCreation|date('d/m/Y') }}</td>
                             <td><a href="#" class="admin-tournament-btn ghost">Profil</a></td>
+                            {% if isManager %}
+                                <td>-</td>
+                            {% endif %}
                         </tr>
                     {% endif %}
                     {% for member in members %}
@@ -120,6 +132,14 @@
                             <td><span class="badge badge-success">Membre</span></td>
                             <td>{{ member.date ?: '-' }}</td>
                             <td><a href="#" class="admin-tournament-btn ghost">Profil</a></td>
+                            {% if isManager %}
+                                <td>
+                                    <form method="post" action="{{ path('app_equipes_remove_member', {'id': equipe.id}) }}" onsubmit="return confirm('Voulez-vous vraiment retirer ce membre ?');">
+                                        <input type="hidden" name="user_id" value="{{ member.id }}">
+                                        <button type="submit" class="admin-tournament-btn danger">Exclure</button>
+                                    </form>
+                                </td>
+                            {% endif %}
                         </tr>
                     {% else %}
                         <tr>

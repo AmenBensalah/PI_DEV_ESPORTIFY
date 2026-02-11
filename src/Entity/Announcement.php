@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\AnnouncementRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AnnouncementRepository::class)]
 #[ORM\Table(name: 'announcements')]
@@ -16,13 +17,15 @@ class Announcement
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
-    private string $title;
+    #[Assert\NotBlank(message: "Le titre est obligatoire.")]
+    private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $content = null;
 
     #[ORM\Column(length: 60)]
-    private string $tag;
+    #[Assert\NotBlank(message: "Le tag est obligatoire.")]
+    private ?string $tag = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $link = null;
@@ -41,7 +44,7 @@ class Announcement
         return $this->id;
     }
 
-    public function getTitle(): string
+    public function getTitle(): ?string
     {
         return $this->title;
     }
@@ -65,7 +68,7 @@ class Announcement
         return $this;
     }
 
-    public function getTag(): string
+    public function getTag(): ?string
     {
         return $this->tag;
     }

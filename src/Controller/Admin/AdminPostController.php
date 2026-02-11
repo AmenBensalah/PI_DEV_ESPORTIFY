@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/fil/admin/posts')]
@@ -31,6 +32,18 @@ class AdminPostController extends AbstractController
         $post = new Post();
         $form = $this->createForm(PostType::class, $post);
         $form->handleRequest($request);
+
+        if ($form->isSubmitted()) {
+            $content = trim((string) $post->getContent());
+            $imagePath = trim((string) $post->getImagePath());
+            $videoUrl = trim((string) $post->getVideoUrl());
+            /** @var UploadedFile|null $uploadedFile */
+            $uploadedFile = $form->get('mediaFile')->getData();
+
+            if ($content === '' && $imagePath === '' && $videoUrl === '' && !$uploadedFile) {
+                $form->addError(new FormError('Veuillez saisir un contenu ou ajouter un média.'));
+            }
+        }
 
         if ($form->isSubmitted() && $form->isValid()) {
             if (!$post->getCreatedAt()) {
@@ -68,6 +81,18 @@ class AdminPostController extends AbstractController
     {
         $form = $this->createForm(PostType::class, $post);
         $form->handleRequest($request);
+
+        if ($form->isSubmitted()) {
+            $content = trim((string) $post->getContent());
+            $imagePath = trim((string) $post->getImagePath());
+            $videoUrl = trim((string) $post->getVideoUrl());
+            /** @var UploadedFile|null $uploadedFile */
+            $uploadedFile = $form->get('mediaFile')->getData();
+
+            if ($content === '' && $imagePath === '' && $videoUrl === '' && !$uploadedFile) {
+                $form->addError(new FormError('Veuillez saisir un contenu ou ajouter un média.'));
+            }
+        }
 
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var UploadedFile|null $uploadedFile */

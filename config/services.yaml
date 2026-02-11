@@ -9,6 +9,9 @@
 parameters:
     gemini_api_key: '%env(GEMINI_API_KEY)%'
     uploads_dir: '%kernel.project_dir%/public/uploads'
+    brevo_api_key: '%env(BREVO_API_KEY)%'
+    brevo_sender_email: '%env(BREVO_SENDER_EMAIL)%'
+    brevo_sender_name: '%env(BREVO_SENDER_NAME)%'
 
 services:
     # default configuration for services in *this* file
@@ -32,6 +35,12 @@ services:
     App\Service\FileUploader:
         arguments:
             $uploadDir: '%uploads_dir%'
+
+    App\Service\BrevoMailer:
+        arguments:
+            $apiKey: '%brevo_api_key%'
+            $senderEmail: '%brevo_sender_email%'
+            $senderName: '%brevo_sender_name%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

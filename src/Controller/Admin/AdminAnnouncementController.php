@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mime\Exception\InvalidArgumentException as MimeInvalidArgumentException;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/fil/admin/announcements')]
@@ -50,13 +51,21 @@ class AdminAnnouncementController extends AbstractController
 
                 $extension = $uploadedFile->guessExtension() ?: $uploadedFile->getClientOriginalExtension();
                 $filename = bin2hex(random_bytes(12)) . ($extension ? '.' . $extension : '');
+                $shouldDetectMediaType = in_array($announcement->getMediaType(), ['text', 'link'], true);
+                $mimeType = '';
+                if ($shouldDetectMediaType) {
+                    try {
+                        $mimeType = $uploadedFile->getMimeType() ?? '';
+                    } catch (MimeInvalidArgumentException $e) {
+                        $mimeType = '';
+                    }
+                }
 
                 try {
                     $uploadedFile->move($uploadDir, $filename);
                     $announcement->setMediaFilename($filename);
 
-                    if (in_array($announcement->getMediaType(), ['text', 'link'], true)) {
-                        $mimeType = $uploadedFile->getMimeType() ?? '';
+                    if ($shouldDetectMediaType) {
                         $announcement->setMediaType(str_starts_with($mimeType, 'video/') ? 'video' : 'image');
                     }
                 } catch (FileException $e) {
@@ -92,13 +101,21 @@ class AdminAnnouncementController extends AbstractController
 
                 $extension = $uploadedFile->guessExtension() ?: $uploadedFile->getClientOriginalExtension();
                 $filename = bin2hex(random_bytes(12)) . ($extension ? '.' . $extension : '');
+                $shouldDetectMediaType = in_array($announcement->getMediaType(), ['text', 'link'], true);
+                $mimeType = '';
+                if ($shouldDetectMediaType) {
+                    try {
+                        $mimeType = $uploadedFile->getMimeType() ?? '';
+                    } catch (MimeInvalidArgumentException $e) {
+                        $mimeType = '';
+                    }
+                }
 
                 try {
                     $uploadedFile->move($uploadDir, $filename);
                     $announcement->setMediaFilename($filename);
 
-                    if (in_array($announcement->getMediaType(), ['text', 'link'], true)) {
-                        $mimeType = $uploadedFile->getMimeType() ?? '';
+                    if ($shouldDetectMediaType) {
                         $announcement->setMediaType(str_starts_with($mimeType, 'video/') ? 'video' : 'image');
                     }
                 } catch (FileException $e) {

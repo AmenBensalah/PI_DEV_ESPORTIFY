@@ -1,0 +1,64 @@
+{% if users %}
+    <div class="admin-tournament-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr style="animation-delay: {{ loop.index0 * 0.05 }}s;" class="admin-tournament-row">
+                        <td>#{{ user.id }}</td>
+                        <td class="name">
+                            <div class="user-avatar-small">
+                                <div class="avatar-circle">{{ user.nom|first|upper }}</div>
+                                <span>{{ user.nom }}</span>
+                            </div>
+                        </td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if 'ROLE_ADMIN' in user.roles %}
+                                <span class="badge badge-info">Admin</span>
+                            {% elseif 'ROLE_MANAGER' in user.roles %}
+                                <span class="badge badge-success">Manager</span>
+                            {% elseif 'ROLE_ORGANISATEUR' in user.roles %}
+                                <span class="badge badge-warn">Organisateur</span>
+                            {% else %}
+                                <span class="badge badge-muted">Joueur</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge badge-success">Actif</span></td>
+                        <td>
+                            <div class="admin-tournament-row-actions">
+                                <a href="{{ path('app_admin_user_show', {'id': user.id}) }}" class="admin-tournament-icon" title="Voir">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ path('app_admin_user_edit', {'id': user.id}) }}" class="admin-tournament-icon cyan" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="post" action="{{ path('app_admin_user_delete', {'id': user.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                                    <button type="submit" class="admin-tournament-icon danger" title="Supprimer">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="admin-tournament-empty">
+        <div class="empty-ring"></div>
+        <strong>Aucun utilisateur trouvé</strong>
+        <p>Ajoutez un compte ou modifiez vos filtres.</p>
+    </div>
+{% endif %}

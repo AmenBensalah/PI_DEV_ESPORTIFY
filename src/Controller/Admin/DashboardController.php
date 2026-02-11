@@ -50,8 +50,15 @@ class DashboardController extends AbstractController
         $sort = $request->query->get('sort', 'id');
         $direction = $request->query->get('direction', 'DESC');
 
+        $users = $userRepository->searchAndSort($query, $role, $sort, $direction);
+        if ($request->isXmlHttpRequest() || $request->query->getBoolean('ajax')) {
+            return $this->render('admin/users/_table.html.twig', [
+                'users' => $users,
+            ]);
+        }
+
         return $this->render('admin/users/index.html.twig', [
-            'users' => $userRepository->searchAndSort($query, $role, $sort, $direction),
+            'users' => $users,
             'currentQuery' => $query,
             'currentRole' => $role,
             'currentSort' => $sort,
