@@ -283,6 +283,14 @@
                 <div class="field-error">{{ form_errors(registrationForm.confirmPassword) }}</div>
             {% endif %}
 
+            <div class="input-group">
+                {{ form_widget(registrationForm.avatarFile, {attr: {class: 'form-control', accept: 'image/*'}}) }}
+                <i class="fas fa-image"></i>
+            </div>
+            {% if registrationForm.avatarFile.vars.errors|length > 0 %}
+                <div class="field-error">{{ form_errors(registrationForm.avatarFile) }}</div>
+            {% endif %}
+
             <div class="checkbox-group">
                 {{ form_widget(registrationForm.agreeTerms) }}
                 {{ form_label(registrationForm.agreeTerms, 'J\'accepte les conditions d\'utilisation') }}

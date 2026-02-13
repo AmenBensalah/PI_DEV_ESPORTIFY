@@ -17,6 +17,18 @@
         <div class="profile-section-title">Edition</div>
         {{ form_start(form, {'attr': {'class': 'profile-form', 'novalidate': 'novalidate'}}) }}
             <div class="profile-field">
+                <label><i class="fas fa-image"></i> Photo de profil</label>
+                {% if app.user and app.user.avatar %}
+                    <div style="margin-bottom: 10px;">
+                        <img src="{{ asset('uploads/avatars/' ~ app.user.avatar) }}" alt="Avatar actuel" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid rgba(79,209,255,0.6);">
+                    </div>
+                {% endif %}
+                {{ form_widget(form.avatarFile, {'attr': {'class': 'profile-input', 'accept': 'image/*'}}) }}
+                <div class="profile-help">Formats: jpg, png, webp, gif. Taille max: 5 Mo.</div>
+                <div class="profile-help error">{{ form_errors(form.avatarFile) }}</div>
+            </div>
+
+            <div class="profile-field">
                 <label><i class="fas fa-signature"></i> Nom complet</label>
                 {{ form_widget(form.nom, {'attr': {'class': 'profile-input', 'placeholder': 'Votre nom'}}) }}
                 <div class="profile-help error">{{ form_errors(form.nom) }}</div>

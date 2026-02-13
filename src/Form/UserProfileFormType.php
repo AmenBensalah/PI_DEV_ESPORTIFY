@@ -4,10 +4,12 @@ namespace App\Form;
 
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\File;
 
 class UserProfileFormType extends AbstractType
 {
@@ -32,6 +34,18 @@ class UserProfileFormType extends AbstractType
                 'required' => false,
                 'label' => 'New Password (Leave empty to keep current password)',
                 'attr' => ['autocomplete' => 'new-password'],
+            ])
+            ->add('avatarFile', FileType::class, [
+                'mapped' => false,
+                'required' => false,
+                'label' => 'Photo de profil',
+                'constraints' => [
+                    new File([
+                        'maxSize' => '5M',
+                        'mimeTypes' => ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+                        'mimeTypesMessage' => 'Le fichier doit être une image valide (jpg, png, webp, gif).',
+                    ]),
+                ],
             ])
         ;
     }

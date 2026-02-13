@@ -1,0 +1,44 @@
+{% if commentaires %}
+    <div class="admin-tournament-table">
+        <table data-table="comments">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Auteur</th>
+                    <th>Publication</th>
+                    <th>Commentaire</th>
+                    <th>Création</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for comment in commentaires %}
+                    {% set authorName = comment.author ? (comment.author.pseudo ?: comment.author.nom) : 'Utilisateur' %}
+                    <tr class="admin-tournament-row">
+                        <td>#{{ comment.id }}</td>
+                        <td class="name">{{ authorName }}</td>
+                        <td>#{{ comment.post ? comment.post.id : 'N/A' }}</td>
+                        <td>{{ comment.content|default('')|slice(0, 80) }}</td>
+                        <td>{{ comment.createdAt ? comment.createdAt|date('d/m/Y H:i') : '' }}</td>
+                        <td>
+                            <div class="admin-tournament-row-actions">
+                                <form method="post" action="{{ path('fil_admin_comment_delete', {id: comment.id}) }}" onsubmit="return confirm('Supprimer ce commentaire ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_comment_' ~ comment.id) }}">
+                                    <button class="admin-tournament-icon danger" type="submit" title="Supprimer">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="admin-tournament-empty">
+        <div class="empty-ring"></div>
+        <strong>Aucun commentaire</strong>
+        <p>Les commentaires apparaîtront ici.</p>
+    </div>
+{% endif %}

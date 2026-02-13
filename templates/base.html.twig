@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}E-sportify{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-esportify.png') }}">
+    <link rel="shortcut icon" href="{{ asset('images/logo-esportify.png') }}">
 
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     {% block stylesheets %}{% endblock %}
@@ -15,7 +17,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
-<body class="{% block body_class %}{% endblock %}">
+<body class="{% block body_class %}{% endblock %}" data-user-id="{{ app.user ? app.user.id : 0 }}">
 
 <div class="background"></div>
 
@@ -90,18 +92,45 @@
         </div>
 
         <div class="topbar-right">
-            <button class="icon-btn" title="Notifications" aria-label="Notifications">
-                <svg viewBox="0 0 24 24" class="icon">
-                    <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-                    <path d="M13.73 21a2 2 0 01-3.46 0" />
-                </svg>
-            </button>
+            <div class="topbar-dropdown notif-dropdown" data-notif-dropdown>
+                <button class="icon-btn notif-btn" type="button" title="Notifications" aria-label="Notifications"
+                        data-notif-toggle
+                        data-notif-count-url="{{ path('app_notifications_count') }}"
+                        data-notif-panel-url="{{ path('app_notifications_panel') }}"
+                        data-notif-read-one-url="{{ path('app_notifications_read', {id: 0}) }}"
+                        data-notif-read-all-url="{{ path('app_notifications_read_all') }}"
+                        data-notif-token="{{ csrf_token('notifications') }}">
+                    <svg viewBox="0 0 24 24" class="icon">
+                        <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 01-3.46 0" />
+                    </svg>
+                    <span class="notif-badge" data-notif-badge style="display:none;">0</span>
+                </button>
+                <div class="dropdown-menu notif-menu" data-notif-menu>
+                    <div class="notif-loading">Chargement...</div>
+                </div>
+            </div>
 
-            <button class="icon-btn" title="Messages" aria-label="Messages">
-                <svg viewBox="0 0 24 24" class="icon">
-                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-                </svg>
-            </button>
+            <div class="topbar-dropdown msg-dropdown" data-msg-dropdown>
+                <button class="icon-btn msg-btn" type="button" title="Messages" aria-label="Messages"
+                        data-msg-toggle
+                        data-msg-count-url="{{ path('app_messages_count') }}"
+                        data-msg-panel-url="{{ path('app_messages_panel') }}"
+                        data-msg-thread-url-template="{{ path('app_messages_thread', {id: 0}) }}"
+                        data-msg-send-url-template="{{ path('app_messages_send', {id: 0}) }}"
+                        data-msg-read-url-template="{{ path('app_messages_read', {id: 0}) }}"
+                        data-msg-index-url="{{ path('app_messages_index') }}"
+                        data-msg-send-token="{{ csrf_token('message_send') }}"
+                        data-msg-read-token="{{ csrf_token('message_read') }}">
+                    <svg viewBox="0 0 24 24" class="icon">
+                        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                    </svg>
+                    <span class="msg-badge" data-msg-badge style="display:none;">0</span>
+                </button>
+                <div class="dropdown-menu msg-menu" data-msg-menu>
+                    <div class="msg-loading">Chargement...</div>
+                </div>
+            </div>
 
             <div class="topbar-dropdown" data-dropdown>
                 <button class="icon-btn" type="button" title="Paramètres" aria-label="Paramètres" data-dropdown-toggle>
@@ -138,6 +167,36 @@
 
 </div>
 
+<div class="chat-dock" data-chat-dock></div>
+
+<div class="media-lightbox" data-media-lightbox hidden>
+    <div class="media-lightbox-backdrop" data-media-close></div>
+    <div class="media-lightbox-card">
+        <button class="media-lightbox-close" type="button" data-media-close aria-label="Fermer">×</button>
+        <button class="media-lightbox-nav prev" type="button" data-media-prev aria-label="Media precedent">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <div class="media-lightbox-content" data-media-lightbox-content></div>
+        <button class="media-lightbox-nav next" type="button" data-media-next aria-label="Media suivant">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+    </div>
+</div>
+
+<div class="likes-modal" data-likes-modal hidden>
+    <div class="likes-modal-backdrop" data-likes-close></div>
+    <div class="likes-modal-card" role="dialog" aria-modal="true" aria-labelledby="likes-modal-title">
+        <div class="likes-modal-head">
+            <h3 id="likes-modal-title"><i class="fa-solid fa-heart"></i> Personnes qui aiment</h3>
+            <button type="button" class="likes-modal-close" data-likes-close aria-label="Fermer">×</button>
+        </div>
+        <div class="likes-modal-count" data-likes-count>0 personne</div>
+        <div class="likes-modal-list" data-likes-list>
+            <div class="likes-modal-empty">Chargement...</div>
+        </div>
+    </div>
+</div>
+
 <script src="{{ asset('js/app.js') }}"></script>
 <script>
 (() => {
@@ -162,6 +221,8 @@
             return;
         }
 
+        const selectedMediaFiles = [];
+
         if (videoRow) {
             videoRow.style.display = 'none';
         }
@@ -176,23 +237,30 @@
             if (imageFileInput) {
                 imageFileInput.value = '';
             }
+            selectedMediaFiles.length = 0;
             if (mediaPreview) {
                 mediaPreview.style.display = 'none';
                 mediaPreview.innerHTML = '';
             }
         };
 
-        const setPreview = (file) => {
+        const setPreview = (files) => {
             if (!mediaPreview) {
                 return;
             }
-            if (!file) {
+            if (!files || files.length === 0) {
                 mediaPreview.style.display = 'none';
                 mediaPreview.innerHTML = '';
                 return;
             }
-            const url = URL.createObjectURL(file);
-            mediaPreview.innerHTML = `<img src="${url}" alt="aperçu">`;
+            const previewItems = Array.from(files).slice(0, 6).map((file) => {
+                const url = URL.createObjectURL(file);
+                if ((file.type || '').startsWith('video/')) {
+                    return `<video controls><source src="${url}"></video>`;
+                }
+                return `<img src="${url}" alt="aperçu">`;
+            });
+            mediaPreview.innerHTML = `<div class="post-media-grid">${previewItems.join('')}</div>`;
             const removeBtn = document.createElement('button');
             removeBtn.type = 'button';
             removeBtn.className = 'media-remove-btn';
@@ -239,11 +307,21 @@
         if (imageFileInput) {
             imageFileInput.addEventListener('change', () => {
                 if (imageFileInput.files && imageFileInput.files.length > 0) {
-                    const file = imageFileInput.files[0];
-                    setPreview(file);
+                    Array.from(imageFileInput.files).forEach((file) => {
+                        const exists = selectedMediaFiles.some((f) =>
+                            f.name === file.name &&
+                            f.size === file.size &&
+                            f.lastModified === file.lastModified
+                        );
+                        if (!exists) {
+                            selectedMediaFiles.push(file);
+                        }
+                    });
+                    setPreview(selectedMediaFiles);
                 } else {
-                    setPreview(null);
+                    setPreview(selectedMediaFiles);
                 }
+                imageFileInput.value = '';
             });
         }
 
@@ -255,6 +333,7 @@
             eventMaxInput,
             videoUrlInput,
         };
+        root._mediaFiles = selectedMediaFiles;
     };
 
     document.querySelectorAll('[data-composer-front]').forEach(setup);
@@ -265,14 +344,44 @@
         return `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
     };
 
+    const normalizeBrokenText = (value) => {
+        const source = String(value || '');
+        if (!source) {
+            return '';
+        }
+        const replaced = source
+            .replaceAll('Ã©', 'é')
+            .replaceAll('Ã¨', 'è')
+            .replaceAll('Ãª', 'ê')
+            .replaceAll('Ã ', 'à')
+            .replaceAll('Ã¢', 'â')
+            .replaceAll('Ã®', 'î')
+            .replaceAll('Ã´', 'ô')
+            .replaceAll('Ã»', 'û')
+            .replaceAll('Ã§', 'ç')
+            .replaceAll('â€™', '\'')
+            .replaceAll('â€“', '-');
+
+        return replaced.replace(/(?<=\p{L})\?{1,3}(?=\p{L})/gu, 'e');
+    };
+
+    const normalizeFeedTextNodes = (root = document) => {
+        root.querySelectorAll('.post-content, .comment-text, .event-title, .event-location, .announce-row .title').forEach((node) => {
+            node.textContent = normalizeBrokenText(node.textContent || '');
+        });
+    };
+
         const buildPostCard = ({
             id,
             author,
+            authorAvatar,
+            authorInitial,
             createdAt,
             content,
             imageUrl,
             imagePath,
             videoUrl,
+            medias,
             isEvent,
         eventTitle,
         eventDate,
@@ -282,9 +391,14 @@
         participateUrl,
         likeCount,
         likeUrl,
+        likeListUrl,
         commentUrl,
         saveUrl,
         isSaved,
+        liked,
+        canManage,
+        editUrl,
+        deleteUrl,
     }) => {
         const article = document.createElement('article');
         article.className = `glass-card post-card${isEvent ? ' event-card' : ''}`;
@@ -295,10 +409,13 @@
 
         const header = document.createElement('div');
         header.className = 'post-header';
+        const avatarHtml = authorAvatar
+            ? `<img src="${authorAvatar}" alt="avatar">`
+            : (authorInitial || 'U');
         header.innerHTML = `
-            <div class="avatar">U</div>
+            <div class="avatar">${avatarHtml}</div>
             <div class="post-meta">
-                <div class="post-author">${author || 'Vous'}</div>
+                <div class="post-author">${normalizeBrokenText(author || 'Vous')}</div>
                 <div class="post-time">${createdAt || formatNow()}</div>
             </div>
         `;
@@ -309,8 +426,8 @@
             eventHeader.className = 'event-header';
             eventHeader.innerHTML = `
                 <div class="event-date">${eventDate || 'À confirmer'}</div>
-                <div class="event-title">${(eventTitle || 'ÉVÉNEMENT').toUpperCase()}</div>
-                ${eventLocation ? `<div class="event-location"><i class="fas fa-location-dot"></i> ${eventLocation}</div>` : ''}
+                <div class="event-title">${normalizeBrokenText((eventTitle || 'ÉVÉNEMENT').toUpperCase())}</div>
+                ${eventLocation ? `<div class="event-location"><i class="fas fa-location-dot"></i> ${normalizeBrokenText(eventLocation)}</div>` : ''}
             `;
             article.appendChild(eventHeader);
         }
@@ -318,51 +435,89 @@
         if (content) {
             const contentEl = document.createElement('div');
             contentEl.className = 'post-content';
-            contentEl.textContent = content;
+            contentEl.textContent = normalizeBrokenText(content);
             article.appendChild(contentEl);
         }
 
         const resolvedImage = imageUrl || (imagePath && imagePath.startsWith('http') ? imagePath : '');
-        const buildVideoEmbed = (url) => {
+        const parseVideoUrl = (url) => {
             if (!url) {
-                return '';
+                return null;
             }
-            const lower = url.toLowerCase();
-            const isDirect = /\.(mp4|webm|ogg)$/i.test(url);
+            const cleanUrl = String(url).trim();
+            const lower = cleanUrl.toLowerCase();
+            const isDirect = /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(cleanUrl) || lower.startsWith('/uploads/');
             if (isDirect) {
-                return `<video controls><source src="${url}"></video>`;
+                return { type: 'video', src: cleanUrl };
             }
-            if (lower.includes('youtube.com') || lower.includes('youtu.be')) {
-                let id = '';
-                if (lower.includes('youtu.be/')) {
-                    id = url.split('youtu.be/')[1].split(/[?&]/)[0];
-                } else {
-                    const params = new URL(url).searchParams;
-                    id = params.get('v') || '';
-                }
-                if (id) {
-                    return `<iframe class="video-embed" src="https://www.youtube.com/embed/${id}" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
-                }
+
+            let youtubeId = '';
+            if (lower.includes('youtu.be/')) {
+                youtubeId = cleanUrl.split('youtu.be/')[1]?.split(/[?&]/)[0] || '';
+            } else if (lower.includes('youtube.com/watch') && cleanUrl.includes('v=')) {
+                const afterV = cleanUrl.split('v=')[1] || '';
+                youtubeId = afterV.split('&')[0] || '';
+            } else if (lower.includes('youtube.com/shorts/')) {
+                youtubeId = cleanUrl.split('youtube.com/shorts/')[1]?.split(/[?/&]/)[0] || '';
+            } else if (lower.includes('youtube.com/live/')) {
+                youtubeId = cleanUrl.split('youtube.com/live/')[1]?.split(/[?/&]/)[0] || '';
             }
+            if (youtubeId) {
+                return { type: 'embed', src: `https://www.youtube-nocookie.com/embed/${youtubeId}` };
+            }
+
             if (lower.includes('vimeo.com/')) {
-                const parts = url.split('/');
-                const id = parts[parts.length - 1];
+                const parts = cleanUrl.split('vimeo.com/');
+                const last = parts[parts.length - 1] || '';
+                const id = last.split('?')[0].split('/').pop();
                 if (id) {
-                    return `<iframe class="video-embed" src="https://player.vimeo.com/video/${id}" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+                    return { type: 'embed', src: `https://player.vimeo.com/video/${id}` };
                 }
             }
-            return `<a class="media-placeholder" href="${url}" target="_blank" rel="noopener">Voir la vidéo</a>`;
+            return { type: 'link', src: cleanUrl };
         };
 
-        if (resolvedImage) {
+        const buildMediaTile = (type, src, single = false) => {
+            const cls = single ? 'media-single' : 'media-slide';
+            if (type === 'video') {
+                return `<div class="${cls}" data-media-item data-media-type="video" data-media-src="${src}"><video controls playsinline preload="metadata"><source src="${src}"></video><span class="media-zoom-hint"><i class="fa-solid fa-expand"></i></span></div>`;
+            }
+            if (type === 'embed') {
+                return `<div class="${cls} media-embed-tile" data-media-item data-media-type="embed" data-media-src="${src}"><i class="fa-solid fa-circle-play"></i><span>Ouvrir la video</span></div>`;
+            }
+            return `<div class="${cls}" data-media-item data-media-type="image" data-media-src="${src}"><img src="${src}" alt="media"><span class="media-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i></span></div>`;
+        };
+
+        if (Array.isArray(medias) && medias.length > 1) {
+            const mediaWrap = document.createElement('div');
+            mediaWrap.className = 'post-media post-media-carousel-wrap';
+            const items = medias.map((media) => buildMediaTile(media.type === 'video' ? 'video' : 'image', media.url, false)).join('');
+            mediaWrap.innerHTML = `
+                <button class="media-nav media-nav-prev" type="button" data-carousel-prev aria-label="Media precedent"><i class="fa-solid fa-chevron-left"></i></button>
+                <div class="post-media-carousel" data-media-carousel>${items}</div>
+                <button class="media-nav media-nav-next" type="button" data-carousel-next aria-label="Media suivant"><i class="fa-solid fa-chevron-right"></i></button>
+            `;
+            article.appendChild(mediaWrap);
+        } else if (Array.isArray(medias) && medias.length === 1) {
             const mediaWrap = document.createElement('div');
             mediaWrap.className = 'post-media';
-            mediaWrap.innerHTML = `<img src="${resolvedImage}" alt="media">`;
+            const first = medias[0];
+            mediaWrap.innerHTML = buildMediaTile(first.type === 'video' ? 'video' : 'image', first.url, true);
+            article.appendChild(mediaWrap);
+        } else if (resolvedImage) {
+            const mediaWrap = document.createElement('div');
+            mediaWrap.className = 'post-media';
+            mediaWrap.innerHTML = buildMediaTile('image', resolvedImage, true);
             article.appendChild(mediaWrap);
         } else if (videoUrl) {
             const mediaWrap = document.createElement('div');
             mediaWrap.className = 'post-media';
-            mediaWrap.innerHTML = buildVideoEmbed(videoUrl);
+            const parsedVideo = parseVideoUrl(videoUrl);
+            if (parsedVideo?.type === 'link') {
+                mediaWrap.innerHTML = `<a class="media-placeholder" href="${parsedVideo.src}" target="_blank" rel="noopener">Voir la video</a>`;
+            } else if (parsedVideo) {
+                mediaWrap.innerHTML = buildMediaTile(parsedVideo.type, parsedVideo.src, true);
+            }
             article.appendChild(mediaWrap);
         }
 
@@ -385,7 +540,7 @@
         actions.className = 'post-actions';
         actions.innerHTML = `
             <div class="reaction-row">
-                <button class="reaction-pill" type="button" data-like-button>
+                <button class="reaction-pill ${liked ? 'is-liked' : ''}" type="button" data-like-button>
                     <i class="fa-regular fa-heart"></i> J'aime
                     <span class="reaction-count" data-like-count>${likeCount || 0}</span>
                 </button>
@@ -396,9 +551,21 @@
                 <button class="reaction-pill ${isSaved ? 'is-saved' : ''}" type="button" data-save-button>
                     <i class="fa-regular fa-bookmark"></i> ${isSaved ? 'Enregistré' : 'Sauvegarder'}
                 </button>
+                ${canManage ? '<button class="reaction-pill" type="button" data-post-edit><i class="fa-regular fa-pen-to-square"></i> Modifier</button>' : ''}
+                ${canManage ? '<button class="reaction-pill" type="button" data-post-delete><i class="fa-regular fa-trash-can"></i> Supprimer</button>' : ''}
             </div>
         `;
         article.appendChild(actions);
+
+        const socialStats = document.createElement('div');
+        socialStats.className = 'post-social-stats';
+        socialStats.innerHTML = `
+            <button class="like-open-btn" type="button" data-like-open>
+                <i class="fa-solid fa-heart"></i>
+                <span data-like-summary>${likeCount || 0} personnes aiment ça</span>
+            </button>
+        `;
+        article.appendChild(socialStats);
 
         const commentList = document.createElement('div');
         commentList.className = 'comment-list';
@@ -408,6 +575,8 @@
         const commentBox = document.createElement('div');
         commentBox.className = 'comment-box';
         commentBox.innerHTML = `
+            <button class="comment-tool-btn" type="button" data-comment-emoji title="Emoji"><i class="fa-regular fa-face-smile"></i></button>
+            <button class="comment-tool-btn" type="button" data-comment-gif title="GIF">GIF</button>
             <input class="comment-input" placeholder="Ajouter un commentaire..." data-comment-input />
             <button class="comment-send" type="button" data-comment-send>Envoyer</button>
         `;
@@ -416,13 +585,23 @@
         if (likeUrl) {
             article.dataset.likeUrl = likeUrl;
         }
+        if (likeListUrl) {
+            article.dataset.likeListUrl = likeListUrl;
+        }
         if (commentUrl) {
             article.dataset.commentUrl = commentUrl;
         }
         if (saveUrl) {
             article.dataset.saveUrl = saveUrl;
         }
+        if (editUrl) {
+            article.dataset.postEditUrl = editUrl;
+        }
+        if (deleteUrl) {
+            article.dataset.postDeleteUrl = deleteUrl;
+        }
         article.dataset.saved = isSaved ? '1' : '0';
+        article.dataset.liked = liked ? '1' : '0';
 
         return article;
     };
@@ -451,12 +630,74 @@
             const eventDate = fields.eventDateInput ? fields.eventDateInput.value : '';
             const eventLocation = fields.eventLocationInput ? fields.eventLocationInput.value.trim() : '';
             const maxParticipants = fields.eventMaxInput ? fields.eventMaxInput.value.trim() : '';
+            const selectedFiles = Array.isArray(composer._mediaFiles) ? composer._mediaFiles : [];
+            const hasFile = selectedFiles.length > 0;
+            const files = selectedFiles;
+            const totalBytes = files.reduce((sum, file) => sum + (file.size || 0), 0);
+            const maxTotalBytes = 38 * 1024 * 1024;
+
+            const clearComposerValidity = () => {
+                [contentInput, fields.videoUrlInput, fields.eventTitleInput, fields.eventDateInput, fields.eventLocationInput, fields.eventMaxInput].forEach((field) => {
+                    if (field && typeof field.setCustomValidity === 'function') {
+                        field.setCustomValidity('');
+                    }
+                });
+            };
+
+            const isValidUrl = (value) => {
+                if (!value) {
+                    return true;
+                }
+                try {
+                    const url = new URL(value);
+                    return ['http:', 'https:'].includes(url.protocol);
+                } catch (e) {
+                    return false;
+                }
+            };
 
             if (!postUrl) {
                 return;
             }
 
-            if (!isEvent && !content && !imagePath && !videoUrl && !(imageFileInput && imageFileInput.files && imageFileInput.files.length > 0)) {
+            if (files.length > 0 && totalBytes > maxTotalBytes) {
+                alert('Les fichiers sont trop volumineux (maximum conseillé: 38 Mo au total).');
+                return;
+            }
+
+            clearComposerValidity();
+
+            if (videoUrl && fields.videoUrlInput && !isValidUrl(videoUrl)) {
+                fields.videoUrlInput.setCustomValidity('URL video invalide.');
+            }
+
+            if (!isEvent && !content && !imagePath && !videoUrl && !hasFile && contentInput) {
+                contentInput.setCustomValidity('Ajoutez du contenu, un lien video ou un fichier media.');
+            }
+
+            if (isEvent) {
+                if (!eventTitle && fields.eventTitleInput) {
+                    fields.eventTitleInput.setCustomValidity('Champ obligatoire.');
+                }
+                if (!eventDate && fields.eventDateInput) {
+                    fields.eventDateInput.setCustomValidity('Champ obligatoire.');
+                }
+                if (!eventLocation && fields.eventLocationInput) {
+                    fields.eventLocationInput.setCustomValidity('Champ obligatoire.');
+                }
+                if ((!maxParticipants || Number(maxParticipants) < 1) && fields.eventMaxInput) {
+                    fields.eventMaxInput.setCustomValidity('Valeur minimale: 1.');
+                }
+            }
+
+            const hasInvalid = [contentInput, fields.videoUrlInput, fields.eventTitleInput, fields.eventDateInput, fields.eventLocationInput, fields.eventMaxInput]
+                .some((field) => field && typeof field.checkValidity === 'function' && !field.checkValidity());
+            if (hasInvalid) {
+                const invalidField = [contentInput, fields.videoUrlInput, fields.eventTitleInput, fields.eventDateInput, fields.eventLocationInput, fields.eventMaxInput]
+                    .find((field) => field && typeof field.checkValidity === 'function' && !field.checkValidity());
+                if (invalidField && typeof invalidField.reportValidity === 'function') {
+                    invalidField.reportValidity();
+                }
                 return;
             }
 
@@ -470,8 +711,10 @@
             payload.append('eventDate', eventDate);
             payload.append('eventLocation', eventLocation);
             payload.append('maxParticipants', maxParticipants);
-            if (imageFileInput && imageFileInput.files && imageFileInput.files.length > 0) {
-                payload.append('mediaFile', imageFileInput.files[0]);
+            if (files.length > 0) {
+                files.forEach((file) => {
+                    payload.append('mediaFiles[]', file);
+                });
             }
 
             btn.disabled = true;
@@ -482,7 +725,7 @@
                 });
                 const data = await response.json().catch(() => ({}));
                 if (!response.ok) {
-                    console.error(data.error || 'Erreur lors de la publication.');
+                    alert(data.error || 'Erreur lors de la publication.');
                     btn.disabled = false;
                     return;
                 }
@@ -490,11 +733,14 @@
                 const card = buildPostCard({
                     id: data.id,
                     author: data.author,
+                    authorAvatar: data.authorAvatar,
+                    authorInitial: data.authorInitial,
                     createdAt: data.createdAt,
                     content: data.content,
                     imageUrl: data.imageUrl,
                     imagePath: data.imagePath,
                     videoUrl: data.videoUrl,
+                    medias: data.medias || [],
                     isEvent: data.isEvent,
                     eventTitle: data.eventTitle,
                     eventDate: data.eventDate,
@@ -504,9 +750,14 @@
                     participateUrl: data.participateUrl,
                     likeCount: 0,
                     likeUrl: data.likeUrl,
+                    likeListUrl: data.likeListUrl,
                     commentUrl: data.commentUrl,
                     saveUrl: data.saveUrl,
                     isSaved: false,
+                    liked: !!data.liked,
+                    canManage: !!data.canManage,
+                    editUrl: data.editUrl,
+                    deleteUrl: data.deleteUrl,
                 });
                 const empty = document.getElementById('post-empty');
                 if (empty) {
@@ -527,6 +778,9 @@
             }
             if (imageFileInput) {
                 imageFileInput.value = '';
+            }
+            if (Array.isArray(composer._mediaFiles)) {
+                composer._mediaFiles.length = 0;
             }
             if (mediaPreview) {
                 mediaPreview.style.display = 'none';
@@ -599,6 +853,84 @@
         }
     });
 
+    const likesModal = document.querySelector('[data-likes-modal]');
+    const likesModalList = likesModal ? likesModal.querySelector('[data-likes-list]') : null;
+    const likesModalCount = likesModal ? likesModal.querySelector('[data-likes-count]') : null;
+
+    const formatLikeSummary = (count) => {
+        const n = Number(count) || 0;
+        return n <= 1 ? `${n} personne aime ça` : `${n} personnes aiment ça`;
+    };
+
+    const updateLikeUi = (card, count, liked) => {
+        if (!card) {
+            return;
+        }
+        const likeButton = card.querySelector('[data-like-button]');
+        const countEl = card.querySelector('[data-like-count]');
+        const summaryEl = card.querySelector('[data-like-summary]');
+
+        if (countEl) {
+            countEl.textContent = String(Number(count) || 0);
+        }
+        if (summaryEl) {
+            summaryEl.textContent = formatLikeSummary(count);
+        }
+        if (likeButton) {
+            likeButton.classList.toggle('is-liked', !!liked);
+        }
+        card.dataset.liked = liked ? '1' : '0';
+    };
+
+    const closeLikesModal = () => {
+        if (!likesModal) {
+            return;
+        }
+        likesModal.setAttribute('hidden', 'hidden');
+    };
+
+    const renderLikesUsers = (users) => {
+        if (!likesModalList) {
+            return;
+        }
+        likesModalList.innerHTML = '';
+        if (!Array.isArray(users) || users.length === 0) {
+            likesModalList.innerHTML = '<div class="likes-modal-empty">Aucun like pour le moment.</div>';
+            return;
+        }
+
+        users.forEach((user) => {
+            const item = document.createElement('div');
+            item.className = 'likes-user-item';
+
+            const avatar = document.createElement('div');
+            avatar.className = 'likes-user-avatar';
+            if (user.avatar) {
+                const img = document.createElement('img');
+                img.src = user.avatar;
+                img.alt = 'avatar';
+                avatar.appendChild(img);
+            } else {
+                avatar.textContent = user.initial || 'U';
+            }
+
+            const content = document.createElement('div');
+            content.className = 'likes-user-content';
+            const name = document.createElement('div');
+            name.className = 'likes-user-name';
+            name.textContent = user.name || 'Utilisateur';
+            const meta = document.createElement('div');
+            meta.className = 'likes-user-meta';
+            meta.textContent = user.likedAt || '';
+            content.appendChild(name);
+            content.appendChild(meta);
+
+            item.appendChild(avatar);
+            item.appendChild(content);
+            likesModalList.appendChild(item);
+        });
+    };
+
     document.addEventListener('click', async (event) => {
         const likeButton = event.target.closest('[data-like-button]');
         if (!likeButton) {
@@ -629,14 +961,131 @@
                 return;
             }
 
-            const countEl = likeButton.querySelector('[data-like-count]');
-            if (countEl) {
-                countEl.textContent = data.count ?? countEl.textContent;
-            }
+            updateLikeUi(card, data.count, !!data.liked);
         } catch (error) {
             console.error(error);
         } finally {
             likeButton.disabled = false;
+        }
+    });
+
+    const mediaLightbox = document.querySelector('[data-media-lightbox]');
+    const mediaLightboxContent = mediaLightbox ? mediaLightbox.querySelector('[data-media-lightbox-content]') : null;
+    const mediaLightboxPrev = mediaLightbox ? mediaLightbox.querySelector('[data-media-prev]') : null;
+    const mediaLightboxNext = mediaLightbox ? mediaLightbox.querySelector('[data-media-next]') : null;
+    let mediaGroup = [];
+    let mediaIndex = 0;
+
+    const closeMediaLightbox = () => {
+        if (!mediaLightbox) {
+            return;
+        }
+        mediaLightbox.setAttribute('hidden', 'hidden');
+        if (mediaLightboxContent) {
+            mediaLightboxContent.innerHTML = '';
+        }
+        mediaGroup = [];
+        mediaIndex = 0;
+    };
+
+    const renderMediaLightbox = () => {
+        if (!mediaLightboxContent || !mediaGroup.length) {
+            return;
+        }
+        const item = mediaGroup[mediaIndex] || mediaGroup[0];
+        if (!item) {
+            return;
+        }
+
+        if (item.type === 'video') {
+            mediaLightboxContent.innerHTML = `<video controls autoplay playsinline><source src="${item.src}"></video>`;
+        } else if (item.type === 'embed') {
+            mediaLightboxContent.innerHTML = `<iframe class="lightbox-embed" src="${item.src}" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+        } else {
+            mediaLightboxContent.innerHTML = `<img src="${item.src}" alt="media">`;
+        }
+
+        const canNavigate = mediaGroup.length > 1;
+        if (mediaLightboxPrev) {
+            mediaLightboxPrev.style.display = canNavigate ? 'inline-flex' : 'none';
+        }
+        if (mediaLightboxNext) {
+            mediaLightboxNext.style.display = canNavigate ? 'inline-flex' : 'none';
+        }
+    };
+
+    document.addEventListener('click', (event) => {
+        const carouselPrev = event.target.closest('[data-carousel-prev]');
+        if (carouselPrev) {
+            const wrap = carouselPrev.closest('.post-media-carousel-wrap');
+            const carousel = wrap ? wrap.querySelector('[data-media-carousel]') : null;
+            if (carousel) {
+                carousel.scrollBy({ left: -(carousel.clientWidth || 320), behavior: 'smooth' });
+            }
+            return;
+        }
+        const carouselNext = event.target.closest('[data-carousel-next]');
+        if (carouselNext) {
+            const wrap = carouselNext.closest('.post-media-carousel-wrap');
+            const carousel = wrap ? wrap.querySelector('[data-media-carousel]') : null;
+            if (carousel) {
+                carousel.scrollBy({ left: (carousel.clientWidth || 320), behavior: 'smooth' });
+            }
+            return;
+        }
+
+        const mediaItem = event.target.closest('[data-media-item]');
+        if (!mediaItem || !mediaLightbox) {
+            return;
+        }
+        if (event.target.closest('video') && (event.detail || 1) < 2) {
+            return;
+        }
+        const post = mediaItem.closest('[data-post-id]') || mediaItem.closest('.post-card') || document;
+        const items = Array.from(post.querySelectorAll('[data-media-item]'));
+        if (!items.length) {
+            return;
+        }
+        mediaGroup = items.map((node) => ({
+            type: node.getAttribute('data-media-type') || 'image',
+            src: node.getAttribute('data-media-src') || '',
+        })).filter((m) => !!m.src);
+        mediaIndex = Math.max(0, items.indexOf(mediaItem));
+        mediaLightbox.removeAttribute('hidden');
+        renderMediaLightbox();
+    });
+
+    document.addEventListener('click', async (event) => {
+        const openLikes = event.target.closest('[data-like-open]');
+        if (!openLikes) {
+            return;
+        }
+        const card = openLikes.closest('[data-post-id]');
+        const url = card ? card.getAttribute('data-like-list-url') : null;
+        if (!card || !url || !likesModal || !likesModalList) {
+            return;
+        }
+
+        likesModal.removeAttribute('hidden');
+        likesModalList.innerHTML = '<div class="likes-modal-empty">Chargement...</div>';
+        if (likesModalCount) {
+            likesModalCount.textContent = formatLikeSummary(card.querySelector('[data-like-count]')?.textContent || 0);
+        }
+
+        try {
+            const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                likesModalList.innerHTML = '<div class="likes-modal-empty">Impossible de charger la liste des likes.</div>';
+                return;
+            }
+            if (likesModalCount) {
+                likesModalCount.textContent = formatLikeSummary(data.count || 0);
+            }
+            renderLikesUsers(data.users || []);
+        } catch (error) {
+            console.error(error);
+            likesModalList.innerHTML = '<div class="likes-modal-empty">Impossible de charger la liste des likes.</div>';
         }
     });
 
@@ -655,7 +1104,8 @@
         const list = card.querySelector('[data-comment-list]');
         const url = card.getAttribute('data-comment-url');
         const token = document.querySelector('[data-comment-token]')?.getAttribute('data-comment-token') || '';
-        const content = input ? input.value.trim() : '';
+        const gifUrl = input ? (input.dataset.gifUrl || '') : '';
+        const content = gifUrl || (input ? input.value.trim() : '');
 
         if (!url || !content) {
             return;
@@ -678,11 +1128,38 @@
             if (list) {
                 const item = document.createElement('div');
                 item.className = 'comment-item';
-                item.innerHTML = `<strong>${data.author}</strong> <span class="comment-text">${data.content}</span> <span class="comment-time">${data.createdAt}</span>`;
+                if (data.id) {
+                    item.dataset.commentId = data.id;
+                }
+                if (data.editUrl) {
+                    item.dataset.commentEditUrl = data.editUrl;
+                }
+                if (data.deleteUrl) {
+                    item.dataset.commentDeleteUrl = data.deleteUrl;
+                }
+                const authorAvatar = data.authorAvatar
+                    ? `<img src="${escapeHtml(data.authorAvatar)}" alt="avatar">`
+                    : escapeHtml(data.authorInitial || 'U');
+                const rawComment = data.content || '';
+                const commentBody = isGifUrl(rawComment)
+                    ? `<span class="comment-text comment-gif"><a href="${escapeHtml(rawComment)}" target="_blank" rel="noopener"><img src="${escapeHtml(rawComment)}" alt="gif commentaire"></a></span>`
+                    : `<span class="comment-text">${escapeHtml(normalizeBrokenText(rawComment))}</span>`;
+                item.innerHTML = `
+                    <div class="comment-avatar">${authorAvatar}</div>
+                    <div class="comment-content-wrap">
+                        <div class="comment-head">
+                            <strong>${escapeHtml(normalizeBrokenText(data.author || 'Utilisateur'))}</strong>
+                            <span class="comment-time">${escapeHtml(data.createdAt || '')}</span>
+                            ${data.canManage ? '<button class="comment-mini-btn" type="button" data-comment-edit><i class="fa-regular fa-pen-to-square"></i></button><button class="comment-mini-btn" type="button" data-comment-delete><i class="fa-regular fa-trash-can"></i></button>' : ''}
+                        </div>
+                        ${commentBody}
+                    </div>
+                `;
                 list.appendChild(item);
             }
             if (input) {
                 input.value = '';
+                delete input.dataset.gifUrl;
             }
         } catch (error) {
             console.error(error);
@@ -765,6 +1242,228 @@
         }
     });
 
+    document.addEventListener('click', (event) => {
+        const emojiBtn = event.target.closest('[data-comment-emoji]');
+        if (emojiBtn) {
+            const card = emojiBtn.closest('[data-post-id]');
+            const input = card ? card.querySelector('[data-comment-input]') : null;
+            toggleEmojiPicker(emojiBtn, input);
+            return;
+        }
+        const gifBtn = event.target.closest('[data-comment-gif]');
+        if (gifBtn) {
+            const card = gifBtn.closest('[data-post-id]');
+            const input = card ? card.querySelector('[data-comment-input]') : null;
+            if (!input) {
+                return;
+            }
+            toggleGifPicker(gifBtn, (url) => {
+                input.dataset.gifUrl = url;
+                input.value = 'GIF sélectionné';
+            });
+        }
+    });
+
+    document.addEventListener('input', (event) => {
+        const input = event.target.closest('[data-comment-input]');
+        if (!input) {
+            return;
+        }
+        if (input.dataset.gifUrl && input.value.trim() !== 'GIF sélectionné') {
+            delete input.dataset.gifUrl;
+        }
+    });
+
+    document.addEventListener('click', async (event) => {
+        const postEditBtn = event.target.closest('[data-post-edit]');
+        if (postEditBtn) {
+            const card = postEditBtn.closest('[data-post-id]');
+            const url = card ? card.getAttribute('data-post-edit-url') : null;
+            const token = document.querySelector('[data-post-manage-token]')?.getAttribute('data-post-manage-token') || '';
+            if (!card || !url) {
+                return;
+            }
+            const contentEl = card.querySelector('.post-content');
+            const current = contentEl ? (contentEl.textContent || '').trim() : '';
+            const next = window.prompt('Modifier votre publication :', current);
+            if (next === null) {
+                return;
+            }
+
+            const payload = new FormData();
+            payload.append('_token', token);
+            payload.append('content', next.trim());
+            try {
+                const response = await fetch(url, { method: 'POST', body: payload });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    alert(data.error || 'Impossible de modifier la publication.');
+                    return;
+                }
+                const updated = (data.content || '').trim();
+                if (contentEl) {
+                    contentEl.textContent = updated;
+                } else if (updated) {
+                    const postHeader = card.querySelector('.post-header');
+                    const newContent = document.createElement('div');
+                    newContent.className = 'post-content';
+                    newContent.textContent = updated;
+                    if (postHeader && postHeader.nextSibling) {
+                        card.insertBefore(newContent, postHeader.nextSibling);
+                    } else {
+                        card.appendChild(newContent);
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+            }
+            return;
+        }
+
+        const postDeleteBtn = event.target.closest('[data-post-delete]');
+        if (postDeleteBtn) {
+            const card = postDeleteBtn.closest('[data-post-id]');
+            const url = card ? card.getAttribute('data-post-delete-url') : null;
+            const token = document.querySelector('[data-post-manage-token]')?.getAttribute('data-post-manage-token') || '';
+            if (!card || !url) {
+                return;
+            }
+            if (!window.confirm('Supprimer cette publication ?')) {
+                return;
+            }
+            const payload = new FormData();
+            payload.append('_token', token);
+            try {
+                const response = await fetch(url, { method: 'POST', body: payload });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    alert(data.error || 'Impossible de supprimer la publication.');
+                    return;
+                }
+                if (data.deleted) {
+                    card.remove();
+                }
+            } catch (e) {
+                console.error(e);
+            }
+            return;
+        }
+
+        const commentEditBtn = event.target.closest('[data-comment-edit]');
+        if (commentEditBtn) {
+            const item = commentEditBtn.closest('[data-comment-id]');
+            const url = item ? item.getAttribute('data-comment-edit-url') : null;
+            const token = document.querySelector('[data-comment-manage-token]')?.getAttribute('data-comment-manage-token') || '';
+            if (!item || !url) {
+                return;
+            }
+            const textEl = item.querySelector('.comment-text');
+            const gifImg = item.querySelector('.comment-gif img');
+            const current = gifImg ? (gifImg.getAttribute('src') || '') : (textEl ? (textEl.textContent || '').trim() : '');
+            const next = window.prompt('Modifier votre commentaire :', current);
+            if (next === null) {
+                return;
+            }
+            const payload = new FormData();
+            payload.append('_token', token);
+            payload.append('content', next.trim());
+            try {
+                const response = await fetch(url, { method: 'POST', body: payload });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    alert(data.error || 'Impossible de modifier le commentaire.');
+                    return;
+                }
+                if (textEl) {
+                    const raw = String(data.content || '');
+                    if (isGifUrl(raw)) {
+                        textEl.classList.add('comment-gif');
+                        textEl.innerHTML = `<a href="${escapeHtml(raw)}" target="_blank" rel="noopener"><img src="${escapeHtml(raw)}" alt="gif commentaire"></a>`;
+                    } else {
+                        textEl.classList.remove('comment-gif');
+                        textEl.textContent = normalizeBrokenText(raw);
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+            }
+            return;
+        }
+
+        const commentDeleteBtn = event.target.closest('[data-comment-delete]');
+        if (commentDeleteBtn) {
+            const item = commentDeleteBtn.closest('[data-comment-id]');
+            const url = item ? item.getAttribute('data-comment-delete-url') : null;
+            const token = document.querySelector('[data-comment-manage-token]')?.getAttribute('data-comment-manage-token') || '';
+            if (!item || !url) {
+                return;
+            }
+            if (!window.confirm('Supprimer ce commentaire ?')) {
+                return;
+            }
+            const payload = new FormData();
+            payload.append('_token', token);
+            try {
+                const response = await fetch(url, { method: 'POST', body: payload });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    alert(data.error || 'Impossible de supprimer le commentaire.');
+                    return;
+                }
+                if (data.deleted) {
+                    item.remove();
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    });
+
+    document.addEventListener('click', (event) => {
+        if (event.target.closest('[data-media-close]')) {
+            closeMediaLightbox();
+            return;
+        }
+        if (event.target.closest('[data-media-prev]')) {
+            if (!mediaGroup.length) {
+                return;
+            }
+            mediaIndex = (mediaIndex - 1 + mediaGroup.length) % mediaGroup.length;
+            renderMediaLightbox();
+            return;
+        }
+        if (event.target.closest('[data-media-next]')) {
+            if (!mediaGroup.length) {
+                return;
+            }
+            mediaIndex = (mediaIndex + 1) % mediaGroup.length;
+            renderMediaLightbox();
+            return;
+        }
+
+        if (event.target.closest('[data-likes-close]')) {
+            closeLikesModal();
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            closeMediaLightbox();
+            closeLikesModal();
+            return;
+        }
+        if (!mediaLightbox || mediaLightbox.hasAttribute('hidden') || !mediaGroup.length) {
+            return;
+        }
+        if (event.key === 'ArrowLeft') {
+            mediaIndex = (mediaIndex - 1 + mediaGroup.length) % mediaGroup.length;
+            renderMediaLightbox();
+        } else if (event.key === 'ArrowRight') {
+            mediaIndex = (mediaIndex + 1) % mediaGroup.length;
+            renderMediaLightbox();
+        }
+    });
+
     const dropdown = document.querySelector('[data-dropdown]');
     const dropdownToggle = document.querySelector('[data-dropdown-toggle]');
     const dropdownMenu = document.querySelector('[data-dropdown-menu]');
@@ -781,6 +1480,981 @@
             }
         });
     }
+
+    const notifDropdown = document.querySelector('[data-notif-dropdown]');
+    const notifToggle = document.querySelector('[data-notif-toggle]');
+    const notifMenu = document.querySelector('[data-notif-menu]');
+    const notifBadge = document.querySelector('[data-notif-badge]');
+
+    const setNotifBadge = (count) => {
+        if (!notifBadge) {
+            return;
+        }
+        const value = Number(count) || 0;
+        notifBadge.textContent = value > 99 ? '99+' : String(value);
+        notifBadge.style.display = value > 0 ? 'inline-flex' : 'none';
+    };
+
+    const fetchNotifCount = async () => {
+        if (!notifToggle) {
+            return;
+        }
+        const url = notifToggle.getAttribute('data-notif-count-url');
+        if (!url) {
+            return;
+        }
+        try {
+            const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            if (!response.ok) {
+                return;
+            }
+            const data = await response.json();
+            setNotifBadge(data.unread || 0);
+            const unread = Number(data.unread || 0);
+            if (liveState.notifUnread !== null && unread > liveState.notifUnread) {
+                if (notifBadge) {
+                    notifBadge.classList.remove('is-pulse');
+                    void notifBadge.offsetWidth;
+                    notifBadge.classList.add('is-pulse');
+                }
+                playMessageSound();
+            }
+            liveState.notifUnread = unread;
+        } catch (e) {
+            // noop
+        }
+    };
+
+    const fetchNotifPanel = async () => {
+        if (!notifToggle || !notifMenu) {
+            return;
+        }
+        const url = notifToggle.getAttribute('data-notif-panel-url');
+        if (!url) {
+            return;
+        }
+        notifMenu.innerHTML = '<div class="notif-loading">Chargement...</div>';
+        try {
+            const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            if (!response.ok) {
+                notifMenu.innerHTML = '<div class="notif-empty">Impossible de charger les notifications.</div>';
+                return;
+            }
+            notifMenu.innerHTML = await response.text();
+        } catch (e) {
+            notifMenu.innerHTML = '<div class="notif-empty">Impossible de charger les notifications.</div>';
+        }
+    };
+
+    const markNotifRead = async (id) => {
+        if (!notifToggle) {
+            return;
+        }
+        const template = notifToggle.getAttribute('data-notif-read-one-url');
+        const token = notifToggle.getAttribute('data-notif-token') || '';
+        if (!template) {
+            return;
+        }
+        const url = template.replace('/0/read', `/${id}/read`);
+        const payload = new FormData();
+        payload.append('_token', token);
+        try {
+            const response = await fetch(url, { method: 'POST', body: payload });
+            const data = await response.json().catch(() => ({}));
+            if (response.ok) {
+                setNotifBadge(data.unread || 0);
+            }
+        } catch (e) {
+            // noop
+        }
+    };
+
+    const markAllNotifRead = async () => {
+        if (!notifToggle) {
+            return;
+        }
+        const url = notifToggle.getAttribute('data-notif-read-all-url');
+        const token = notifToggle.getAttribute('data-notif-token') || '';
+        if (!url) {
+            return;
+        }
+        const payload = new FormData();
+        payload.append('_token', token);
+        try {
+            const response = await fetch(url, { method: 'POST', body: payload });
+            const data = await response.json().catch(() => ({}));
+            if (response.ok) {
+                setNotifBadge(data.unread || 0);
+                fetchNotifPanel();
+            }
+        } catch (e) {
+            // noop
+        }
+    };
+
+    if (notifDropdown && notifToggle && notifMenu) {
+        notifToggle.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const isOpen = notifDropdown.classList.toggle('open');
+            if (isOpen) {
+                fetchNotifPanel();
+            }
+        });
+
+        notifMenu.addEventListener('click', async (event) => {
+            const readAllBtn = event.target.closest('[data-notif-read-all]');
+            if (readAllBtn) {
+                event.preventDefault();
+                await markAllNotifRead();
+                return;
+            }
+
+            const readBtn = event.target.closest('[data-notif-read]');
+            if (readBtn) {
+                event.preventDefault();
+                const item = readBtn.closest('[data-notif-item]');
+                const id = item ? item.getAttribute('data-notif-id') : null;
+                if (!id) {
+                    return;
+                }
+                await markNotifRead(id);
+                item.classList.remove('is-unread');
+                readBtn.remove();
+                return;
+            }
+
+            const openLink = event.target.closest('[data-notif-open]');
+            if (openLink) {
+                const item = openLink.closest('[data-notif-item]');
+                const id = item ? item.getAttribute('data-notif-id') : null;
+                if (id) {
+                    await markNotifRead(id);
+                }
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!notifDropdown.contains(event.target)) {
+                notifDropdown.classList.remove('open');
+            }
+        });
+    }
+
+    const msgDropdown = document.querySelector('[data-msg-dropdown]');
+    const msgToggle = document.querySelector('[data-msg-toggle]');
+    const msgMenu = document.querySelector('[data-msg-menu]');
+    const msgBadge = document.querySelector('[data-msg-badge]');
+    const chatDock = document.querySelector('[data-chat-dock]');
+    const liveState = { notifUnread: null };
+    const msgState = { openUserId: null, panelLoaded: false, lastUnread: null };
+    const emojiPalette = ['😀', '😁', '😂', '🤣', '😍', '😎', '🤩', '😭', '😡', '👍', '🔥', '🎮', '🏆', '❤️', '👏', '🙌'];
+    const gifCatalog = [
+        { url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMWJhYzV1eTZhY3h0NnN4bTZ2Y3R6bGN6NTcyenN6cXEwbjFoeWN6YiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3o7aD2saalBwwftBIY/giphy.gif', tags: 'gaming win' },
+        { url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYmh2bHpkOGZ1bmdwaXh1d2M3dWpsaXQ2N2pmZ2ZoZjZ4YjEzMDJmMSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l0HU7JIxA7zf0hAc0/giphy.gif', tags: 'esport fire' },
+        { url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdGdwbjVjb2F3YjY5b2xyYWE3NmpjOHA1N2d3NHNqdWptdXQ4OTl2eiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/26FPqAHtgCBzKG9mo/giphy.gif', tags: 'wow reaction' },
+        { url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNWlmM29yaGtuaDJkM2NudjBoOXBvZ2trMGJ2Mm5jYTBvNjA4dDJpNyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/111ebonMs90YLu/giphy.gif', tags: 'laugh lol' },
+        { url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDRxdjd0ZXl4YzY5dHd5c3hmMmptb2VjMjUxN2diZWt3cDA4ZnF2ZSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/MdA16VIoXKKxNE8Stk/giphy.gif', tags: 'gg victory' },
+        { url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDB0N2VvdjQ4MzFjN2xjcnNiOTh0c3I5MnQ4enR2aTM2MHB5NnJzYiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/fAnEC88LccN7a/giphy.gif', tags: 'cry sad' },
+        { url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXQ2bmoxNGlhMGx2cGxpZWVpMXdhcDMwY2NqOHB3cHk4cXk4dDM3biZlcD12MV9naWZzX3NlYXJjaCZjdD1n/xT9IgG50Fb7Mi0prBC/giphy.gif', tags: 'yes nice' },
+        { url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExd3B0d2N2eGtnaWZlZW00dGdyc2R0MmxqM25meWt4YTF6b3BiZXVwdiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/14uQ3cOFteDaU/giphy.gif', tags: 'nope fail' }
+    ];
+
+    const templateUrl = (tpl, id) => {
+        if (!tpl) {
+            return '';
+        }
+        return tpl.replace('/0', `/${id}`);
+    };
+
+    const escapeHtml = (value) => {
+        const text = String(value || '');
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    };
+
+    const setMsgBadge = (count) => {
+        if (!msgBadge) {
+            return;
+        }
+        const value = Number(count) || 0;
+        msgBadge.textContent = value > 99 ? '99+' : String(value);
+        msgBadge.style.display = value > 0 ? 'inline-flex' : 'none';
+    };
+
+    const playMessageSound = () => {
+        try {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!Ctx) {
+                return;
+            }
+            const ctx = new Ctx();
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = 'sine';
+            o.frequency.setValueAtTime(820, ctx.currentTime);
+            g.gain.setValueAtTime(0.001, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.01);
+            g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.2);
+            o.connect(g);
+            g.connect(ctx.destination);
+            o.start();
+            o.stop(ctx.currentTime + 0.22);
+            setTimeout(() => ctx.close(), 260);
+        } catch (e) {
+            // noop
+        }
+    };
+
+    const pulseMsgBadge = () => {
+        if (!msgBadge) {
+            return;
+        }
+        msgBadge.classList.remove('is-pulse');
+        void msgBadge.offsetWidth;
+        msgBadge.classList.add('is-pulse');
+    };
+
+    const appendEmoji = (input, emoji) => {
+        if (!input) {
+            return;
+        }
+        const start = input.selectionStart ?? input.value.length;
+        const end = input.selectionEnd ?? input.value.length;
+        input.value = `${input.value.slice(0, start)}${emoji}${input.value.slice(end)}`;
+        const next = start + emoji.length;
+        input.setSelectionRange(next, next);
+        input.focus();
+    };
+
+    const toggleEmojiPicker = (trigger, input) => {
+        if (!trigger || !input) {
+            return;
+        }
+        const parent = trigger.parentElement;
+        if (!parent) {
+            return;
+        }
+        const existing = parent.querySelector('.emoji-picker');
+        if (existing) {
+            existing.remove();
+            return;
+        }
+        const picker = document.createElement('div');
+        picker.className = 'emoji-picker';
+        picker.innerHTML = emojiPalette.map((emoji) => `<button type="button" data-emoji="${emoji}">${emoji}</button>`).join('');
+        picker.addEventListener('click', (event) => {
+            const btn = event.target.closest('[data-emoji]');
+            if (!btn) {
+                return;
+            }
+            appendEmoji(input, btn.getAttribute('data-emoji') || '');
+        });
+        parent.appendChild(picker);
+    };
+
+    const isGifUrl = (value) => /^https?:\/\/.+\.gif(\?.*)?$/i.test(String(value || '').trim());
+
+    const toggleGifPicker = (trigger, onSelect) => {
+        if (!trigger || typeof onSelect !== 'function') {
+            return;
+        }
+        const parent = trigger.parentElement;
+        if (!parent) {
+            return;
+        }
+        const existing = parent.querySelector('.gif-picker');
+        if (existing) {
+            existing.remove();
+            return;
+        }
+        const picker = document.createElement('div');
+        picker.className = 'gif-picker';
+        picker.innerHTML = `
+            <div class="gif-picker-head">
+                <input type="text" class="gif-picker-search" placeholder="Rechercher un GIF..." data-gif-search>
+            </div>
+            <div class="gif-picker-grid" data-gif-grid></div>
+        `;
+        const grid = picker.querySelector('[data-gif-grid]');
+        const search = picker.querySelector('[data-gif-search]');
+
+        const render = (query = '') => {
+            if (!grid) {
+                return;
+            }
+            const q = query.trim().toLowerCase();
+            const results = gifCatalog.filter((gif) => !q || gif.tags.includes(q));
+            grid.innerHTML = results.map((gif) => `
+                <button type="button" class="gif-picker-item" data-gif-url="${escapeHtml(gif.url)}">
+                    <img src="${escapeHtml(gif.url)}" alt="gif">
+                </button>
+            `).join('') || '<div class="gif-picker-empty">Aucun GIF.</div>';
+        };
+
+        render();
+        search?.addEventListener('input', () => render(search.value));
+        picker.addEventListener('click', (event) => {
+            const btn = event.target.closest('[data-gif-url]');
+            if (!btn) {
+                return;
+            }
+            const url = btn.getAttribute('data-gif-url') || '';
+            if (!url) {
+                return;
+            }
+            onSelect(url);
+            picker.remove();
+        });
+        parent.appendChild(picker);
+    };
+
+    const sendMessageToUser = async (userId, payloadMap, sendUrlTemplate, token) => {
+        const sendUrl = templateUrl(sendUrlTemplate, userId);
+        if (!sendUrl) {
+            return false;
+        }
+        const payload = new FormData();
+        payload.append('_token', token || '');
+        Object.entries(payloadMap).forEach(([key, val]) => payload.append(key, String(val)));
+        try {
+            const response = await fetch(sendUrl, { method: 'POST', body: payload });
+            return response.ok;
+        } catch (e) {
+            return false;
+        }
+    };
+
+    const renderMessageBubble = (message, meId) => {
+        const mine = Number(message.senderId) === Number(meId);
+        if (message.type === 'gif') {
+            const safeGif = escapeHtml(message.body || '');
+            return `
+                <div class="msg-bubble msg-bubble-gif ${mine ? 'mine' : 'other'} msg-animate-in">
+                    <a href="${safeGif}" target="_blank" rel="noopener"><img src="${safeGif}" alt="gif"></a>
+                    <span>${escapeHtml(message.createdAt || '')}</span>
+                </div>
+            `;
+        }
+        if (message.type === 'call_audio' || message.type === 'call_video') {
+            const safeCallUrl = escapeHtml(message.callUrl || '#');
+            return `
+                <div class="msg-bubble-call ${mine ? 'mine' : 'other'} msg-animate-in">
+                    <div class="call-title">${message.type === 'call_audio' ? 'Appel vocal' : 'Appel video'}</div>
+                    <a href="${safeCallUrl}" target="_blank" rel="noopener">Rejoindre</a>
+                    <span>${escapeHtml(message.createdAt || '')}</span>
+                </div>
+            `;
+        }
+        const safeBody = escapeHtml(message.body || '');
+        const safeDate = escapeHtml(message.createdAt || '');
+        return `<div class="msg-bubble ${mine ? 'mine' : 'other'} msg-animate-in">${safeBody}<span>${safeDate}</span></div>`;
+    };
+
+    const fetchMsgCount = async () => {
+        if (!msgToggle) {
+            return;
+        }
+        const url = msgToggle.getAttribute('data-msg-count-url');
+        if (!url) {
+            return;
+        }
+        try {
+            const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            if (!response.ok) {
+                return;
+            }
+            const data = await response.json().catch(() => ({}));
+            setMsgBadge(data.unread || 0);
+            const unread = Number(data.unread || 0);
+            if (msgState.lastUnread !== null && unread > msgState.lastUnread) {
+                pulseMsgBadge();
+                playMessageSound();
+            }
+            msgState.lastUnread = unread;
+            const unreadTotalEl = document.querySelector('[data-msg-unread-total]');
+            if (unreadTotalEl) {
+                unreadTotalEl.textContent = String(data.unread || 0);
+            }
+        } catch (e) {
+            // noop
+        }
+    };
+
+    const openMiniChat = async (userId, userName, userAvatar) => {
+        if (!chatDock || !msgToggle) {
+            return;
+        }
+        msgState.openUserId = Number(userId) || null;
+        let box = chatDock.querySelector(`[data-mini-chat="${userId}"]`);
+        if (!box) {
+            box = document.createElement('div');
+            box.className = 'mini-chat-box';
+            box.setAttribute('data-mini-chat', String(userId));
+            const safeName = escapeHtml(userName || 'Utilisateur');
+            const avatarInitial = escapeHtml((userName || 'U').charAt(0).toUpperCase());
+            const avatarHtml = userAvatar ? `<img src="${escapeHtml(userAvatar)}" alt="avatar">` : avatarInitial;
+            box.innerHTML = `
+                <div class="mini-chat-head">
+                    <div class="avatar">${avatarHtml}</div>
+                    <div class="name">${safeName}</div>
+                    <div class="actions">
+                        <button type="button" data-mini-call="audio" title="Appel vocal"><i class="fa-solid fa-phone"></i></button>
+                        <button type="button" data-mini-call="video" title="Appel video"><i class="fa-solid fa-video"></i></button>
+                        <button type="button" data-mini-close title="Fermer"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                </div>
+                <div class="mini-chat-body" data-mini-body><div class="msg-loading">Chargement...</div></div>
+                <div class="mini-chat-input">
+                    <button type="button" data-mini-emoji title="Emoji"><i class="fa-regular fa-face-smile"></i></button>
+                    <button type="button" data-mini-gif title="GIF">GIF</button>
+                    <input type="text" placeholder="Ecrire un message..." data-mini-input>
+                    <button type="button" data-mini-send><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            `;
+            chatDock.innerHTML = '';
+            chatDock.appendChild(box);
+        } else {
+            chatDock.innerHTML = '';
+            chatDock.appendChild(box);
+        }
+
+        const body = box.querySelector('[data-mini-body]');
+        const threadUrl = templateUrl(msgToggle.getAttribute('data-msg-thread-url-template'), userId);
+        if (!threadUrl || !body) {
+            return;
+        }
+
+        try {
+            const threadResponse = await fetch(threadUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const threadData = await threadResponse.json().catch(() => ({}));
+            if (!threadResponse.ok) {
+                body.innerHTML = `<div class="msg-loading">${threadData.error || 'Impossible de charger la discussion.'}</div>`;
+                return;
+            }
+            const meId = Number(document.body.dataset.userId || 0);
+            body.innerHTML = (threadData.messages || []).map((m) => renderMessageBubble(m, meId)).join('') || '<div class="msg-loading">Aucun message.</div>';
+            body.scrollTop = body.scrollHeight;
+        } catch (e) {
+            body.innerHTML = '<div class="msg-loading">Impossible de charger la discussion.</div>';
+        }
+
+        const readUrl = templateUrl(msgToggle.getAttribute('data-msg-read-url-template'), userId);
+        const readToken = msgToggle.getAttribute('data-msg-read-token') || '';
+        if (readUrl) {
+            const readPayload = new FormData();
+            readPayload.append('_token', readToken);
+            fetch(readUrl, { method: 'POST', body: readPayload }).then(() => fetchMsgCount()).catch(() => {});
+        }
+    };
+
+    const refreshOpenMiniChat = async () => {
+        if (!chatDock || !msgToggle || !msgState.openUserId) {
+            return;
+        }
+        const box = chatDock.querySelector(`[data-mini-chat="${msgState.openUserId}"]`);
+        if (!box) {
+            return;
+        }
+        const body = box.querySelector('[data-mini-body]');
+        if (!body) {
+            return;
+        }
+        const threadUrl = templateUrl(msgToggle.getAttribute('data-msg-thread-url-template'), msgState.openUserId);
+        if (!threadUrl) {
+            return;
+        }
+        try {
+            const response = await fetch(threadUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                return;
+            }
+            const meId = Number(document.body.dataset.userId || 0);
+            body.innerHTML = (data.messages || []).map((m) => renderMessageBubble(m, meId)).join('') || '<div class="msg-loading">Aucun message.</div>';
+            body.scrollTop = body.scrollHeight;
+        } catch (e) {
+            // noop
+        }
+    };
+
+    const renderMsgPanel = (conversations) => {
+        if (!msgMenu) {
+            return;
+        }
+        if (!Array.isArray(conversations) || conversations.length === 0) {
+            msgMenu.innerHTML = `
+                <div class="msg-panel-head">
+                    <div class="title">Messages</div>
+                    <a href="${msgToggle?.getAttribute('data-msg-index-url') || '#'}">Voir tout</a>
+                </div>
+                <div class="msg-empty">Aucun message.</div>
+            `;
+            return;
+        }
+        const rows = conversations.map((c) => `
+            <button type="button" class="msg-panel-item" data-msg-open="${c.userId}" data-user-name="${escapeHtml(c.name || '')}" data-user-avatar="${escapeHtml(c.avatar || '')}">
+                <div class="avatar">${c.avatar ? `<img src="${escapeHtml(c.avatar)}" alt="avatar">` : escapeHtml(c.initial || 'U')}</div>
+                <div class="meta">
+                    <div class="name">${escapeHtml(c.name || '')}</div>
+                    <div class="preview">${
+                        c.lastType && c.lastType.startsWith('call_')
+                            ? (c.lastType === 'call_audio' ? 'Appel vocal' : 'Appel video')
+                            : (c.lastType === 'gif' ? 'GIF' : escapeHtml(c.lastMessage || ''))
+                    }</div>
+                </div>
+                <div class="right">
+                    <span class="time">${escapeHtml(c.lastAt || '')}</span>
+                    ${c.unread > 0 ? `<span class="badge">${c.unread}</span>` : ''}
+                </div>
+            </button>
+        `).join('');
+        msgMenu.innerHTML = `
+            <div class="msg-panel-head">
+                <div class="title">Messages</div>
+                <a href="${msgToggle?.getAttribute('data-msg-index-url') || '#'}">Voir tout</a>
+            </div>
+            <div class="msg-panel-list">${rows}</div>
+        `;
+    };
+
+    const fetchMsgPanel = async () => {
+        if (!msgToggle) {
+            return;
+        }
+        const url = msgToggle.getAttribute('data-msg-panel-url');
+        if (!url || !msgMenu) {
+            return;
+        }
+        msgMenu.innerHTML = '<div class="msg-loading">Chargement...</div>';
+        try {
+            const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                msgMenu.innerHTML = '<div class="msg-loading">Impossible de charger les messages.</div>';
+                return;
+            }
+            renderMsgPanel(data.conversations || []);
+            msgState.panelLoaded = true;
+        } catch (e) {
+            msgMenu.innerHTML = '<div class="msg-loading">Impossible de charger les messages.</div>';
+        }
+    };
+
+    if (msgDropdown && msgToggle && msgMenu) {
+        msgToggle.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const open = msgDropdown.classList.toggle('open');
+            if (open) {
+                fetchMsgPanel();
+            }
+        });
+
+        msgMenu.addEventListener('click', (event) => {
+            const openBtn = event.target.closest('[data-msg-open]');
+            if (!openBtn) {
+                return;
+            }
+            event.preventDefault();
+            const userId = Number(openBtn.getAttribute('data-msg-open') || 0);
+            if (!userId) {
+                return;
+            }
+            openMiniChat(userId, openBtn.getAttribute('data-user-name') || 'Utilisateur', openBtn.getAttribute('data-user-avatar') || '');
+            msgDropdown.classList.remove('open');
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!msgDropdown.contains(event.target)) {
+                msgDropdown.classList.remove('open');
+            }
+        });
+    }
+
+    if (chatDock && msgToggle) {
+        chatDock.addEventListener('click', async (event) => {
+            const box = event.target.closest('[data-mini-chat]');
+            if (!box) {
+                return;
+            }
+            const userId = Number(box.getAttribute('data-mini-chat') || 0);
+            if (!userId) {
+                return;
+            }
+
+            if (event.target.closest('[data-mini-close]')) {
+                box.remove();
+                msgState.openUserId = null;
+                return;
+            }
+
+            const sendBtn = event.target.closest('[data-mini-send]');
+            if (sendBtn) {
+                const input = box.querySelector('[data-mini-input]');
+                const body = box.querySelector('[data-mini-body]');
+                const text = input ? input.value.trim() : '';
+                if (!text) {
+                    return;
+                }
+                const ok = await sendMessageToUser(
+                    userId,
+                    { body: text, type: 'text' },
+                    msgToggle.getAttribute('data-msg-send-url-template'),
+                    msgToggle.getAttribute('data-msg-send-token')
+                );
+                if (ok) {
+                    if (input) {
+                        input.value = '';
+                    }
+                    openMiniChat(userId, box.querySelector('.name')?.textContent || 'Utilisateur', box.querySelector('.avatar img')?.getAttribute('src') || '');
+                    fetchMsgCount();
+                }
+                return;
+            }
+
+            const miniEmojiBtn = event.target.closest('[data-mini-emoji]');
+            if (miniEmojiBtn) {
+                const input = box.querySelector('[data-mini-input]');
+                toggleEmojiPicker(miniEmojiBtn, input);
+                return;
+            }
+
+            const miniGifBtn = event.target.closest('[data-mini-gif]');
+            if (miniGifBtn) {
+                toggleGifPicker(miniGifBtn, async (gifUrl) => {
+                    const ok = await sendMessageToUser(
+                        userId,
+                        { body: gifUrl, type: 'gif' },
+                        msgToggle.getAttribute('data-msg-send-url-template'),
+                        msgToggle.getAttribute('data-msg-send-token')
+                    );
+                    if (ok) {
+                        openMiniChat(userId, box.querySelector('.name')?.textContent || 'Utilisateur', box.querySelector('.avatar img')?.getAttribute('src') || '');
+                        fetchMsgCount();
+                    }
+                });
+                return;
+            }
+
+            const callBtn = event.target.closest('[data-mini-call]');
+            if (callBtn) {
+                const mode = callBtn.getAttribute('data-mini-call') === 'audio' ? 'call_audio' : 'call_video';
+                const callUrl = `https://meet.jit.si/esportify-${mode}-${Date.now()}`;
+                const ok = await sendMessageToUser(
+                    userId,
+                    { type: mode, body: mode === 'call_audio' ? 'Appel vocal' : 'Appel video', callUrl },
+                    msgToggle.getAttribute('data-msg-send-url-template'),
+                    msgToggle.getAttribute('data-msg-send-token')
+                );
+                if (ok) {
+                    window.open(callUrl, '_blank', 'noopener');
+                    openMiniChat(userId, box.querySelector('.name')?.textContent || 'Utilisateur', box.querySelector('.avatar img')?.getAttribute('src') || '');
+                    fetchMsgCount();
+                }
+                return;
+            }
+        });
+
+        chatDock.addEventListener('keydown', (event) => {
+            const input = event.target.closest('[data-mini-input]');
+            if (!input || event.key !== 'Enter') {
+                return;
+            }
+            event.preventDefault();
+            const box = input.closest('[data-mini-chat]');
+            const sendBtn = box ? box.querySelector('[data-mini-send]') : null;
+            if (sendBtn) {
+                sendBtn.click();
+            }
+        });
+    }
+
+    let refreshMessengerThreadLive = null;
+    const messengerPage = document.querySelector('[data-messenger-page]');
+    if (messengerPage) {
+        const sidebar = messengerPage.querySelector('.messenger-sidebar');
+        const conversationsWrap = messengerPage.querySelector('[data-msg-conversations]');
+        const contactsWrap = messengerPage.querySelector('[data-msg-contacts]');
+        const searchInput = messengerPage.querySelector('[data-msg-search]');
+        const threadHead = messengerPage.querySelector('[data-msg-thread-head]');
+        const threadBody = messengerPage.querySelector('[data-msg-thread-body]');
+        const threadInputWrap = messengerPage.querySelector('[data-msg-thread-input]');
+        const threadInput = messengerPage.querySelector('[data-msg-input]');
+        const threadSendBtn = messengerPage.querySelector('[data-msg-send]');
+        const threadCallBtns = messengerPage.querySelectorAll('[data-msg-call]');
+        const threadEmojiBtn = messengerPage.querySelector('[data-msg-emoji]');
+        const threadGifBtn = messengerPage.querySelector('[data-msg-gif]');
+        const searchUrl = messengerPage.getAttribute('data-search-url') || '';
+        let pageActiveUserId = Number(messengerPage.getAttribute('data-selected-user') || 0);
+        let searchTimer = null;
+
+        const pageTpl = (name, id) => templateUrl(messengerPage.getAttribute(name), id);
+
+        const renderConversations = (items) => {
+            if (!conversationsWrap) {
+                return;
+            }
+            if (!Array.isArray(items) || items.length === 0) {
+                conversationsWrap.innerHTML = '<div class="messenger-empty">Aucune conversation.</div>';
+                return;
+            }
+            conversationsWrap.innerHTML = items.map((c) => `
+                <button class="messenger-conv ${Number(c.userId) === Number(pageActiveUserId) ? 'active' : ''}"
+                        type="button"
+                        data-msg-conv
+                        data-user-id="${Number(c.userId) || 0}"
+                        data-user-name="${escapeHtml(c.name || '')}"
+                        data-user-avatar="${escapeHtml(c.avatar || '')}">
+                    <div class="avatar">
+                        ${c.avatar ? `<img src="${escapeHtml(c.avatar)}" alt="avatar">` : escapeHtml(c.initial || 'U')}
+                    </div>
+                    <div class="meta">
+                        <div class="name">${escapeHtml(c.name || '')}</div>
+                        <div class="preview">${
+                            c.lastType && String(c.lastType).startsWith('call_')
+                                ? (c.lastType === 'call_audio' ? 'Appel vocal' : 'Appel video')
+                                : (c.lastType === 'gif' ? 'GIF' : escapeHtml(c.lastMessage || ''))
+                        }</div>
+                    </div>
+                    <div class="right">
+                        <div class="time">${escapeHtml(c.lastAt || '')}</div>
+                        ${Number(c.unread) > 0 ? `<span class="badge">${Number(c.unread)}</span>` : ''}
+                    </div>
+                </button>
+            `).join('');
+        };
+
+        const renderContacts = (items) => {
+            if (!contactsWrap) {
+                return;
+            }
+            if (!Array.isArray(items) || items.length === 0) {
+                contactsWrap.innerHTML = '<div class="messenger-empty">Aucun contact.</div>';
+                return;
+            }
+            contactsWrap.innerHTML = items.map((u) => `
+                <button class="messenger-contact"
+                        type="button"
+                        data-msg-conv
+                        data-user-id="${Number(u.userId) || 0}"
+                        data-user-name="${escapeHtml(u.name || '')}"
+                        data-user-avatar="${escapeHtml(u.avatar || '')}">
+                    <span class="dot"></span>
+                    ${escapeHtml(u.name || 'Utilisateur')}
+                </button>
+            `).join('');
+        };
+
+        const loadThreadOnPage = async (userId, userName, userAvatar) => {
+            if (!threadBody || !threadHead) {
+                return;
+            }
+            pageActiveUserId = userId;
+            const safeName = escapeHtml(userName || 'Utilisateur');
+            const avatarInitial = escapeHtml((userName || 'U').charAt(0).toUpperCase());
+            const avatarHtml = userAvatar ? `<img src="${escapeHtml(userAvatar)}" alt="avatar">` : avatarInitial;
+            threadHead.innerHTML = `
+                <div class="thread-user">
+                    <div class="avatar">${avatarHtml}</div>
+                    <div class="name">${safeName}</div>
+                </div>
+            `;
+            const url = pageTpl('data-thread-url-template', userId);
+            if (!url) {
+                return;
+            }
+            threadBody.innerHTML = '<div class="messenger-empty">Chargement...</div>';
+            try {
+                const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    threadBody.innerHTML = `<div class="messenger-empty">${data.error || 'Impossible de charger la discussion.'}</div>`;
+                    return;
+                }
+                const meId = Number(document.body.dataset.userId || 0);
+                threadBody.innerHTML = (data.messages || []).map((m) => renderMessageBubble(m, meId)).join('') || '<div class="messenger-empty">Aucun message.</div>';
+                threadBody.scrollTop = threadBody.scrollHeight;
+                if (threadInputWrap) {
+                    threadInputWrap.hidden = false;
+                }
+                const readUrl = pageTpl('data-read-url-template', userId);
+                if (readUrl) {
+                    const payload = new FormData();
+                    payload.append('_token', messengerPage.getAttribute('data-read-token') || '');
+                    fetch(readUrl, { method: 'POST', body: payload }).then(() => fetchMsgCount()).catch(() => {});
+                }
+            } catch (e) {
+                threadBody.innerHTML = '<div class="messenger-empty">Impossible de charger la discussion.</div>';
+            }
+        };
+        refreshMessengerThreadLive = async () => {
+            if (!pageActiveUserId) {
+                return;
+            }
+            const current = messengerPage.querySelector(`[data-msg-conv][data-user-id="${pageActiveUserId}"]`);
+            await loadThreadOnPage(
+                pageActiveUserId,
+                current?.getAttribute('data-user-name') || 'Utilisateur',
+                current?.getAttribute('data-user-avatar') || ''
+            );
+        };
+
+        if (sidebar) {
+            sidebar.addEventListener('click', (event) => {
+                const btn = event.target.closest('[data-msg-conv]');
+                if (!btn || !sidebar.contains(btn)) {
+                    return;
+                }
+                sidebar.querySelectorAll('[data-msg-conv]').forEach((el) => el.classList.remove('active'));
+                btn.classList.add('active');
+                const userId = Number(btn.getAttribute('data-user-id') || 0);
+                if (!userId) {
+                    return;
+                }
+                loadThreadOnPage(userId, btn.getAttribute('data-user-name') || 'Utilisateur', btn.getAttribute('data-user-avatar') || '');
+            });
+        }
+
+        if (threadSendBtn && threadInput) {
+            threadSendBtn.addEventListener('click', async () => {
+                const text = threadInput.value.trim();
+                if (!text || !pageActiveUserId) {
+                    return;
+                }
+                const sendUrl = pageTpl('data-send-url-template', pageActiveUserId);
+                if (!sendUrl) {
+                    return;
+                }
+                const ok = await sendMessageToUser(
+                    pageActiveUserId,
+                    { type: 'text', body: text },
+                    messengerPage.getAttribute('data-send-url-template'),
+                    messengerPage.getAttribute('data-send-token')
+                );
+                if (ok) {
+                    threadInput.value = '';
+                    const current = messengerPage.querySelector(`[data-msg-conv][data-user-id="${pageActiveUserId}"]`);
+                    loadThreadOnPage(pageActiveUserId, current?.getAttribute('data-user-name') || 'Utilisateur', current?.getAttribute('data-user-avatar') || '');
+                    fetchMsgCount();
+                }
+            });
+            threadInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    threadSendBtn.click();
+                }
+            });
+        }
+
+        threadCallBtns.forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                if (!pageActiveUserId) {
+                    return;
+                }
+                const mode = btn.getAttribute('data-msg-call') === 'audio' ? 'call_audio' : 'call_video';
+                const callUrl = `https://meet.jit.si/esportify-${mode}-${Date.now()}`;
+                const ok = await sendMessageToUser(
+                    pageActiveUserId,
+                    { type: mode, body: mode === 'call_audio' ? 'Appel vocal' : 'Appel video', callUrl },
+                    messengerPage.getAttribute('data-send-url-template'),
+                    messengerPage.getAttribute('data-send-token')
+                );
+                if (ok) {
+                    window.open(callUrl, '_blank', 'noopener');
+                    const current = messengerPage.querySelector(`[data-msg-conv][data-user-id="${pageActiveUserId}"]`);
+                    loadThreadOnPage(pageActiveUserId, current?.getAttribute('data-user-name') || 'Utilisateur', current?.getAttribute('data-user-avatar') || '');
+                    fetchMsgCount();
+                }
+            });
+        });
+
+        if (threadEmojiBtn && threadInput) {
+            threadEmojiBtn.addEventListener('click', () => toggleEmojiPicker(threadEmojiBtn, threadInput));
+        }
+
+        if (threadGifBtn) {
+            threadGifBtn.addEventListener('click', () => {
+                if (!pageActiveUserId) {
+                    return;
+                }
+                toggleGifPicker(threadGifBtn, async (gifUrl) => {
+                    const ok = await sendMessageToUser(
+                        pageActiveUserId,
+                        { type: 'gif', body: gifUrl },
+                        messengerPage.getAttribute('data-send-url-template'),
+                        messengerPage.getAttribute('data-send-token')
+                    );
+                    if (ok) {
+                        const current = messengerPage.querySelector(`[data-msg-conv][data-user-id="${pageActiveUserId}"]`);
+                        loadThreadOnPage(pageActiveUserId, current?.getAttribute('data-user-name') || 'Utilisateur', current?.getAttribute('data-user-avatar') || '');
+                        fetchMsgCount();
+                    }
+                });
+            });
+        }
+
+        if (searchInput && searchUrl) {
+            searchInput.addEventListener('input', () => {
+                if (searchTimer) {
+                    clearTimeout(searchTimer);
+                }
+                searchTimer = setTimeout(async () => {
+                    const q = searchInput.value.trim();
+                    try {
+                        const response = await fetch(`${searchUrl}?q=${encodeURIComponent(q)}`, {
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        });
+                        const data = await response.json().catch(() => ({}));
+                        if (!response.ok) {
+                            return;
+                        }
+                        renderConversations(data.conversations || []);
+                        renderContacts(data.contacts || []);
+                    } catch (e) {
+                        // noop
+                    }
+                }, 240);
+            });
+        }
+
+        if (pageActiveUserId > 0) {
+            const current = messengerPage.querySelector(`[data-msg-conv][data-user-id="${pageActiveUserId}"]`);
+            if (current) {
+                current.classList.add('active');
+                loadThreadOnPage(
+                    pageActiveUserId,
+                    current.getAttribute('data-user-name') || 'Utilisateur',
+                    current.getAttribute('data-user-avatar') || ''
+                );
+            }
+        }
+    }
+
+    normalizeFeedTextNodes(document);
+    fetchNotifCount();
+    fetchMsgCount();
+    const runLiveRefresh = async () => {
+        await fetchNotifCount();
+        await fetchMsgCount();
+        if (notifDropdown && notifDropdown.classList.contains('open')) {
+            fetchNotifPanel();
+        }
+        if (msgDropdown && msgDropdown.classList.contains('open')) {
+            fetchMsgPanel();
+        }
+        refreshOpenMiniChat();
+        if (typeof refreshMessengerThreadLive === 'function') {
+            refreshMessengerThreadLive();
+        }
+    };
+    setInterval(() => {
+        if (document.visibilityState === 'visible') {
+            runLiveRefresh();
+        }
+    }, 3500);
 })();
 </script>
 </body>

@@ -5,6 +5,8 @@ namespace App\Controller;
 use App\Form\UserProfileFormType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -63,6 +65,36 @@ class ProfileController extends AbstractController
             $plainPassword = $form->get('plainPassword')->getData();
             if (is_string($plainPassword) && $plainPassword !== '') {
                 $user->setPassword($passwordHasher->hashPassword($user, $plainPassword));
+            }
+
+            /** @var UploadedFile|null $avatarFile */
+            $avatarFile = $form->get('avatarFile')->getData();
+            if ($avatarFile) {
+                $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/avatars';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+
+                $extension = $avatarFile->guessExtension() ?: $avatarFile->getClientOriginalExtension();
+                $filename = bin2hex(random_bytes(12)) . ($extension ? '.' . $extension : '');
+
+                try {
+                    $avatarFile->move($uploadDir, $filename);
+
+                    if ($user->getAvatar()) {
+                        $oldFile = $uploadDir . '/' . $user->getAvatar();
+                        if (is_file($oldFile)) {
+                            @unlink($oldFile);
+                        }
+                    }
+
+                    $user->setAvatar($filename);
+                } catch (FileException $e) {
+                    $form->get('avatarFile')->addError(new FormError("Impossible d'uploader la photo de profil."));
+                    return $this->render('home/edit_profile.html.twig', [
+                        'form' => $form->createView(),
+                    ]);
+                }
             }
 
             $entityManager->flush();

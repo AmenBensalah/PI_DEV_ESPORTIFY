@@ -16,7 +16,7 @@
             </div>
         </div>
 
-        {{ form_start(form, {attr: {class: 'admin-form', novalidate: 'novalidate', 'data-admin-event-form': ''}}) }}
+        {{ form_start(form, {attr: {class: 'admin-form', 'data-admin-event-form': '', 'data-validate-post-form': ''}}) }}
             <div class="admin-form-error">{{ form_errors(form) }}</div>
 
             <div class="admin-form-group">
@@ -48,15 +48,15 @@
                 <div>
                     <div class="admin-form-group">
                         <label class="admin-form-label">
-                            <i class="fas fa-cloud-upload-alt"></i> Fichier image
+                            <i class="fas fa-cloud-upload-alt"></i> Fichier media
                         </label>
                         <div class="admin-upload-box" data-upload>
                             <div class="admin-upload-preview" data-preview></div>
                             <div class="admin-upload-placeholder" data-placeholder>
                                 <i class="fas fa-cloud-upload-alt"></i>
-                                Cliquez ou glissez une image ici
+                                Cliquez ou glissez une image/video ici
                             </div>
-                            {{ form_widget(form.mediaFile, {'attr': {'class': 'admin-upload-input', 'data-upload-input': '', 'accept': 'image/*'}}) }}
+                            {{ form_widget(form.mediaFile, {'attr': {'class': 'admin-upload-input', 'data-upload-input': '', 'accept': 'image/*,video/*', 'multiple': 'multiple'}}) }}
                         </div>
                         <div class="admin-form-error">{{ form_errors(form.mediaFile) }}</div>
                     </div>

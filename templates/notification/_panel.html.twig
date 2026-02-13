@@ -1,0 +1,31 @@
+<div class="notif-panel-header">
+    <strong>Notifications</strong>
+    <button type="button" class="notif-mark-all" data-notif-read-all {% if unreadCount < 1 %}disabled{% endif %}>
+        Tout marquer lu
+    </button>
+</div>
+
+<div class="notif-panel-list">
+    {% if notifications is empty %}
+        <div class="notif-empty">Aucune notification.</div>
+    {% else %}
+        {% for notification in notifications %}
+            <div class="notif-item {{ notification.isRead ? '' : 'is-unread' }}" data-notif-item data-notif-id="{{ notification.id }}">
+                <div class="notif-item-head">
+                    <span class="notif-title">{{ notification.title }}</span>
+                    <span class="notif-time">{{ notification.createdAt ? notification.createdAt|date('d/m H:i') : '' }}</span>
+                </div>
+                <div class="notif-message">{{ notification.message }}</div>
+                <div class="notif-actions">
+                    {% if notification.link %}
+                        <a href="{{ notification.link }}" class="notif-link" data-notif-open>Lire</a>
+                    {% endif %}
+                    {% if not notification.isRead %}
+                        <button type="button" class="notif-read-one" data-notif-read>Marquer lu</button>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+

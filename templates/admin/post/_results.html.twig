@@ -1,0 +1,56 @@
+{% if posts %}
+    <div class="admin-tournament-table">
+        <table data-table="posts">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Contenu</th>
+                    <th>Média</th>
+                    <th>Création</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for post in posts %}
+                    {% set mediaType = post.isEvent ? 'event' : 'post' %}
+                    <tr class="admin-tournament-row">
+                        <td>#{{ post.id }}</td>
+                        <td><span class="badge badge-info">{{ post.isEvent ? 'Événement' : 'Publication' }}</span></td>
+                        <td>{{ post.content|default('')|slice(0, 80) }}</td>
+                        <td>
+                            {% if post.imagePath %}
+                                {{ post.imagePath|slice(0, 40) }}
+                            {% elseif post.videoUrl %}
+                                {{ post.videoUrl|slice(0, 40) }}
+                            {% endif %}
+                        </td>
+                        <td>{{ post.createdAt ? post.createdAt|date('d/m/Y H:i') : '' }}</td>
+                        <td>
+                            <div class="admin-tournament-row-actions">
+                                <a class="admin-tournament-icon" href="{{ path('fil_admin_post_edit', {id: post.id}) }}" title="Voir">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a class="admin-tournament-icon cyan" href="{{ path('fil_admin_post_edit', {id: post.id}) }}" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="post" action="{{ path('fil_admin_post_delete', {id: post.id}) }}" onsubmit="return confirm('Supprimer cette publication ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_post_' ~ post.id) }}">
+                                    <button class="admin-tournament-icon danger" type="submit" title="Supprimer">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="admin-tournament-empty">
+        <div class="empty-ring"></div>
+        <strong>Aucune publication</strong>
+        <p>Créez votre première publication.</p>
+    </div>
+{% endif %}

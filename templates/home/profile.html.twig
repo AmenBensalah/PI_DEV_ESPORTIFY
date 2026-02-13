@@ -16,10 +16,10 @@
     <div class="profile-card">
         <div class="profile-header">
             <div class="profile-avatar">
-                {% if user.avatar is defined and user.avatar %}
+                {% if user.avatar %}
                     <img src="{{ asset('uploads/avatars/' ~ user.avatar) }}" alt="Avatar">
                 {% else %}
-                    <span>{{ user.nom|default(user.email)|first|upper }}</span>
+                    <span>{{ user.pseudo|default(user.nom)|default(user.email)|first|upper }}</span>
                 {% endif %}
             </div>
             <div class="profile-identity">

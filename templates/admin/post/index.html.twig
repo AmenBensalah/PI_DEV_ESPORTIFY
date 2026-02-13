@@ -36,24 +36,26 @@
         <form class="admin-tournament-form" data-filter-form>
             <div class="field">
                 <label>Contenu</label>
-                <input type="text" name="q" placeholder="Rechercher...">
+                <input type="text" name="q" placeholder="Rechercher..." value="{{ filters.q|default('') }}">
             </div>
             <div class="field">
                 <label>Type</label>
                 <select name="media">
                     <option value="">-- Tous --</option>
-                    <option value="event">Événement</option>
-                    <option value="post">Publication</option>
+                    <option value="event" {% if filters.media|default('') == 'event' %}selected{% endif %}>Événement</option>
+                    <option value="post" {% if filters.media|default('') == 'post' %}selected{% endif %}>Publication</option>
                 </select>
             </div>
             <div class="field">
                 <label>Date (du)</label>
-                <input type="date" name="date_from">
+                <input type="date" name="date_from" value="{{ filters.date_from|default('') }}">
             </div>
             <div class="field">
                 <label>Date (au)</label>
-                <input type="date" name="date_to">
+                <input type="date" name="date_to" value="{{ filters.date_to|default('') }}">
             </div>
+            <input type="hidden" name="sort" value="{{ filters.sort|default('date') }}">
+            <input type="hidden" name="direction" value="{{ filters.direction|default('DESC') }}">
             <div class="admin-tournament-actions">
                 <button type="submit" class="admin-tournament-btn">
                     <i class="fas fa-search"></i> Rechercher
@@ -66,135 +68,77 @@
 
             <div class="admin-tournament-sort">
                 <span>Trier :</span>
-                <a href="#" data-sort="date:desc">Date ↓</a>
-                <a href="#" data-sort="date:asc">Date ↑</a>
-                <a href="#" data-sort="type:asc">Type A→Z</a>
-                <a href="#" data-sort="type:desc">Type Z→A</a>
+                <a href="#" data-sort="date" data-direction="DESC">Date ↓</a>
+                <a href="#" data-sort="date" data-direction="ASC">Date ↑</a>
+                <a href="#" data-sort="type" data-direction="ASC">Type A→Z</a>
+                <a href="#" data-sort="type" data-direction="DESC">Type Z→A</a>
             </div>
     </div>
 
-    {% if posts %}
-        <div class="admin-tournament-table">
-            <table data-table="posts">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Type</th>
-                        <th>Contenu</th>
-                        <th>Média</th>
-                        <th>Création</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for post in posts %}
-                        {% set mediaType = post.isEvent ? 'event' : 'post' %}
-                        <tr class="admin-tournament-row"
-                            data-type="{{ mediaType|lower }}"
-                            data-date="{{ post.createdAt ? post.createdAt|date('Y-m-d') : '' }}"
-                            data-search="{{ post.id }} {{ mediaType }} {{ post.content|default('') }} {{ post.imagePath|default('') }} {{ post.videoUrl|default('') }}">
-                            <td>#{{ post.id }}</td>
-                            <td><span class="badge badge-info">{{ post.isEvent ? 'Événement' : 'Publication' }}</span></td>
-                            <td>{{ post.content|default('')|slice(0, 80) }}</td>
-                            <td>
-                                {% if post.imagePath %}
-                                    {{ post.imagePath|slice(0, 40) }}
-                                {% elseif post.videoUrl %}
-                                    {{ post.videoUrl|slice(0, 40) }}
-                                {% endif %}
-                            </td>
-                            <td>{{ post.createdAt ? post.createdAt|date('d/m/Y H:i') : '' }}</td>
-                            <td>
-                                <div class="admin-tournament-row-actions">
-                                    <a class="admin-tournament-icon" href="{{ path('fil_admin_post_edit', {id: post.id}) }}" title="Voir">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a class="admin-tournament-icon cyan" href="{{ path('fil_admin_post_edit', {id: post.id}) }}" title="Modifier">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <form method="post" action="{{ path('fil_admin_post_delete', {id: post.id}) }}" onsubmit="return confirm('Supprimer cette publication ?');">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_post_' ~ post.id) }}">
-                                        <button class="admin-tournament-icon danger" type="submit" title="Supprimer">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    {% else %}
-        <div class="admin-tournament-empty">
-            <div class="empty-ring"></div>
-            <strong>Aucune publication</strong>
-            <p>Créez votre première publication.</p>
-        </div>
-    {% endif %}
+    <div data-results>
+        {% include 'admin/post/_results.html.twig' with {posts: posts} %}
+    </div>
 </section>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const form = document.querySelector('[data-filter-form]');
-        const rows = Array.from(document.querySelectorAll('[data-table=\"posts\"] tbody tr'));
         const sortLinks = document.querySelectorAll('.admin-tournament-sort a[data-sort]');
+        const results = document.querySelector('[data-results]');
+        const sortInput = form ? form.querySelector('input[name="sort"]') : null;
+        const directionInput = form ? form.querySelector('input[name="direction"]') : null;
 
-        const applyFilters = () => {
-            const formData = new FormData(form);
-            const query = (formData.get('q') || '').toLowerCase();
-            const media = (formData.get('media') || '').toLowerCase();
-            const from = formData.get('date_from');
-            const to = formData.get('date_to');
+        let debounceTimer = null;
 
-            rows.forEach(row => {
-                const search = (row.dataset.search || '').toLowerCase();
-                const type = (row.dataset.type || '').toLowerCase();
-                const date = row.dataset.date || '';
-                const matchesQuery = !query || search.includes(query);
-                const matchesType = !media || type === media;
-                const matchesFrom = !from || (date && date >= from);
-                const matchesTo = !to || (date && date <= to);
-                row.style.display = matchesQuery && matchesType && matchesFrom && matchesTo ? '' : 'none';
-            });
+        const fetchResults = async () => {
+            if (!form || !results) return;
+
+            const params = new URLSearchParams(new FormData(form));
+            const url = `${window.location.pathname}?${params.toString()}`;
+
+            try {
+                const response = await fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                });
+                if (!response.ok) return;
+                results.innerHTML = await response.text();
+                window.history.replaceState({}, '', url);
+            } catch (e) {
+                // Keep current list on fetch error.
+            }
         };
 
-        const applySort = (field, direction) => {
-            const tbody = rows[0] ? rows[0].closest('tbody') : null;
-            if (!tbody) {
-                return;
+        const triggerDebouncedFetch = () => {
+            if (debounceTimer) {
+                clearTimeout(debounceTimer);
             }
-            const sorted = rows.slice().sort((a, b) => {
-                if (field === 'date') {
-                    const aVal = a.dataset.date || '';
-                    const bVal = b.dataset.date || '';
-                    return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-                }
-                if (field === 'type') {
-                    const aVal = a.dataset.type || '';
-                    const bVal = b.dataset.type || '';
-                    return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-                }
-                return 0;
-            });
-            sorted.forEach(row => tbody.appendChild(row));
+            debounceTimer = setTimeout(fetchResults, 250);
         };
 
         if (form) {
             form.addEventListener('submit', (event) => {
                 event.preventDefault();
-                applyFilters();
+                fetchResults();
             });
             form.addEventListener('reset', () => {
-                setTimeout(applyFilters, 0);
+                if (sortInput) sortInput.value = 'date';
+                if (directionInput) directionInput.value = 'DESC';
+                setTimeout(fetchResults, 0);
+            });
+            form.querySelectorAll('input[type="text"], input[type="date"], select').forEach((input) => {
+                input.addEventListener('input', triggerDebouncedFetch);
+                input.addEventListener('change', triggerDebouncedFetch);
             });
         }
 
         sortLinks.forEach(link => {
             link.addEventListener('click', (event) => {
                 event.preventDefault();
-                const [field, direction] = (link.dataset.sort || '').split(':');
-                applySort(field, direction);
+                if (sortInput && directionInput) {
+                    sortInput.value = link.dataset.sort || 'date';
+                    directionInput.value = link.dataset.direction || 'DESC';
+                }
+                fetchResults();
             });
         });
     });

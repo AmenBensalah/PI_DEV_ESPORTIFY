@@ -3,8 +3,18 @@
 namespace App\Controller\Admin;
 
 use App\Form\User1Type;
+use App\Repository\AnnouncementRepository;
+use App\Repository\CommentaireRepository;
 use App\Repository\EquipeRepository;
+use App\Repository\EventParticipantRepository;
+use App\Repository\LikeRepository;
+use App\Repository\ManagerRequestRepository;
+use App\Repository\NotificationRepository;
+use App\Repository\PaymentRepository;
+use App\Repository\PostRepository;
+use App\Repository\TournoiRepository;
 use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface as ORMEntityManagerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -25,21 +35,235 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/admin/dashboard', name: 'admin_dashboard')]
-    public function index(UserRepository $userRepository, EquipeRepository $equipeRepository, \App\Repository\ManagerRequestRepository $managerRequestRepository): Response
-    {
-        $users = $userRepository->findAll();
-        $userCount = count($users);
-        $equipes = $equipeRepository->findBy([], ['id' => 'DESC'], 5);
-        $pendingRequests = $managerRequestRepository->count(['status' => 'pending']);
+    public function index(
+        UserRepository $userRepository,
+        EquipeRepository $equipeRepository,
+        ManagerRequestRepository $managerRequestRepository,
+        PostRepository $postRepository,
+        CommentaireRepository $commentaireRepository,
+        AnnouncementRepository $announcementRepository,
+        TournoiRepository $tournoiRepository,
+        PaymentRepository $paymentRepository,
+        NotificationRepository $notificationRepository,
+        LikeRepository $likeRepository,
+        EventParticipantRepository $eventParticipantRepository,
+        ORMEntityManagerInterface $orm
+    ): Response {
+        $now = new \DateTimeImmutable('now');
+        $periodStart = (new \DateTimeImmutable('first day of this month 00:00:00'))->modify('-5 months');
+        $periodEnd = new \DateTimeImmutable('last day of this month 23:59:59');
+
+        $monthKeys = [];
+        $monthLabels = [];
+        for ($i = 0; $i < 6; $i++) {
+            $m = $periodStart->modify('+' . $i . ' months');
+            $monthKeys[] = $m->format('Y-m');
+            $monthLabels[] = $m->format('M Y');
+        }
+
+        $postsByMonth = $this->buildMonthlySeries(
+            $this->fetchDateRows($postRepository, 'p', 'createdAt', $periodStart, $periodEnd),
+            $monthKeys
+        );
+        $commentsByMonth = $this->buildMonthlySeries(
+            $this->fetchDateRows($commentaireRepository, 'c', 'createdAt', $periodStart, $periodEnd),
+            $monthKeys
+        );
+        $announcementsByMonth = $this->buildMonthlySeries(
+            $this->fetchDateRows($announcementRepository, 'a', 'createdAt', $periodStart, $periodEnd),
+            $monthKeys
+        );
+        $paymentsByMonth = $this->buildMonthlySeries(
+            $this->fetchDateRows($paymentRepository, 'pay', 'createdAt', $periodStart, $periodEnd),
+            $monthKeys
+        );
+        $managerRequestsByMonth = $this->buildMonthlySeries(
+            $this->fetchDateRows($managerRequestRepository, 'mr', 'createdAt', $periodStart, $periodEnd),
+            $monthKeys
+        );
+        $teamsByMonth = $this->buildMonthlySeries(
+            $this->fetchDateRows($equipeRepository, 'e', 'dateCreation', $periodStart, $periodEnd),
+            $monthKeys
+        );
+        $tournoisByMonth = $this->buildMonthlySeries(
+            $this->fetchDateRows($tournoiRepository, 't', 'startDate', $periodStart, $periodEnd),
+            $monthKeys
+        );
+        $notificationsByMonth = $this->buildMonthlySeries(
+            $this->fetchDateRows($notificationRepository, 'n', 'createdAt', $periodStart, $periodEnd),
+            $monthKeys
+        );
+
+        $roleDistributionRows = $orm->createQueryBuilder()
+            ->select('u.role AS role, COUNT(u.id) AS total')
+            ->from(\App\Entity\User::class, 'u')
+            ->groupBy('u.role')
+            ->getQuery()
+            ->getScalarResult();
+        $roleDistribution = [];
+        foreach ($roleDistributionRows as $row) {
+            $roleDistribution[(string) $row['role']] = (int) $row['total'];
+        }
+
+        $requestStatusRows = $orm->createQueryBuilder()
+            ->select('mr.status AS status, COUNT(mr.id) AS total')
+            ->from(\App\Entity\ManagerRequest::class, 'mr')
+            ->groupBy('mr.status')
+            ->getQuery()
+            ->getScalarResult();
+        $requestStatus = ['pending' => 0, 'accepted' => 0, 'rejected' => 0];
+        foreach ($requestStatusRows as $row) {
+            $key = strtolower((string) $row['status']);
+            $requestStatus[$key] = (int) $row['total'];
+        }
+
+        $paymentStatusRows = $orm->createQueryBuilder()
+            ->select('p.status AS status, COUNT(p.id) AS total')
+            ->from(\App\Entity\Payment::class, 'p')
+            ->groupBy('p.status')
+            ->getQuery()
+            ->getScalarResult();
+        $paymentStatus = [];
+        foreach ($paymentStatusRows as $row) {
+            $paymentStatus[(string) $row['status']] = (int) $row['total'];
+        }
+
+        $topAuthorsRows = $orm->createQueryBuilder()
+            ->select('COALESCE(u.pseudo, u.nom, u.email) AS authorName, COUNT(p.id) AS total')
+            ->from(\App\Entity\Post::class, 'p')
+            ->leftJoin('p.author', 'u')
+            ->groupBy('u.id')
+            ->orderBy('total', 'DESC')
+            ->setMaxResults(6)
+            ->getQuery()
+            ->getScalarResult();
+
+        $topAuthors = [];
+        foreach ($topAuthorsRows as $row) {
+            $topAuthors[] = [
+                'name' => (string) ($row['authorName'] ?? 'Utilisateur'),
+                'total' => (int) ($row['total'] ?? 0),
+            ];
+        }
+
+        $paymentTotalRows = $orm->createQueryBuilder()
+            ->select('COALESCE(SUM(p.amount), 0) AS total')
+            ->from(\App\Entity\Payment::class, 'p')
+            ->getQuery()
+            ->getScalarResult();
+        $paymentTotal = isset($paymentTotalRows[0]['total']) ? (float) $paymentTotalRows[0]['total'] : 0.0;
+
+        $monthStart = new \DateTimeImmutable('first day of this month 00:00:00');
+        $monthEnd = new \DateTimeImmutable('last day of this month 23:59:59');
+        $paymentMonthRows = $orm->createQueryBuilder()
+            ->select('COALESCE(SUM(p.amount), 0) AS total')
+            ->from(\App\Entity\Payment::class, 'p')
+            ->andWhere('p.createdAt BETWEEN :from AND :to')
+            ->setParameter('from', $monthStart)
+            ->setParameter('to', $monthEnd)
+            ->getQuery()
+            ->getScalarResult();
+        $paymentMonth = isset($paymentMonthRows[0]['total']) ? (float) $paymentMonthRows[0]['total'] : 0.0;
+
+        $totalUsers = $userRepository->count([]);
+        $totalTeams = $equipeRepository->count([]);
+        $totalPosts = $postRepository->count([]);
+        $totalComments = $commentaireRepository->count([]);
+        $totalAnnouncements = $announcementRepository->count([]);
+        $totalTournois = $tournoiRepository->count([]);
+        $totalNotifications = $notificationRepository->count([]);
+        $totalLikes = $likeRepository->count([]);
+        $totalParticipations = $eventParticipantRepository->count([]);
+        $pendingRequests = $requestStatus['pending'] ?? 0;
 
         return $this->render('admin/dashboard/index.html.twig', [
-            'userCount' => $userCount,
-            'equipeCount' => $equipeRepository->count([]),
-            'reportCount' => 0,
-            'pendingRequests' => $pendingRequests,
-            'latestUsers' => $userRepository->findBy([], ['id' => 'DESC'], 5),
-            'latestEquipes' => $equipes,
+            'kpis' => [
+                'users' => $totalUsers,
+                'teams' => $totalTeams,
+                'posts' => $totalPosts,
+                'comments' => $totalComments,
+                'announcements' => $totalAnnouncements,
+                'tournois' => $totalTournois,
+                'notifications' => $totalNotifications,
+                'pendingRequests' => $pendingRequests,
+                'paymentsCount' => $paymentRepository->count([]),
+                'paymentsTotal' => $paymentTotal,
+                'paymentsMonth' => $paymentMonth,
+                'likes' => $totalLikes,
+                'participations' => $totalParticipations,
+            ],
+            'latestUsers' => $userRepository->findBy([], ['id' => 'DESC'], 6),
+            'latestEquipes' => $equipeRepository->findBy([], ['id' => 'DESC'], 6),
+            'topAuthors' => $topAuthors,
+            'roleDistribution' => $roleDistribution,
+            'requestStatus' => $requestStatus,
+            'paymentStatus' => $paymentStatus,
+            'chartData' => [
+                'labels' => $monthLabels,
+                'activity' => [
+                    'posts' => $postsByMonth,
+                    'comments' => $commentsByMonth,
+                    'announcements' => $announcementsByMonth,
+                ],
+                'operations' => [
+                    'requests' => $managerRequestsByMonth,
+                    'payments' => $paymentsByMonth,
+                    'teams' => $teamsByMonth,
+                    'tournois' => $tournoisByMonth,
+                    'notifications' => $notificationsByMonth,
+                ],
+            ],
+            'generatedAt' => $now,
         ]);
+    }
+
+    /**
+     * @return list<array{value:mixed}>
+     */
+    private function fetchDateRows(
+        object $repository,
+        string $alias,
+        string $field,
+        \DateTimeImmutable $from,
+        \DateTimeImmutable $to
+    ): array {
+        return $repository->createQueryBuilder($alias)
+            ->select(sprintf('%s.%s AS value', $alias, $field))
+            ->andWhere(sprintf('%s.%s BETWEEN :from AND :to', $alias, $field))
+            ->setParameter('from', $from)
+            ->setParameter('to', $to)
+            ->getQuery()
+            ->getScalarResult();
+    }
+
+    /**
+     * @param list<array{value:mixed}> $rows
+     * @param list<string> $monthKeys
+     * @return list<int>
+     */
+    private function buildMonthlySeries(array $rows, array $monthKeys): array
+    {
+        $bucket = array_fill_keys($monthKeys, 0);
+        foreach ($rows as $row) {
+            $value = $row['value'] ?? null;
+            if ($value instanceof \DateTimeInterface) {
+                $key = $value->format('Y-m');
+            } elseif (is_string($value) && $value !== '') {
+                try {
+                    $key = (new \DateTimeImmutable($value))->format('Y-m');
+                } catch (\Throwable) {
+                    continue;
+                }
+            } else {
+                continue;
+            }
+
+            if (array_key_exists($key, $bucket)) {
+                $bucket[$key]++;
+            }
+        }
+
+        return array_values($bucket);
     }
 
     #[Route('/admin/utilisateurs', name: 'admin_users')]

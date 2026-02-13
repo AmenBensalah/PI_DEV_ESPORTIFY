@@ -5,6 +5,8 @@ namespace App\Controller\Admin;
 use App\Entity\Announcement;
 use App\Form\AnnouncementType;
 use App\Repository\AnnouncementRepository;
+use App\Repository\UserRepository;
+use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -18,15 +20,37 @@ use Symfony\Component\Routing\Attribute\Route;
 class AdminAnnouncementController extends AbstractController
 {
     #[Route('/', name: 'fil_admin_announcement_index')]
-    public function index(AnnouncementRepository $announcementRepository): Response
+    public function index(Request $request, AnnouncementRepository $announcementRepository): Response
     {
+        $filters = [
+            'q' => trim((string) $request->query->get('q', '')),
+            'date_from' => trim((string) $request->query->get('date_from', '')),
+            'date_to' => trim((string) $request->query->get('date_to', '')),
+            'sort' => trim((string) $request->query->get('sort', 'date')),
+            'direction' => strtoupper(trim((string) $request->query->get('direction', 'DESC'))) === 'ASC' ? 'ASC' : 'DESC',
+        ];
+
+        $announcements = $announcementRepository->searchAdmin($filters);
+
+        if ($request->isXmlHttpRequest()) {
+            return $this->render('admin/announcement/_results.html.twig', [
+                'announcements' => $announcements,
+            ]);
+        }
+
         return $this->render('admin/announcement/index.html.twig', [
-            'announcements' => $announcementRepository->findBy([], ['createdAt' => 'DESC']),
+            'announcements' => $announcements,
+            'filters' => $filters,
         ]);
     }
 
     #[Route('/new', name: 'fil_admin_announcement_new')]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        UserRepository $userRepository,
+        NotificationService $notificationService
+    ): Response
     {
         $announcement = new Announcement();
         $form = $this->createForm(AnnouncementType::class, $announcement);
@@ -75,6 +99,14 @@ class AdminAnnouncementController extends AbstractController
 
             $entityManager->persist($announcement);
             $entityManager->flush();
+
+            $notificationService->notifyUsers(
+                $userRepository->findAll(),
+                'Nouvelle annonce',
+                'Une nouvelle annonce a été publiée: ' . $announcement->getTitle(),
+                $this->generateUrl('fil_home'),
+                'announcement'
+            );
 
             return $this->redirectToRoute('fil_admin_announcement_index');
         }

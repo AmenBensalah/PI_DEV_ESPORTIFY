@@ -5,11 +5,14 @@ use App\Enum\Role;
 use App\Entity\User;
 use App\Form\RegistrationFormType;
 use App\Security\SecurityAuthenticator;
+use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -18,7 +21,13 @@ use Symfony\Component\Routing\Attribute\Route;
 class RegistrationController extends AbstractController
 {
     #[Route('/register', name: 'app_register')]
-    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, Security $security, EntityManagerInterface $entityManager): Response
+    public function register(
+        Request $request,
+        UserPasswordHasherInterface $userPasswordHasher,
+        Security $security,
+        EntityManagerInterface $entityManager,
+        NotificationService $notificationService
+    ): Response
     {
         $user = new User();
         $form = $this->createForm(RegistrationFormType::class, $user);
@@ -34,8 +43,42 @@ class RegistrationController extends AbstractController
                 // encode the plain password
                 $user->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
                 $user->setRole(Role::JOUEUR);
+
+                /** @var UploadedFile|null $avatarFile */
+                $avatarFile = $form->get('avatarFile')->getData();
+                if ($avatarFile) {
+                    $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/avatars';
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0777, true);
+                    }
+
+                    $extension = $avatarFile->guessExtension() ?: $avatarFile->getClientOriginalExtension();
+                    $filename = bin2hex(random_bytes(12)) . ($extension ? '.' . $extension : '');
+
+                    try {
+                        $avatarFile->move($uploadDir, $filename);
+                        $user->setAvatar($filename);
+                    } catch (FileException $e) {
+                        $form->get('avatarFile')->addError(new FormError("Impossible d'uploader la photo de profil."));
+                    }
+                }
+
+                if (!$form->isValid()) {
+                    return $this->render('registration/register.html.twig', [
+                        'registrationForm' => $form,
+                    ]);
+                }
+
                 $entityManager->persist($user);
                 $entityManager->flush();
+
+                $notificationService->notifyUser(
+                    $user,
+                    'Bienvenue sur E-Sportify',
+                    'Votre compte a été créé avec succès. Commencez à explorer le fil d\'actualité.',
+                    $this->generateUrl('fil_home'),
+                    'welcome'
+                );
 
                 // do anything else you need here, like send an email
 

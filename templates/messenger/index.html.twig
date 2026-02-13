@@ -1,0 +1,92 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Messenger - E-sportify{% endblock %}
+
+{% block body %}
+<section class="messenger-page"
+         data-messenger-page
+         data-count-url="{{ path('app_messages_count') }}"
+         data-panel-url="{{ path('app_messages_panel') }}"
+         data-search-url="{{ path('app_messages_search') }}"
+         data-thread-url-template="{{ path('app_messages_thread', {id: 0}) }}"
+         data-send-url-template="{{ path('app_messages_send', {id: 0}) }}"
+         data-read-url-template="{{ path('app_messages_read', {id: 0}) }}"
+         data-send-token="{{ messageSendToken }}"
+         data-read-token="{{ messageReadToken }}"
+         data-selected-user="{{ selectedUserId }}">
+    <div class="messenger-shell">
+        <aside class="messenger-sidebar">
+            <div class="messenger-sidebar-head">
+                <h2><i class="fa-solid fa-comments"></i> Messenger</h2>
+                <div class="messenger-unread-pill" data-msg-unread-total>0</div>
+            </div>
+            <div class="messenger-search-wrap">
+                <input type="text" class="messenger-search" placeholder="Rechercher un contact..." data-msg-search>
+            </div>
+            <div class="messenger-conversations" data-msg-conversations>
+                {% for c in conversations %}
+                    <button class="messenger-conv {{ selectedUserId == c.userId ? 'active' : '' }}"
+                            type="button"
+                            data-msg-conv
+                            data-user-id="{{ c.userId }}"
+                            data-user-name="{{ c.name }}"
+                            data-user-avatar="{{ c.avatar ?? '' }}">
+                        <div class="avatar">
+                            {% if c.avatar %}
+                                <img src="{{ c.avatar }}" alt="avatar">
+                            {% else %}
+                                {{ c.initial }}
+                            {% endif %}
+                        </div>
+                        <div class="meta">
+                            <div class="name">{{ c.name }}</div>
+                            <div class="preview">
+                                {{ c.lastType starts with 'call_'
+                                    ? (c.lastType == 'call_audio' ? 'Appel vocal' : 'Appel video')
+                                    : (c.lastType == 'gif' ? 'GIF' : c.lastMessage) }}
+                            </div>
+                        </div>
+                        <div class="right">
+                            <div class="time">{{ c.lastAt }}</div>
+                            {% if c.unread > 0 %}<span class="badge">{{ c.unread }}</span>{% endif %}
+                        </div>
+                    </button>
+                {% else %}
+                    <div class="messenger-empty">Aucune conversation.</div>
+                {% endfor %}
+            </div>
+            <div class="messenger-contacts-head">Nouveaux contacts</div>
+            <div class="messenger-contacts" data-msg-contacts>
+                {% for u in contacts %}
+                    <button class="messenger-contact"
+                            type="button"
+                            data-msg-conv
+                            data-user-id="{{ u.id }}"
+                            data-user-name="{{ u.pseudo ?: u.nom ?: u.email }}"
+                            data-user-avatar="{{ u.avatar ? asset('uploads/avatars/' ~ u.avatar) : '' }}">
+                        <span class="dot"></span>
+                        {{ u.pseudo ?: u.nom ?: u.email }}
+                    </button>
+                {% endfor %}
+            </div>
+        </aside>
+
+        <section class="messenger-main">
+            <header class="messenger-thread-head" data-msg-thread-head>
+                <div class="title">Selectionnez une conversation</div>
+            </header>
+            <div class="messenger-thread-body" data-msg-thread-body>
+                <div class="messenger-empty">Choisissez une conversation a gauche.</div>
+            </div>
+            <div class="messenger-thread-input" data-msg-thread-input hidden>
+                <button type="button" class="call-btn" data-msg-call="audio"><i class="fa-solid fa-phone"></i></button>
+                <button type="button" class="call-btn" data-msg-call="video"><i class="fa-solid fa-video"></i></button>
+                <button type="button" class="call-btn" data-msg-emoji><i class="fa-regular fa-face-smile"></i></button>
+                <button type="button" class="call-btn" data-msg-gif>GIF</button>
+                <input type="text" placeholder="Ecrire un message..." data-msg-input>
+                <button type="button" class="send-btn" data-msg-send><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </section>
+    </div>
+</section>
+{% endblock %}

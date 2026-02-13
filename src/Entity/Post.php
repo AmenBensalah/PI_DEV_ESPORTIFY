@@ -11,6 +11,7 @@ use App\Entity\User;
 use App\Entity\Commentaire;
 use App\Entity\Like;
 use App\Entity\EventParticipant;
+use App\Entity\PostMedia;
 
 #[ORM\Entity(repositoryClass: PostRepository::class)]
 #[ORM\Table(name: 'posts')]
@@ -75,12 +76,20 @@ class Post
     #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'savedPosts')]
     private Collection $savedBy;
 
+    /**
+     * @var Collection<int, PostMedia>
+     */
+    #[ORM\OneToMany(targetEntity: PostMedia::class, mappedBy: 'post', orphanRemoval: true, cascade: ['persist'])]
+    #[ORM\OrderBy(['position' => 'ASC', 'id' => 'ASC'])]
+    private Collection $medias;
+
     public function __construct()
     {
         $this->commentaires = new ArrayCollection();
         $this->likes = new ArrayCollection();
         $this->eventParticipants = new ArrayCollection();
         $this->savedBy = new ArrayCollection();
+        $this->medias = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -315,5 +324,34 @@ class Post
         }
 
         return $this->getParticipantsCount() >= $this->maxParticipants;
+    }
+
+    /**
+     * @return Collection<int, PostMedia>
+     */
+    public function getMedias(): Collection
+    {
+        return $this->medias;
+    }
+
+    public function addMedia(PostMedia $media): static
+    {
+        if (!$this->medias->contains($media)) {
+            $this->medias->add($media);
+            $media->setPost($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMedia(PostMedia $media): static
+    {
+        if ($this->medias->removeElement($media)) {
+            if ($media->getPost() === $this) {
+                $media->setPost(null);
+            }
+        }
+
+        return $this;
     }
 }

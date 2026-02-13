@@ -16,6 +16,72 @@ class PostRepository extends ServiceEntityRepository
         parent::__construct($registry, Post::class);
     }
 
+    /**
+     * @param array{
+     *     q?: string,
+     *     media?: string,
+     *     date_from?: string,
+     *     date_to?: string,
+     *     sort?: string,
+     *     direction?: string
+     * } $filters
+     */
+    public function searchAdmin(array $filters): array
+    {
+        $qb = $this->createQueryBuilder('p');
+
+        $query = trim((string) ($filters['q'] ?? ''));
+        if ($query !== '') {
+            $orParts = [
+                $qb->expr()->like('LOWER(p.content)', ':query'),
+                $qb->expr()->like('LOWER(p.imagePath)', ':query'),
+                $qb->expr()->like('LOWER(p.videoUrl)', ':query'),
+                $qb->expr()->like('LOWER(p.eventTitle)', ':query'),
+            ];
+            if (ctype_digit($query)) {
+                $orParts[] = $qb->expr()->eq('p.id', ':postId');
+                $qb->setParameter('postId', (int) $query);
+            }
+
+            $qb
+                ->andWhere($qb->expr()->orX(...$orParts))
+                ->setParameter('query', '%' . strtolower($query) . '%');
+        }
+
+        $media = strtolower(trim((string) ($filters['media'] ?? '')));
+        if ($media === 'event') {
+            $qb->andWhere('p.isEvent = :isEvent')->setParameter('isEvent', true);
+        } elseif ($media === 'post') {
+            $qb->andWhere('p.isEvent = :isEvent')->setParameter('isEvent', false);
+        }
+
+        $dateFrom = trim((string) ($filters['date_from'] ?? ''));
+        if ($dateFrom !== '') {
+            $from = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $dateFrom . ' 00:00:00');
+            if ($from instanceof \DateTimeImmutable) {
+                $qb->andWhere('p.createdAt >= :from')->setParameter('from', $from);
+            }
+        }
+
+        $dateTo = trim((string) ($filters['date_to'] ?? ''));
+        if ($dateTo !== '') {
+            $to = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $dateTo . ' 23:59:59');
+            if ($to instanceof \DateTimeImmutable) {
+                $qb->andWhere('p.createdAt <= :to')->setParameter('to', $to);
+            }
+        }
+
+        $sort = strtolower(trim((string) ($filters['sort'] ?? 'date')));
+        $direction = strtoupper(trim((string) ($filters['direction'] ?? 'DESC'))) === 'ASC' ? 'ASC' : 'DESC';
+        $sortMap = [
+            'date' => 'p.createdAt',
+            'type' => 'p.isEvent',
+        ];
+        $qb->orderBy($sortMap[$sort] ?? 'p.createdAt', $direction)->addOrderBy('p.id', 'DESC');
+
+        return $qb->getQuery()->getResult();
+    }
+
     //    /**
     //     * @return Post[] Returns an array of Post objects
     //     */

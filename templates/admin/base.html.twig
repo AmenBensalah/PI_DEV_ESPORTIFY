@@ -323,6 +323,180 @@
         sync();
     });
 
+    const isValidUrl = (value) => {
+        if (!value) {
+            return true;
+        }
+        try {
+            const url = new URL(value);
+            return ['http:', 'https:'].includes(url.protocol);
+        } catch (e) {
+            return false;
+        }
+    };
+
+    document.querySelectorAll('form[data-validate-post-form]').forEach((form) => {
+        const fields = {
+            content: form.querySelector('[data-post-field=\"content\"]'),
+            imagePath: form.querySelector('[data-post-field=\"imagePath\"]'),
+            videoUrl: form.querySelector('[data-post-field=\"videoUrl\"]'),
+            isEvent: form.querySelector('[data-post-field=\"isEvent\"]'),
+            eventTitle: form.querySelector('[data-post-field=\"eventTitle\"]'),
+            eventDate: form.querySelector('[data-post-field=\"eventDate\"]'),
+            eventLocation: form.querySelector('[data-post-field=\"eventLocation\"]'),
+            maxParticipants: form.querySelector('[data-post-field=\"maxParticipants\"]'),
+            mediaFile: form.querySelector('[data-post-field=\"mediaFile\"]'),
+        };
+
+        const clearValidity = () => {
+            Object.values(fields).forEach((field) => {
+                if (field && typeof field.setCustomValidity === 'function') {
+                    field.setCustomValidity('');
+                }
+            });
+        };
+
+        const validate = () => {
+            clearValidity();
+
+            const content = fields.content ? fields.content.value.trim() : '';
+            const imagePath = fields.imagePath ? fields.imagePath.value.trim() : '';
+            const videoUrl = fields.videoUrl ? fields.videoUrl.value.trim() : '';
+            const isEvent = !!(fields.isEvent && fields.isEvent.checked);
+            const eventTitle = fields.eventTitle ? fields.eventTitle.value.trim() : '';
+            const eventDate = fields.eventDate ? fields.eventDate.value.trim() : '';
+            const eventLocation = fields.eventLocation ? fields.eventLocation.value.trim() : '';
+            const maxParticipants = fields.maxParticipants ? fields.maxParticipants.value.trim() : '';
+            const hasFile = !!(fields.mediaFile && fields.mediaFile.files && fields.mediaFile.files.length > 0);
+
+            if (imagePath && /^https?:\/\//i.test(imagePath) && !isValidUrl(imagePath) && fields.imagePath) {
+                fields.imagePath.setCustomValidity('URL image invalide.');
+            }
+            if (videoUrl && !isValidUrl(videoUrl) && fields.videoUrl) {
+                fields.videoUrl.setCustomValidity('URL video invalide.');
+            }
+
+            if (!isEvent && !content && !imagePath && !videoUrl && !hasFile && fields.content) {
+                fields.content.setCustomValidity('Ajoutez au moins un contenu: texte, URL image, URL video ou fichier media.');
+            }
+
+            if (isEvent) {
+                if (!eventTitle && fields.eventTitle) {
+                    fields.eventTitle.setCustomValidity('Champ obligatoire.');
+                }
+                if (!eventDate && fields.eventDate) {
+                    fields.eventDate.setCustomValidity('Champ obligatoire.');
+                }
+                if (!eventLocation && fields.eventLocation) {
+                    fields.eventLocation.setCustomValidity('Champ obligatoire.');
+                }
+                if ((!maxParticipants || Number(maxParticipants) < 1) && fields.maxParticipants) {
+                    fields.maxParticipants.setCustomValidity('Valeur minimale: 1.');
+                }
+            }
+
+            return form.checkValidity();
+        };
+
+        form.addEventListener('submit', (event) => {
+            if (!validate()) {
+                event.preventDefault();
+                form.reportValidity();
+            }
+        });
+
+        Object.values(fields).forEach((field) => {
+            if (!field) {
+                return;
+            }
+            field.addEventListener('input', validate);
+            field.addEventListener('change', validate);
+        });
+    });
+
+    document.querySelectorAll('form[data-validate-announcement-form]').forEach((form) => {
+        const fields = {
+            title: form.querySelector('[data-ann-field=\"title\"]'),
+            tag: form.querySelector('[data-ann-field=\"tag\"]'),
+            content: form.querySelector('[data-ann-field=\"content\"]'),
+            link: form.querySelector('[data-ann-field=\"link\"]'),
+            mediaType: form.querySelector('[data-ann-field=\"mediaType\"]'),
+            mediaFilename: form.querySelector('[data-ann-field=\"mediaFilename\"]'),
+            mediaFile: form.querySelector('[data-ann-field=\"mediaFile\"]'),
+        };
+
+        const clearValidity = () => {
+            Object.values(fields).forEach((field) => {
+                if (field && typeof field.setCustomValidity === 'function') {
+                    field.setCustomValidity('');
+                }
+            });
+        };
+
+        const validate = () => {
+            clearValidity();
+
+            const title = fields.title ? fields.title.value.trim() : '';
+            const tag = fields.tag ? fields.tag.value.trim() : '';
+            const content = fields.content ? fields.content.value.trim() : '';
+            const link = fields.link ? fields.link.value.trim() : '';
+            const mediaType = fields.mediaType ? fields.mediaType.value : 'text';
+            const mediaFilename = fields.mediaFilename ? fields.mediaFilename.value.trim() : '';
+            const file = fields.mediaFile && fields.mediaFile.files ? fields.mediaFile.files[0] : null;
+
+            if (!title && fields.title) {
+                fields.title.setCustomValidity('Champ obligatoire.');
+            }
+            if (!tag && fields.tag) {
+                fields.tag.setCustomValidity('Champ obligatoire.');
+            }
+            if (link && !isValidUrl(link) && fields.link) {
+                fields.link.setCustomValidity('Lien invalide.');
+            }
+            if (mediaFilename && /^https?:\/\//i.test(mediaFilename) && !isValidUrl(mediaFilename) && fields.mediaFilename) {
+                fields.mediaFilename.setCustomValidity('URL media invalide.');
+            }
+
+            if (mediaType === 'text' && !content && fields.content) {
+                fields.content.setCustomValidity('La description est obligatoire pour une annonce texte.');
+            }
+            if (mediaType === 'link' && !link && !mediaFilename && fields.link) {
+                fields.link.setCustomValidity('Ajoutez un lien ou une URL media.');
+            }
+            if ((mediaType === 'image' || mediaType === 'video') && !mediaFilename && !file && fields.mediaFilename) {
+                fields.mediaFilename.setCustomValidity('Ajoutez une URL media ou un fichier.');
+            }
+
+            if (file && fields.mediaFile) {
+                const maxBytes = 20 * 1024 * 1024;
+                if (file.size > maxBytes) {
+                    fields.mediaFile.setCustomValidity('Le fichier depasse 20 Mo.');
+                } else if (mediaType === 'image' && !file.type.startsWith('image/')) {
+                    fields.mediaFile.setCustomValidity('Le fichier doit etre une image.');
+                } else if (mediaType === 'video' && !file.type.startsWith('video/')) {
+                    fields.mediaFile.setCustomValidity('Le fichier doit etre une video.');
+                }
+            }
+
+            return form.checkValidity();
+        };
+
+        form.addEventListener('submit', (event) => {
+            if (!validate()) {
+                event.preventDefault();
+                form.reportValidity();
+            }
+        });
+
+        Object.values(fields).forEach((field) => {
+            if (!field) {
+                return;
+            }
+            field.addEventListener('input', validate);
+            field.addEventListener('change', validate);
+        });
+    });
+
     document.querySelectorAll('.admin-tournament-form').forEach((form) => {
         const inputs = form.querySelectorAll('input[type="text"], input[type="search"], select');
         if (!inputs.length) {

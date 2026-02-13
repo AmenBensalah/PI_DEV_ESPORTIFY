@@ -13,9 +13,17 @@
                  data-event-token="{{ csrf_token('event_participate') }}"
                  data-like-token="{{ csrf_token('post_like') }}"
                  data-comment-token="{{ csrf_token('post_comment') }}"
-                 data-save-token="{{ csrf_token('post_save') }}">
+                 data-save-token="{{ csrf_token('post_save') }}"
+                 data-post-manage-token="{{ csrf_token('post_manage') }}"
+                 data-comment-manage-token="{{ csrf_token('comment_manage') }}">
             <div class="composer-header">
-                <div class="avatar">V</div>
+                <div class="avatar">
+                    {% if app.user and app.user.avatar %}
+                        <img src="{{ asset('uploads/avatars/' ~ app.user.avatar) }}" alt="Votre avatar">
+                    {% else %}
+                        {{ app.user ? (app.user.pseudo|default(app.user.nom)|default(app.user.email)|first|upper) : 'V' }}
+                    {% endif %}
+                </div>
                 <strong>Vous</strong>
             </div>
             <textarea class="composer-input" placeholder="Publier un message, une image ou un lien vidéo..." data-content></textarea>
@@ -28,7 +36,7 @@
             </div>
             <div class="composer-actions">
                 <div class="action-group">
-                    <button class="chip-btn" type="button" data-media-button="image"><i class="fa-regular fa-image"></i> Image</button>
+                    <button class="chip-btn" type="button" data-media-button="image"><i class="fa-regular fa-image"></i> Images/Videos/Jeux</button>
                     <button class="chip-btn" type="button" data-video-toggle><i class="fa-solid fa-video"></i> Lien vidéo</button>
                     <button class="chip-btn" type="button" data-event-toggle><i class="fa-solid fa-bolt"></i> EVENT</button>
                 </div>
@@ -36,7 +44,7 @@
             </div>
             <input type="hidden" data-is-event value="0">
             <input type="hidden" data-image-path>
-            <input type="file" class="admin-file-input" data-media-file accept="image/*">
+            <input type="file" class="admin-file-input" data-media-file accept="image/*,video/*" multiple>
 
             <div class="event-accordion" data-event-accordion>
                 <div class="event-accordion-header">
@@ -92,15 +100,26 @@
             {% else %}
                 {% for post in posts %}
                     {% set isSaved = savedIds is defined and post.id in savedIds %}
+                    {% set likedByMe = likedIds is defined and post.id in likedIds %}
                     <article class="glass-card post-card {{ post.isEvent ? 'event-card' : '' }}"
                              data-post-id="{{ post.id }}"
                              id="post-{{ post.id }}"
                              data-like-url="{{ path('fil_post_like', {id: post.id}) }}"
+                             data-like-list-url="{{ path('fil_post_likes', {id: post.id}) }}"
+                             data-post-edit-url="{{ path('fil_post_edit', {id: post.id}) }}"
+                             data-post-delete-url="{{ path('fil_post_delete', {id: post.id}) }}"
                              data-comment-url="{{ path('fil_post_comment', {id: post.id}) }}"
                              data-save-url="{{ path('fil_post_save', {id: post.id}) }}"
-                             data-saved="{{ isSaved ? '1' : '0' }}">
+                             data-saved="{{ isSaved ? '1' : '0' }}"
+                             data-liked="{{ likedByMe ? '1' : '0' }}">
                         <div class="post-header">
-                            <div class="avatar">U</div>
+                            <div class="avatar">
+                                {% if post.author and post.author.avatar %}
+                                    <img src="{{ asset('uploads/avatars/' ~ post.author.avatar) }}" alt="Avatar">
+                                {% else %}
+                                    {{ post.author ? (post.author.pseudo|default(post.author.nom)|default(post.author.email)|first|upper) : 'U' }}
+                                {% endif %}
+                            </div>
                             <div class="post-meta">
                                 <div class="post-author">{{ post.author ? (post.author.pseudo ?: post.author.nom) : 'Utilisateur' }}</div>
                                 <div class="post-time">
@@ -123,30 +142,92 @@
                             <div class="post-content">{{ post.content }}</div>
                         {% endif %}
 
-                        {% if post.imagePath %}
+                        {% if post.medias|length > 1 %}
+                            <div class="post-media post-media-carousel-wrap">
+                                <button class="media-nav media-nav-prev" type="button" data-carousel-prev aria-label="Media precedent">
+                                    <i class="fa-solid fa-chevron-left"></i>
+                                </button>
+                                <div class="post-media-carousel" data-media-carousel>
+                                    {% for media in post.medias %}
+                                        {% set mediaUrl = media.path starts with 'http' ? media.path : asset('uploads/' ~ media.path) %}
+                                        <div class="media-slide" data-media-item data-media-type="{{ media.type == 'video' ? 'video' : 'image' }}" data-media-src="{{ mediaUrl }}">
+                                            {% if media.type == 'video' %}
+                                                <video controls playsinline preload="metadata">
+                                                    <source src="{{ mediaUrl }}">
+                                                </video>
+                                                <span class="media-zoom-hint"><i class="fa-solid fa-play"></i></span>
+                                            {% else %}
+                                                <img src="{{ mediaUrl }}" alt="media">
+                                                <span class="media-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i></span>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <button class="media-nav media-nav-next" type="button" data-carousel-next aria-label="Media suivant">
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        {% elseif post.medias|length == 1 %}
+                            {% set media = post.medias|first %}
+                            {% set mediaUrl = media.path starts with 'http' ? media.path : asset('uploads/' ~ media.path) %}
                             <div class="post-media">
-                                <img src="{{ asset(post.imagePath starts with 'http' ? post.imagePath : 'uploads/' ~ post.imagePath) }}" alt="media">
+                                <div class="media-single" data-media-item data-media-type="{{ media.type == 'video' ? 'video' : 'image' }}" data-media-src="{{ mediaUrl }}">
+                                    {% if media.type == 'video' %}
+                                        <video controls playsinline preload="metadata">
+                                            <source src="{{ mediaUrl }}">
+                                        </video>
+                                        <span class="media-zoom-hint"><i class="fa-solid fa-play"></i></span>
+                                    {% else %}
+                                        <img src="{{ mediaUrl }}" alt="media">
+                                        <span class="media-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i></span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% elseif post.imagePath %}
+                            {% set imageUrl = asset(post.imagePath starts with 'http' ? post.imagePath : 'uploads/' ~ post.imagePath) %}
+                            <div class="post-media">
+                                <div class="media-single" data-media-item data-media-type="image" data-media-src="{{ imageUrl }}">
+                                    <img src="{{ imageUrl }}" alt="media">
+                                    <span class="media-zoom-hint"><i class="fa-solid fa-magnifying-glass-plus"></i></span>
+                                </div>
                             </div>
                         {% elseif post.videoUrl %}
-                            {% set video = post.videoUrl %}
-                            {% set isDirect = video matches '/\\.(mp4|webm|ogg)$/i' %}
-                            {% set youtubeId = video matches '/(youtu\\.be\\/|v=)([\\w-]{6,})/i' ? (video|replace({'https://youtu.be/':''})|split('?')|first) : '' %}
+                            {% set video = post.videoUrl|trim %}
+                            {% set isDirect = video matches '/\\.(mp4|webm|ogg|mov)(\\?.*)?$/i' or video starts with '/uploads/' %}
+                            {% set youtubeId = '' %}
+                            {% if 'youtu.be/' in video %}
+                                {% set youtubeId = video|split('youtu.be/')|last|split('?')|first|split('&')|first %}
+                            {% elseif 'youtube.com/watch' in video and 'v=' in video %}
+                                {% set youtubeId = video|split('v=')|last|split('&')|first %}
+                            {% elseif 'youtube.com/shorts/' in video %}
+                                {% set youtubeId = video|split('youtube.com/shorts/')|last|split('?')|first|split('/')|first %}
+                            {% elseif 'youtube.com/live/' in video %}
+                                {% set youtubeId = video|split('youtube.com/live/')|last|split('?')|first|split('/')|first %}
+                            {% endif %}
                             {% set embedUrl = '' %}
-                            {% if video matches '/youtube\\.com|youtu\\.be/' and youtubeId %}
-                                {% set embedUrl = 'https://www.youtube.com/embed/' ~ youtubeId %}
-                            {% elseif video matches '/vimeo\\.com/' %}
-                                {% set vimeoId = video|split('/')|last %}
-                                {% set embedUrl = 'https://player.vimeo.com/video/' ~ vimeoId %}
+                            {% if youtubeId %}
+                                {% set embedUrl = 'https://www.youtube-nocookie.com/embed/' ~ youtubeId %}
+                            {% elseif 'vimeo.com/' in video %}
+                                {% set vimeoId = video|split('vimeo.com/')|last|split('?')|first|split('/')|last %}
+                                {% if vimeoId %}
+                                    {% set embedUrl = 'https://player.vimeo.com/video/' ~ vimeoId %}
+                                {% endif %}
                             {% endif %}
                             <div class="post-media">
                                 {% if isDirect %}
-                                    <video controls>
-                                        <source src="{{ video }}">
-                                    </video>
+                                    <div class="media-single" data-media-item data-media-type="video" data-media-src="{{ video }}">
+                                        <video controls playsinline preload="metadata">
+                                            <source src="{{ video }}">
+                                        </video>
+                                        <span class="media-zoom-hint"><i class="fa-solid fa-play"></i></span>
+                                    </div>
                                 {% elseif embedUrl %}
-                                    <iframe class="video-embed" src="{{ embedUrl }}" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+                                    <div class="media-single media-embed-tile" data-media-item data-media-type="embed" data-media-src="{{ embedUrl }}">
+                                        <i class="fa-solid fa-circle-play"></i>
+                                        <span>Ouvrir la video</span>
+                                    </div>
                                 {% else %}
-                                    <a class="media-placeholder" href="{{ video }}" target="_blank" rel="noopener">Voir la vidéo</a>
+                                    <a class="media-placeholder" href="{{ video }}" target="_blank" rel="noopener">Voir la video</a>
                                 {% endif %}
                             </div>
                         {% endif %}
@@ -169,7 +250,7 @@
 
                         <div class="post-actions">
                             <div class="reaction-row">
-                                <button class="reaction-pill" type="button" data-like-button>
+                                <button class="reaction-pill {{ likedByMe ? 'is-liked' : '' }}" type="button" data-like-button>
                                     <i class="fa-regular fa-heart"></i> J'aime
                                     <span class="reaction-count" data-like-count>{{ post.likes|length }}</span>
                                 </button>
@@ -178,20 +259,59 @@
                             </div>
                             <div class="reaction-row">
                                 <button class="reaction-pill {{ isSaved ? 'is-saved' : '' }}" type="button" data-save-button>
-                                    <i class="fa-regular fa-bookmark"></i> {{ isSaved ? 'Enregistré' : 'Sauvegarder' }}
+                                    <i class="fa-regular fa-bookmark"></i> {{ isSaved ? 'EnregistrÃ©' : 'Sauvegarder' }}
                                 </button>
+                                {% if app.user and post.author and app.user.id == post.author.id %}
+                                    <button class="reaction-pill" type="button" data-post-edit><i class="fa-regular fa-pen-to-square"></i> Modifier</button>
+                                    <button class="reaction-pill" type="button" data-post-delete><i class="fa-regular fa-trash-can"></i> Supprimer</button>
+                                {% endif %}
                             </div>
+                        </div>
+                        <div class="post-social-stats">
+                            <button class="like-open-btn" type="button" data-like-open>
+                                <i class="fa-solid fa-heart"></i>
+                                <span data-like-summary>{{ post.likes|length }} personnes aiment ça</span>
+                            </button>
                         </div>
                         <div class="comment-list" data-comment-list>
                             {% for comment in post.commentaires %}
-                                <div class="comment-item">
-                                    <strong>{{ comment.author ? (comment.author.pseudo ?: comment.author.nom) : 'Utilisateur' }}</strong>
-                                    <span class="comment-text">{{ comment.content }}</span>
-                                    <span class="comment-time">{{ comment.createdAt|date('d/m/Y H:i') }}</span>
+                                <div class="comment-item"
+                                     data-comment-id="{{ comment.id }}"
+                                     data-comment-edit-url="{{ path('fil_comment_edit', {id: comment.id}) }}"
+                                     data-comment-delete-url="{{ path('fil_comment_delete', {id: comment.id}) }}">
+                                    <div class="comment-avatar">
+                                        {% if comment.author and comment.author.avatar %}
+                                            <img src="{{ asset('uploads/avatars/' ~ comment.author.avatar) }}" alt="Avatar commentaire">
+                                        {% else %}
+                                            {{ comment.author ? (comment.author.pseudo|default(comment.author.nom)|default(comment.author.email)|first|upper) : 'U' }}
+                                        {% endif %}
+                                    </div>
+                                    <div class="comment-content-wrap">
+                                        <div class="comment-head">
+                                            <strong>{{ comment.author ? (comment.author.pseudo ?: comment.author.nom) : 'Utilisateur' }}</strong>
+                                            <span class="comment-time">{{ comment.createdAt|date('d/m/Y H:i') }}</span>
+                                            {% if app.user and comment.author and app.user.id == comment.author.id %}
+                                                <button class="comment-mini-btn" type="button" data-comment-edit><i class="fa-regular fa-pen-to-square"></i></button>
+                                                <button class="comment-mini-btn" type="button" data-comment-delete><i class="fa-regular fa-trash-can"></i></button>
+                                            {% endif %}
+                                        </div>
+                                        {% set gifComment = comment.content starts with 'http' and '.gif' in comment.content|lower %}
+                                        {% if gifComment %}
+                                            <span class="comment-text comment-gif">
+                                                <a href="{{ comment.content }}" target="_blank" rel="noopener">
+                                                    <img src="{{ comment.content }}" alt="gif commentaire">
+                                                </a>
+                                            </span>
+                                        {% else %}
+                                            <span class="comment-text">{{ comment.content }}</span>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             {% endfor %}
                         </div>
                         <div class="comment-box">
+                            <button class="comment-tool-btn" type="button" data-comment-emoji title="Emoji"><i class="fa-regular fa-face-smile"></i></button>
+                            <button class="comment-tool-btn" type="button" data-comment-gif title="GIF">GIF</button>
                             <input class="comment-input" placeholder="Ajouter un commentaire..." data-comment-input />
                             <button class="comment-send" type="button" data-comment-send>Envoyer</button>
                         </div>
@@ -206,45 +326,47 @@
             <div class="admin-tournament-panel-title">
                 <i class="fas fa-bullhorn"></i> Annonces officielles
             </div>
-            {% if announcements is empty %}
-                <div class="announce-item clean">
-                    <div class="title">Aucune annonce</div>
-                    <div class="meta">Ajoutez des annonces depuis l'espace admin.</div>
-                </div>
-            {% else %}
-                {% for announcement in announcements %}
+            <div class="announce-scroll">
+                {% if announcements is empty %}
                     <div class="announce-item clean">
-                        <div class="announce-row">
-                            <div class="title">{{ announcement.title }}</div>
-                            {% if announcement.tag %}
-                                <div class="tag">{{ announcement.tag }}</div>
-                            {% endif %}
-                        </div>
-                        {% if announcement.mediaType == 'image' and announcement.mediaFilename %}
-                            <div class="announce-media">
-                                <img src="{{ asset(announcement.mediaFilename starts with 'http' ? announcement.mediaFilename : 'uploads/' ~ announcement.mediaFilename) }}" alt="media">
-                            </div>
-                        {% elseif announcement.title|lower == 'oppenning' %}
-                            <div class="announce-media">
-                                <img src="{{ asset('images/esportify-card.jpg') }}" alt="E-Sportify">
-                            </div>
-                        {% elseif announcement.mediaType == 'video' and announcement.mediaFilename %}
-                            <div class="announce-media">
-                                <video controls>
-                                    <source src="{{ asset(announcement.mediaFilename starts with 'http' ? announcement.mediaFilename : 'uploads/' ~ announcement.mediaFilename) }}">
-                                </video>
-                            </div>
-                        {% elseif announcement.mediaType == 'link' and announcement.mediaFilename %}
-                            <div class="announce-media">
-                                <div class="media-placeholder">{{ announcement.mediaFilename }}</div>
-                            </div>
-                        {% endif %}
-                        <div class="meta">
-                            {{ announcement.createdAt ? announcement.createdAt|date('d/m/Y H:i') : '' }}
-                        </div>
+                        <div class="title">Aucune annonce</div>
+                        <div class="meta">Ajoutez des annonces depuis l'espace admin.</div>
                     </div>
-                {% endfor %}
-            {% endif %}
+                {% else %}
+                    {% for announcement in announcements %}
+                        <div class="announce-item clean">
+                            <div class="announce-row">
+                                <div class="title">{{ announcement.title }}</div>
+                                {% if announcement.tag %}
+                                    <div class="tag">{{ announcement.tag }}</div>
+                                {% endif %}
+                            </div>
+                            {% if announcement.mediaType == 'image' and announcement.mediaFilename %}
+                                <div class="announce-media">
+                                    <img src="{{ asset(announcement.mediaFilename starts with 'http' ? announcement.mediaFilename : 'uploads/' ~ announcement.mediaFilename) }}" alt="media">
+                                </div>
+                            {% elseif announcement.title|lower == 'oppenning' %}
+                                <div class="announce-media">
+                                    <img src="{{ asset('images/esportify-card.jpg') }}" alt="E-Sportify">
+                                </div>
+                            {% elseif announcement.mediaType == 'video' and announcement.mediaFilename %}
+                                <div class="announce-media">
+                                    <video controls>
+                                        <source src="{{ asset(announcement.mediaFilename starts with 'http' ? announcement.mediaFilename : 'uploads/' ~ announcement.mediaFilename) }}">
+                                    </video>
+                                </div>
+                            {% elseif announcement.mediaType == 'link' and announcement.mediaFilename %}
+                                <div class="announce-media">
+                                    <div class="media-placeholder">{{ announcement.mediaFilename }}</div>
+                                </div>
+                            {% endif %}
+                            <div class="meta">
+                                {{ announcement.createdAt ? announcement.createdAt|date('d/m/Y H:i') : '' }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
         </div>
     </aside>
 </div>
