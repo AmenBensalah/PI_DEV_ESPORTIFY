@@ -47,6 +47,11 @@
                 <a href="#" data-sort="name" data-dir="asc" class="{{ current_sort|default('') == 'p.nom' ? 'active' : '' }}">Nom (A‑Z)</a>
             </div>
         </div>
+
+        <a href="{{ path('app_front_recommendations_stats') }}" class="ai-stats-btn" title="Voir les données collectées pour l'IA">
+            <i class="fas fa-chart-line"></i>
+            <span>Données IA</span>
+        </a>
     </div>
 
     <div class="shop-layout">
@@ -56,36 +61,27 @@
                     <i class="fa-solid fa-filter"></i>
                     Recherche avancée
                 </div>
-                <form id="shop-filter-form" class="admin-tournament-form" action="#" method="get">
+                <form id="shop-filter-form" class="admin-tournament-form" onsubmit="return false;">
                     <div class="field">
                         <label><i class="fa-solid fa-magnifying-glass"></i> Rechercher</label>
                         <input id="live-search-input" name="q" type="search" placeholder="Nom du produit" value="{{ current_search|default('') }}" autocomplete="off">
                     </div>
+                    <!-- Hidden fields for sorting/category passed from tabs -->
+                    <input type="hidden" name="categorie" id="filter-categorie" value="{{ current_category }}">
+                    <input type="hidden" name="sort" id="filter-sort" value="{{ current_sort }}">
+                    <input type="hidden" name="dir" id="filter-dir" value="{{ current_dir }}">
+                    <input type="hidden" name="ajax" value="1">
+
                     <div class="field">
-                        <label><i class="fa-solid fa-tags"></i> Catégorie</label>
-                        <select id="filter-category" name="categorie">
+                        <label><i class="fa-solid fa-tags"></i> Catégorie (Select)</label>
+                        <select id="filter-category-select">
                             <option value="">Toutes</option>
                             {% for cat in categories %}
                                 <option value="{{ cat.id }}" {{ current_category == cat.id ? 'selected' : '' }}>{{ cat.nom }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="field">
-                        <label><i class="fa-solid fa-euro-sign"></i> Prix min</label>
-                        <input id="filter-min" name="min" type="number" min="0" step="1" placeholder="0">
-                    </div>
-                    <div class="field">
-                        <label><i class="fa-solid fa-euro-sign"></i> Prix max</label>
-                        <input id="filter-max" name="max" type="number" min="0" step="1" placeholder="999">
-                    </div>
-                    <div class="field">
-                        <label><i class="fa-solid fa-circle-check"></i> Disponibilité</label>
-                        <select id="filter-availability" name="dispo">
-                            <option value="">Toutes</option>
-                            <option value="in">En stock</option>
-                            <option value="out">Rupture</option>
-                        </select>
-                    </div>
+
                     <div class="admin-tournament-actions shop-filter-actions">
                         <button type="button" id="filter-apply" class="admin-tournament-btn">Rechercher</button>
                         <button type="button" id="filter-reset" class="admin-tournament-btn ghost">Réinitialiser</button>
@@ -95,227 +91,168 @@
         </aside>
 
         <div class="shop-grid" id="product-grid">
-            {% for produit in produits %}
-                <article class="shop-product-card product-card"
-                         data-price="{{ produit.prix }}"
-                         data-name="{{ produit.nom|lower }}"
-                         data-stock="{{ produit.stock }}"
-                         data-category="{{ produit.categorie ? produit.categorie.id : '' }}">
-                    <div class="shop-card-image">
-                        {% if produit.image %}
-                            <img src="{{ produit.image starts with 'http' ? produit.image : asset(produit.image) }}" alt="{{ produit.nom }}" onerror="this.src='https://placehold.co/400x400/1b1e2e/FFF?text=E-Sportify'">
-                        {% else %}
-                            <img src="https://placehold.co/400x400/1b1e2e/FFF?text=E-Sportify" alt="{{ produit.nom }}">
-                        {% endif %}
-                        <div class="shop-card-badges">
-                            <span class="badge badge-info"><i class="fa-solid fa-tag"></i>{{ produit.categorie ? produit.categorie.nom : 'Divers' }}</span>
-                            {% if produit.stock == 0 %}
-                                <span class="badge badge-danger">Rupture</span>
-                            {% elseif produit.stock < 5 %}
-                                <span class="badge badge-warning">Derniers</span>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="shop-card-body">
-                        <h3 class="shop-card-title">{{ produit.nom }}</h3>
-                        <div class="shop-card-meta">
-                            <span class="shop-price">{{ produit.prix|number_format(2, '.', ' ') }} €</span>
-                            <span class="shop-stock {{ produit.stock == 0 ? 'out' : 'in' }}">
-                                {{ produit.stock == 0 ? 'Rupture' : 'En stock' }}
-                            </span>
-                        </div>
-                        <div class="shop-card-actions">
-                            <a href="{{ path('app_front_produit_show', { id: produit.id }) }}" class="shop-link">Voir détails</a>
-                            <form action="{{ path('front_order_add_product', { id: produit.id }) }}" method="post" style="margin: 0;">
-                                <input type="hidden" name="quantite" value="1">
-                                <button type="submit" class="shop-add-btn" title="Ajouter au panier">
-                                    <i class="fas fa-shopping-cart"></i> Ajouter au panier
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </article>
-            {% else %}
-                <div class="empty-state">
-                    <i class="fas fa-ghost"></i>
-                    <h3>Aucun produit trouvé</h3>
-                    <p>Essayez une autre recherche ou revenez plus tard.</p>
-                </div>
-            {% endfor %}
+            {% include 'front/produit/_grid.html.twig' with {'produits': produits} %}
         </div>
     </div>
+
+    {# AI RECOMMENDATIONS #}
+    {% if app.user and recommendations is defined and recommendations|length > 0 %}
+    <section class="recommendations-section">
+        <div class="recommendations-header">
+            <div class="recommendations-title">
+                <i class="fas fa-magic"></i>
+                <h2>Recommandations IA pour vous</h2>
+            </div>
+            <p class="recommendations-subtitle">
+                <i class="fas fa-brain"></i> Sélectionnés par notre algorithme d'intelligence artificielle
+            </p>
+        </div>
+        <div class="recommendations-grid">
+            {% for rec in recommendations %}
+                {% set produit = rec.produit %}
+                <a href="{{ path('app_front_produit_show', {id: produit.id}) }}" class="rec-card">
+                    <div class="rec-badge">
+                        <i class="fas fa-sparkles"></i> IA
+                    </div>
+                    {% if produit.image %}
+                        <img src="{{ asset('uploads/' ~ produit.image) }}" alt="{{ produit.nom }}" class="rec-img">
+                    {% else %}
+                        <div class="rec-img-placeholder">
+                            <i class="fas fa-box"></i>
+                        </div>
+                    {% endif %}
+                    <div class="rec-content">
+                        <h3>{{ produit.nom }}</h3>
+                        <div class="rec-price">{{ produit.prix|number_format(2, ',', ' ') }} DT</div>
+                        <div class="rec-score">
+                            <i class="fas fa-star"></i> Score: {{ (rec.score * 10)|round }}%
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
 </section>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const grid = document.getElementById('product-grid');
-        if (!grid) return;
+        const form = document.getElementById('shop-filter-form');
+        
+        // Inputs
+        const qInput = document.getElementById('live-search-input');
+        const catInput = document.getElementById('filter-categorie');
+        const catSelect = document.getElementById('filter-category-select');
+        const sortInput = document.getElementById('filter-sort');
+        const dirInput = document.getElementById('filter-dir');
 
-        const liveSearchInput = document.getElementById('live-search-input');
-        const categorySelect = document.getElementById('filter-category');
-        const minInput = document.getElementById('filter-min');
-        const maxInput = document.getElementById('filter-max');
-        const availabilitySelect = document.getElementById('filter-availability');
-        const filterForm = document.getElementById('shop-filter-form');
-        const filterApply = document.getElementById('filter-apply');
-        const filterReset = document.getElementById('filter-reset');
+        let debounceTimer;
 
-        const sortLinks = document.querySelectorAll('.sort-menu a');
-        const sortBtn = document.querySelector('.sort-btn');
-        const sortMenu = document.querySelector('.sort-menu');
+        const fetchProducts = () => {
+            const formData = new FormData(form);
+            const params = new URLSearchParams(formData);
 
-        const getCards = () => Array.from(grid.getElementsByClassName('product-card'));
-        let emptyState = grid.querySelector('.empty-state');
+            grid.style.opacity = '0.5';
 
-        const updateEmptyState = (visibleCount, message) => {
-            if (visibleCount === 0) {
-                if (!emptyState) {
-                    emptyState = document.createElement('div');
-                    emptyState.className = 'empty-state';
-                    emptyState.innerHTML = `
-                        <i class="fas fa-ghost"></i>
-                        <h3>Aucun produit trouvé</h3>
-                        <p>${message}</p>
-                    `;
-                    grid.appendChild(emptyState);
-                } else {
-                    emptyState.style.display = '';
-                    const p = emptyState.querySelector('p');
-                    if (p) p.textContent = message;
-                }
-            } else if (emptyState) {
-                emptyState.style.display = 'none';
-            }
+            fetch(`${window.location.pathname}?${params.toString()}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.text())
+            .then(html => {
+                grid.innerHTML = html;
+                grid.style.opacity = '1';
+                
+                const newUrl = `${window.location.pathname}?${params.toString()}`;
+                window.history.pushState({path: newUrl}, '', newUrl);
+            })
+            .catch(err => {
+                console.error(err);
+                grid.style.opacity = '1';
+            });
         };
 
-        const applyFilters = () => {
-            const searchTerm = (liveSearchInput?.value || '').toLowerCase().trim();
-            const categoryValue = categorySelect?.value || '';
-            const minValue = parseFloat(minInput?.value || '');
-            const maxValue = parseFloat(maxInput?.value || '');
-            const availabilityValue = availabilitySelect?.value || '';
-
-            let visibleCount = 0;
-
-            getCards().forEach(card => {
-                const name = (card.dataset.name || '').toLowerCase();
-                const price = parseFloat(card.dataset.price || '0');
-                const stock = parseInt(card.dataset.stock || '0', 10);
-                const categoryId = card.dataset.category || '';
-
-                let isVisible = true;
-
-                if (searchTerm && !name.includes(searchTerm)) {
-                    isVisible = false;
-                }
-
-                if (categoryValue && categoryValue !== categoryId) {
-                    isVisible = false;
-                }
-
-                if (!Number.isNaN(minValue) && price < minValue) {
-                    isVisible = false;
-                }
-
-                if (!Number.isNaN(maxValue) && price > maxValue) {
-                    isVisible = false;
-                }
-
-                if (availabilityValue === 'in' && stock <= 0) {
-                    isVisible = false;
-                }
-
-                if (availabilityValue === 'out' && stock > 0) {
-                    isVisible = false;
-                }
-
-                card.style.display = isVisible ? '' : 'none';
-                if (isVisible) {
-                    visibleCount++;
-                }
-            });
-
-            const message = searchTerm ? `Aucun produit ne correspond à "${searchTerm}"` : 'Aucun produit ne correspond à ces filtres.';
-            updateEmptyState(visibleCount, message);
-        };
-
-        if (filterForm) {
-            filterForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                applyFilters();
-            });
-        }
-
-        if (filterApply) {
-            filterApply.addEventListener('click', applyFilters);
-        }
-
-        if (filterReset) {
-            filterReset.addEventListener('click', () => {
-                if (liveSearchInput) liveSearchInput.value = '';
-                if (categorySelect) categorySelect.value = '';
-                if (minInput) minInput.value = '';
-                if (maxInput) maxInput.value = '';
-                if (availabilitySelect) availabilitySelect.value = '';
-                applyFilters();
-            });
-        }
-
-        [liveSearchInput, categorySelect, minInput, maxInput, availabilitySelect].forEach(el => {
-            if (!el) return;
-            el.addEventListener('input', applyFilters);
-            el.addEventListener('change', applyFilters);
+        // Live Search
+        qInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(fetchProducts, 400);
         });
 
-        applyFilters();
+        // Category Select (Sidebar)
+        catSelect.addEventListener('change', () => {
+             catInput.value = catSelect.value;
+             // Also update tabs active state
+             document.querySelectorAll('.shop-tabs .tab').forEach(t => t.classList.remove('active'));
+             const activeTab = document.querySelector(`.shop-tabs .tab[href*="categorie=${catSelect.value}"]`);
+             if(activeTab) activeTab.classList.add('active');
+             
+             fetchProducts();
+        });
 
+        // Category Tabs (Top)
+        document.querySelectorAll('.shop-tabs .a, .shop-tabs .tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Parse cat ID from href or rely on index
+                // Since user wants AJAX, let's extract ID from the loop or attribute
+                // NOTE: The previous code generated hrefs. We should intercept them.
+                
+                // Let's rely on URL params in href if possible, or better, add data attributes to the tabs in HTML first.
+                // Assuming standard behaviour:
+                const url = new URL(tab.href, window.location.origin);
+                const catId = url.searchParams.get('categorie') || '';
+                
+                catInput.value = catId;
+                catSelect.value = catId;
+                
+                document.querySelectorAll('.shop-tabs .tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                fetchProducts();
+            });
+        });
+
+        // Sorting
+        const sortBtn = document.querySelector('.sort-btn');
+        const sortMenu = document.querySelector('.sort-menu');
+        
         if (sortBtn) {
             sortBtn.addEventListener('click', (e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 sortMenu.classList.toggle('show');
             });
         }
-
-        document.addEventListener('click', (e) => {
-            if (sortBtn && !sortBtn.contains(e.target) && sortMenu && !sortMenu.contains(e.target)) {
-                sortMenu.classList.remove('show');
-            }
+        
+        document.addEventListener('click', () => {
+            if(sortMenu) sortMenu.classList.remove('show');
         });
 
-        sortLinks.forEach(link => {
+        document.querySelectorAll('.sort-menu a').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
-                sortMenu.classList.remove('show');
-
-                const sortType = link.dataset.sort;
-                const sortDir = link.dataset.dir;
-
-                sortLinks.forEach(l => l.classList.remove('active'));
+                sortInput.value = link.dataset.sort;
+                dirInput.value = link.dataset.dir || 'ASC';
+                
+                document.querySelectorAll('.sort-menu a').forEach(l => l.classList.remove('active'));
                 link.classList.add('active');
+                
                 sortBtn.innerHTML = link.textContent + ' <i class="fas fa-chevron-down"></i>';
-
-                const cards = Array.from(grid.getElementsByClassName('product-card'));
-                const visibleCards = cards.filter(card => card.style.display !== 'none');
-
-                visibleCards.sort((a, b) => {
-                    let valA, valB;
-                    if (sortType === 'price') {
-                        valA = parseFloat(a.dataset.price || '0');
-                        valB = parseFloat(b.dataset.price || '0');
-                    } else {
-                        valA = a.dataset.name;
-                        valB = b.dataset.name;
-                    }
-
-                    if (valA < valB) return sortDir === 'asc' ? -1 : 1;
-                    if (valA > valB) return sortDir === 'asc' ? 1 : -1;
-                    return 0;
-                });
-
-                visibleCards.forEach(card => grid.appendChild(card));
+                fetchProducts();
             });
         });
+
+        // Reset
+        document.getElementById('filter-reset').addEventListener('click', () => {
+            qInput.value = '';
+            catInput.value = '';
+            catSelect.value = '';
+            sortInput.value = 'p.id'; 
+            dirInput.value = 'ASC';
+            fetchProducts();
+        });
+        
+        document.getElementById('filter-apply').addEventListener('click', fetchProducts);
     });
 </script>
 
@@ -376,12 +313,16 @@
             });
         }
 
+        let history = [];
+
         const addMessage = (content, role) => {
             const div = document.createElement('div');
             div.className = role === 'bot' ? 'bot-msg' : 'user-msg';
             div.textContent = content;
             messages.appendChild(div);
             messages.scrollTop = messages.scrollHeight;
+            history.push({ role: role === 'bot' ? 'bot' : 'user', content: content });
+            if (history.length > 10) history.shift();
         };
 
         const processChat = async () => {
@@ -397,15 +338,22 @@
             messages.appendChild(loading);
 
             try {
-                const productNames = Array.from(document.querySelectorAll('.shop-card-title')).map(el => el.textContent).join(', ').slice(0, 300);
-                const context = "L'utilisateur est sur la BOUTIQUE. Produits visibles : " + productNames;
+                // Récupérer plus de détails sur les produits actuellement visibles sur la page
+                const productElements = Array.from(document.querySelectorAll('.shop-card'));
+                const productList = productElements.map(el => {
+                    const name = el.querySelector('.shop-card-title')?.textContent.trim();
+                    const price = el.querySelector('.shop-card-price')?.textContent.trim();
+                    return `${name} (${price})`;
+                }).join(', ').slice(0, 500);
+                
+                const context = "L'utilisateur est sur la BOUTIQUE d'E-Sportify. Les produits qu'il voit actuellement sont : " + productList;
 
                 const response = await fetch('/api/chatbot', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         message, 
-                        history: [],
+                        history: history,
                         page: 'Boutique', 
                         url: window.location.href,
                         context: context
@@ -457,5 +405,171 @@
     .chatbot-input-area { padding: 15px; display: flex; gap: 10px; background: rgba(0,0,0,0.2); }
     #chatbot-input-store { flex: 1; background: rgba(255,255,255,0.1); border: none; padding: 10px; border-radius: 5px; color: white; }
     #chatbot-send-store { background: #f72585; border: none; width: 40px; border-radius: 5px; color: white; cursor: pointer; }
+
+    /* AI RECOMMENDATIONS */
+    .recommendations-section {
+        margin-top: 50px;
+        padding: 30px 0;
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .recommendations-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .recommendations-title {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+    .recommendations-title i {
+        color: #4cc9f0;
+        font-size: 28px;
+    }
+    .recommendations-title h2 {
+        font-size: 28px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #4cc9f0, #4361ee);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0;
+    }
+    .recommendations-subtitle {
+        color: rgba(255,255,255,0.6);
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    .recommendations-subtitle i {
+        color: #f72585;
+    }
+    .recommendations-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    .rec-card {
+        position: relative;
+        background: rgba(255,255,255,0.03);
+        border: 2px solid transparent;
+        border-radius: 15px;
+        padding: 15px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+    .rec-card:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(76,201,240,0.1), rgba(247,37,133,0.1));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 0;
+    }
+    .rec-card:hover {
+        border-color: #4cc9f0;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(76,201,240,0.3);
+    }
+    .rec-card:hover:before {
+        opacity: 1;
+    }
+    .rec-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: linear-gradient(135deg, #4361ee, #4cc9f0);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .rec-badge i {
+        font-size: 10px;
+    }
+    .rec-img, .rec-img-placeholder {
+        width: 100%;
+        height: 240px;
+        object-fit: cover;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        position: relative;
+        z-index: 1;
+    }
+    .rec-img-placeholder {
+        background: rgba(255,255,255,0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        color: rgba(255,255,255,0.3);
+    }
+    .rec-content {
+        position: relative;
+        z-index: 1;
+    }
+    .rec-content h3 {
+        color: white;
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0 0 10px 0;
+    }
+    .rec-price {
+        color: #4cc9f0;
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+    .rec-score {
+        color: rgba(255,255,255,0.6);
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .rec-score i {
+        color: #ffd60a;
+    }
+
+    .ai-stats-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(76, 201, 240, 0.1);
+        border: 1px solid rgba(76, 201, 240, 0.3);
+        padding: 10px 18px;
+        border-radius: 10px;
+        color: #4cc9f0;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        margin-left: auto;
+    }
+
+    .ai-stats-btn:hover {
+        background: rgba(76, 201, 240, 0.2);
+        border-color: #4cc9f0;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(76, 201, 240, 0.2);
+    }
+
+    .ai-stats-btn i {
+        font-size: 16px;
+    }
 </style>
 {% endblock %}

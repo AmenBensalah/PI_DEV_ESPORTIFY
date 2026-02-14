@@ -37,8 +37,9 @@ class ChatbotController extends AbstractController
                 $shopContext .= "Aucun produit disponible pour le moment.\n";
             } else {
                 foreach ($products as $p) {
-                    $stockInfo = $p->getStock() < 5 ? " (⚠️ Stock faible: " . $p->getStock() . ")" : "";
-                    $shopContext .= "- " . $p->getNom() . " : " . $p->getPrix() . "€" . $stockInfo . "\n";
+                    $stockInfo = $p->getStock() < 5 ? " (⚠️ Stock faible: " . $p->getStock() . ")" : " (En stock)";
+                    $catName = $p->getCategorie() ? $p->getCategorie()->getNom() : 'Général';
+                    $shopContext .= "- [" . $catName . "] " . $p->getNom() . " : " . $p->getPrix() . "€" . $stockInfo . " - Description: " . mb_strimwidth($p->getDescription(), 0, 50, '...') . "\n";
                 }
             }
 

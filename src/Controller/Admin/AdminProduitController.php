@@ -33,6 +33,13 @@ class AdminProduitController extends AbstractController
         // 2. Search
         $produits = $repository->searchBack($filters);
 
+        // Check for AJAX
+        if ($request->isXmlHttpRequest() || $request->query->get('ajax')) {
+            return $this->render('admin/boutique/produit/_table.html.twig', [
+                'produits' => $produits,
+            ]);
+        }
+
         // 3. Calculate Total Value
         $totalValue = 0;
         foreach ($produits as $p) {

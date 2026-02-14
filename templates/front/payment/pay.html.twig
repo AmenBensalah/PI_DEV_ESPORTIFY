@@ -48,25 +48,36 @@
     {% set total = subtotal + shipping %}
 
     <div class="cart-grid">
-        <div class="payment-card">
-            <h2>Informations client</h2>
-            <div class="payment-grid">
-                <div><span>Nom</span><strong>{{ commande.nom }}</strong></div>
-                <div><span>Prénom</span><strong>{{ commande.prenom }}</strong></div>
-                <div><span>Téléphone</span><strong>{{ commande.numtel }}</strong></div>
-                <div><span>Quantité</span><strong>{{ commande.quantite }}</strong></div>
+        <div class="info-blocks">
+            <div class="payment-card clickable-card" onclick="window.location.href='{{ path('front_order_cart') }}'">
+                <div class="section-header-flex">
+                    <h2><i class="fa-solid fa-user"></i> Informations client</h2>
+                    <span class="edit-badge"><i class="fa-solid fa-pen"></i> Modifier</span>
+                </div>
+                <div class="payment-grid">
+                    <div><span>Nom</span><strong>{{ commande.nom }}</strong></div>
+                    <div><span>Prénom</span><strong>{{ commande.prenom }}</strong></div>
+                    <div><span>Téléphone</span><strong>{{ commande.numtel }}</strong></div>
+                    <div><span>Quantité</span><strong>{{ commande.quantite }}</strong></div>
+                </div>
             </div>
 
-            <h2>Adresse</h2>
-            <div class="payment-grid">
-                <div><span>Pays</span><strong>{{ commande.pays }}</strong></div>
-                <div><span>Gouvernorat</span><strong>{{ commande.gouvernerat }}</strong></div>
-                <div><span>Code postal</span><strong>{{ commande.codePostal }}</strong></div>
-                <div><span>Adresse</span><strong>{{ commande.adresse }}</strong></div>
-                <div><span>Adresse exacte</span><strong>{{ commande.adresseDetail }}</strong></div>
+            <div class="payment-card clickable-card" onclick="window.location.href='{{ path('front_order_step2') }}'">
+                <div class="section-header-flex">
+                    <h2><i class="fa-solid fa-location-dot"></i> Adresse de livraison</h2>
+                    <span class="edit-badge"><i class="fa-solid fa-pen"></i> Modifier</span>
+                </div>
+                <div class="payment-grid">
+                    <div><span>Pays</span><strong>{{ commande.pays }}</strong></div>
+                    <div><span>Gouvernorat</span><strong>{{ commande.gouvernerat }}</strong></div>
+                    <div><span>Code postal</span><strong>{{ commande.codePostal }}</strong></div>
+                    <div><span>Adresse</span><strong>{{ commande.adresse }}</strong></div>
+                    <div><span>Adresse exacte</span><strong>{{ commande.adresseDetail }}</strong></div>
+                </div>
             </div>
 
-            <h2>Méthode de paiement</h2>
+            <div class="payment-card">
+                <h2>Méthode de paiement</h2>
             <form id="payment-form" action="{{ path('front_payment_process', {id: commande.id}) }}" method="post">
                 <div class="payment-methods">
                     <div class="payment-method">
@@ -92,6 +103,7 @@
                     </div>
                 </div>
             </form>
+            </div>
         </div>
 
         <aside class="payment-card cart-summary">
@@ -115,4 +127,75 @@
         </aside>
     </div>
 </section>
+
+<style>
+    .info-blocks {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    .clickable-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255,255,255,0.08);
+    }
+    .clickable-card:hover {
+        transform: translateY(-3px);
+        border-color: #4fd1ff;
+        background: rgba(79,209,255,0.05) !important;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    .section-header-flex {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .section-header-flex h2 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: white;
+    }
+    .section-header-flex h2 i {
+        color: #4fd1ff;
+        margin-right: 8px;
+    }
+    .edit-badge {
+        background: rgba(79,209,255,0.15);
+        color: #4fd1ff;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .clickable-card:hover .edit-badge {
+        background: #4fd1ff;
+        color: #0b0f1a;
+    }
+    .payment-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+    }
+    .payment-grid div {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .payment-grid span {
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.5);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .payment-grid strong {
+        color: white;
+        font-size: 0.95rem;
+    }
+</style>
 {% endblock %}

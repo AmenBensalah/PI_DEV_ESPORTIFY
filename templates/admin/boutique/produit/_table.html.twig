@@ -1,0 +1,61 @@
+<table class="table-responsive">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Produit</th>
+            <th>Catégorie</th>
+            <th>Prix</th>
+            <th>Stock</th>
+            <th>Statut</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in produits %}
+            <tr style="animation-delay: {{ loop.index0 * 0.05 }}s;" class="admin-tournament-row">
+                <td>#{{ p.id }}</td>
+                <td class="name">{{ p.nom }}</td>
+                <td>
+                    {% if p.categorie %}
+                        <span class="badge badge-info">{{ p.categorie.nom }}</span>
+                    {% else %}
+                        <span class="badge badge-muted">Aucune</span>
+                    {% endif %}
+                </td>
+                <td>{{ p.prix }} €</td>
+                <td>{{ p.stock }}</td>
+                <td>
+                    {% if p.statut == 'disponible' and p.stock > 0 %}
+                        <span class="badge badge-success">Disponible</span>
+                    {% else %}
+                        <span class="badge badge-danger">Rupture</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="admin-tournament-row-actions">
+                        <a href="{{ path('admin_boutique_produit_show', {id: p.id}) }}" class="admin-tournament-icon" title="Voir">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{{ path('admin_boutique_produit_edit', {id: p.id}) }}" class="admin-tournament-icon cyan" title="Modifier">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <form method="post" action="{{ path('admin_boutique_produit_delete', {id: p.id}) }}" onsubmit="return confirm('Supprimer ce produit ?');" style="display:inline-block;">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ p.id) }}">
+                            <button type="submit" class="admin-tournament-icon danger" title="Supprimer">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if produits|length == 0 %}
+    <div class="admin-tournament-empty">
+        <div class="empty-ring"></div>
+        <strong>Aucun produit trouvé</strong>
+        <p>Ajustez les filtres ou ajoutez un nouveau produit.</p>
+    </div>
+{% endif %}

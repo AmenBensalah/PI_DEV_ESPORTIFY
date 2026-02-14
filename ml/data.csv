@@ -1,0 +1,11 @@
+user_id,product_id,rating
+User_1,Prod_5,5
+User_1,Prod_12,4
+User_2,Prod_5,3
+User_2,Prod_15,5
+User_3,Prod_12,5
+User_3,Prod_15,4
+User_4,Prod_5,5
+User_4,Prod_3,2
+User_5,Prod_12,4
+User_5,Prod_8,5

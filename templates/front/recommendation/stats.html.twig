@@ -1,0 +1,603 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Données Recommandation IA – E-Sportify{% endblock %}
+
+{% block body %}
+<section class="shop-hero">
+    <div class="shop-hero-inner">
+        <div class="shop-kicker">Intelligence Artificielle</div>
+        <h1 class="shop-title">
+            <i class="fas fa-brain"></i> Données de Recommandation
+        </h1>
+        <p class="shop-lead">Visualisez les données collectées pour l'algorithme ML</p>
+    </div>
+    <div class="shop-hero-glow"></div>
+</section>
+
+<section class="shop-shell">
+    <div class="stats-overview">
+        <div class="stat-card">
+            <div class="stat-icon blue">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ totalInteractions }}</div>
+                <div class="stat-label">Interactions totales</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon pink">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ totalUsers }}</div>
+                <div class="stat-label">Utilisateurs/Commandes</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon cyan">
+                <i class="fas fa-box"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ totalProducts }}</div>
+                <div class="stat-label">Produits achetés</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="data-sections">
+        {# SECTION 1: Top Produits #}
+        <div class="data-section">
+            <div class="section-header">
+                <h2><i class="fas fa-fire"></i> Top Produits Populaires</h2>
+                <span class="badge">ML Data Source</span>
+            </div>
+            <div class="data-table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Produit</th>
+                            <th>Achats Totaux</th>
+                            <th>Acheteurs Uniques</th>
+                            <th>Score Popularité</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i, stat in productStats|slice(0, 10) %}
+                        <tr>
+                            <td><span class="rank">#{{ i + 1 }}</span></td>
+                            <td><strong>{{ stat.name }}</strong></td>
+                            <td>{{ stat.total_quantity }}</td>
+                            <td>{{ stat.unique_buyers|length }}</td>
+                            <td>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {{ (stat.unique_buyers|length / totalUsers * 100)|round }}%"></div>
+                                    <span class="progress-text">{{ (stat.unique_buyers|length / totalUsers * 100)|round }}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: rgba(255,255,255,0.5);">
+                                Aucune donnée disponible
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {# SECTION 2: Interactions Détaillées #}
+        <div class="data-section">
+            <div class="section-header">
+                <h2><i class="fas fa-exchange-alt"></i> Interactions Utilisateur-Produit</h2>
+                <span class="badge cyan">{{ interactions|length }} enregistrements</span>
+            </div>
+            <div class="data-table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Utilisateur/Commande</th>
+                            <th>Produit</th>
+                            <th>Quantité</th>
+                            <th>Nb Achats</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for interaction in interactions|slice(0, 20) %}
+                        <tr>
+                            <td><span class="user-badge">{{ interaction.user }}</span></td>
+                            <td>{{ interaction.product_name }}</td>
+                            <td><span class="qty-badge">{{ interaction.quantity }}</span></td>
+                            <td>{{ interaction.order_count }}</td>
+                            <td>
+                                <div class="score-badge">
+                                    <i class="fas fa-star"></i> {{ interaction.quantity }}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {# SECTION 3: Stats par Utilisateur #}
+        <div class="data-section">
+            <div class="section-header">
+                <h2><i class="fas fa-user-chart"></i> Profils d'Achat</h2>
+            </div>
+            <div class="user-profiles">
+                {% for userId, stat in userStats|slice(0, 8) %}
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <i class="fas fa-user-circle"></i>
+                        <span>{{ userId }}</span>
+                    </div>
+                    <div class="profile-stats">
+                        <div class="profile-stat">
+                            <i class="fas fa-box"></i>
+                            <span>{{ stat.total_products }} produits</span>
+                        </div>
+                        <div class="profile-stat">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>{{ stat.total_quantity }} unités</span>
+                        </div>
+                        <div class="profile-stat">
+                            <i class="fas fa-receipt"></i>
+                            <span>{{ stat.orders|length }} commandes</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# INFO ML #}
+        <div class="ml-info-box">
+            <div class="ml-info-header">
+                <i class="fas fa-robot"></i>
+                <h3>Comment ces données sont utilisées ?</h3>
+            </div>
+            <div class="ml-info-content">
+                <div class="ml-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <strong>Collecte</strong>
+                        <p>Les interactions utilisateur-produit sont extraites des commandes</p>
+                    </div>
+                </div>
+                <div class="ml-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <strong>Analyse</strong>
+                        <p>L'algorithme KNN trouve les utilisateurs avec des goûts similaires</p>
+                    </div>
+                </div>
+                <div class="ml-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <strong>Prédiction</strong>
+                        <p>Recommandation des produits aimés par des utilisateurs similaires</p>
+                    </div>
+                </div>
+                <div class="ml-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <strong>Scoring</strong>
+                        <p>Calcul d'un score de pertinence pour chaque recommandation</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <a href="{{ path('app_front_produit_index') }}" class="btn-action ghost">
+                <i class="fas fa-arrow-left"></i> Retour à la boutique
+            </a>
+            
+            {# BOUTONS DE TEST IA #}
+            <button onclick="testGenerator()" class="btn-action primary">
+                <i class="fas fa-magic"></i> Générer Data 2500 lignes
+            </button>
+            <button onclick="testItemIA()" class="btn-action cyan">
+                <i class="fas fa-flask"></i> Tester Relation Item
+            </button>
+        </div>
+
+        <div id="test-results" class="test-results-area" style="display: none;">
+            <h3><i class="fas fa-terminal"></i> Console de Test IA</h3>
+            <pre id="test-output"></pre>
+        </div>
+    </div>
+</section>
+
+<script>
+function testGenerator() {
+    const btn = event.target.closest('button');
+    const out = document.getElementById('test-output');
+    const area = document.getElementById('test-results');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération...';
+    
+    fetch('{{ path('app_recommendation_test_gen') }}')
+        .then(res => res.json())
+        .then(data => {
+            area.style.display = 'block';
+            if(data.error) {
+                out.innerHTML = "Erreur: " + data.error;
+                out.className = "error";
+            } else {
+                out.innerHTML = data.output;
+                out.className = "success";
+            }
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-magic"></i> Générer Data 2500 lignes';
+        });
+}
+
+function testItemIA() {
+    const btn = event.target.closest('button');
+    const out = document.getElementById('test-output');
+    const area = document.getElementById('test-results');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyse...';
+    
+    fetch('{{ path('app_recommendation_test_item', {id: 1}) }}')
+        .then(res => res.json())
+        .then(data => {
+            area.style.display = 'block';
+            if(data.error) {
+                out.innerHTML = "Erreur: " + data.error;
+                out.className = "error";
+            } else {
+                out.innerHTML = "Input: " + data.input + "\nRecommendations: " + JSON.stringify(data.recommendations, null, 2);
+                out.className = "success";
+            }
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-flask"></i> Tester Relation Item';
+        });
+}
+</script>
+
+<style>
+    .shop-shell { padding: 3rem 6%; max-width: 1400px; margin: auto; }
+    
+    /* Stats Overview */
+    .stats-overview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+    .stat-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 15px;
+        padding: 25px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        transition: all 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        border-color: #4cc9f0;
+        box-shadow: 0 10px 30px rgba(76,201,240,0.2);
+    }
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+    }
+    .stat-icon.blue { background: linear-gradient(135deg, #4361ee, #4cc9f0); }
+    .stat-icon.pink { background: linear-gradient(135deg, #f72585, #ff006e); }
+    .stat-icon.cyan { background: linear-gradient(135deg, #4cc9f0, #06ffa5); }
+    .stat-value {
+        font-size: 32px;
+        font-weight: 900;
+        color: white;
+    }
+    .stat-label {
+        color: rgba(255,255,255,0.6);
+        font-size: 14px;
+    }
+
+    /* Data Sections */
+    .data-sections { display: flex; flex-direction: column; gap: 30px; }
+    .data-section {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 15px;
+        padding: 25px;
+    }
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .section-header h2 {
+        font-size: 20px;
+        color: white;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .section-header i { color: #4cc9f0; }
+    .badge {
+        background: linear-gradient(135deg, #4361ee, #4cc9f0);
+        color: white;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+    .badge.cyan {
+        background: linear-gradient(135deg, #4cc9f0, #06ffa5);
+    }
+
+    /* Tables */
+    .data-table-wrapper {
+        overflow-x: auto;
+    }
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .data-table thead {
+        background: rgba(255,255,255,0.05);
+    }
+    .data-table th {
+        padding: 12px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 700;
+        color: rgba(255,255,255,0.7);
+        text-transform: uppercase;
+    }
+    .data-table td {
+        padding: 15px 12px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        color: rgba(255,255,255,0.9);
+    }
+    .data-table tbody tr:hover {
+        background: rgba(255,255,255,0.02);
+    }
+    .rank {
+        background: linear-gradient(135deg, #f72585, #ff006e);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 12px;
+    }
+    .user-badge {
+        background: rgba(67,97,238,0.2);
+        color: #4361ee;
+        padding: 5px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .qty-badge {
+        background: rgba(76,201,240,0.2);
+        color: #4cc9f0;
+        padding: 5px 10px;
+        border-radius: 8px;
+        font-weight: 700;
+    }
+    .score-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        color: #ffd60a;
+        font-weight: 700;
+    }
+
+    /* Progress Bar */
+    .progress-bar {
+        position: relative;
+        width: 100%;
+        height: 25px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4361ee, #4cc9f0);
+        transition: width 0.5s ease;
+    }
+    .progress-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    /* User Profiles */
+    .user-profiles {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+    }
+    .profile-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 15px;
+    }
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+        color: white;
+        font-weight: 700;
+        font-size: 14px;
+    }
+    .profile-header i {
+        font-size: 20px;
+        color: #4cc9f0;
+    }
+    .profile-stats {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .profile-stat {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: rgba(255,255,255,0.7);
+        font-size: 13px;
+    }
+    .profile-stat i {
+        color: #4cc9f0;
+        width: 16px;
+    }
+
+    /* ML Info Box */
+    .ml-info-box {
+        background: linear-gradient(135deg, rgba(67,97,238,0.1), rgba(76,201,240,0.1));
+        border: 2px solid rgba(76,201,240,0.3);
+        border-radius: 15px;
+        padding: 30px;
+        margin-top: 20px;
+    }
+    .ml-info-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 25px;
+    }
+    .ml-info-header i {
+        font-size: 28px;
+        color: #4cc9f0;
+    }
+    .ml-info-header h3 {
+        color: white;
+        margin: 0;
+        font-size: 20px;
+    }
+    .ml-info-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+    .ml-step {
+        display: flex;
+        gap: 15px;
+    }
+    .step-number {
+        width: 35px;
+        height: 35px;
+        background: linear-gradient(135deg, #4361ee, #4cc9f0);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 900;
+        flex-shrink: 0;
+    }
+    .step-content strong {
+        color: white;
+        display: block;
+        margin-bottom: 5px;
+    }
+    .step-content p {
+        color: rgba(255,255,255,0.7);
+        font-size: 13px;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 30px;
+    }
+    .btn-action {
+        padding: 14px 28px;
+        border-radius: 8px;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+    }
+    .btn-action.primary {
+        background: linear-gradient(135deg, #f72585, #ff006e);
+        color: white;
+        border: none;
+    }
+    .btn-action.cyan {
+        background: linear-gradient(135deg, #4cc9f0, #4361ee);
+        color: white;
+        border: none;
+    }
+    .btn-action:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    /* Test Results Console */
+    .test-results-area {
+        margin-top: 30px;
+        background: #0b0f1a;
+        border: 2px solid rgba(76,201,240,0.3);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .test-results-area h3 {
+        color: #4cc9f0;
+        font-size: 16px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    #test-output {
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 13px;
+        line-height: 1.6;
+        padding: 15px;
+        background: rgba(0,0,0,0.3);
+        border-radius: 8px;
+        max-height: 300px;
+        overflow-y: auto;
+        margin: 0;
+        white-space: pre-wrap;
+    }
+    #test-output.success { color: #06ffa5; }
+    #test-output.error { color: #f72585; }
+</style>
+{% endblock %}

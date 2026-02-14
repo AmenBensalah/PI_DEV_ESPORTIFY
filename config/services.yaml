@@ -12,7 +12,8 @@ parameters:
     brevo_api_key: '%env(BREVO_API_KEY)%'
     brevo_sender_email: '%env(BREVO_SENDER_EMAIL)%'
     brevo_sender_name: '%env(BREVO_SENDER_NAME)%'
-    openai_api_key: '%env(OPENAI_API_KEY)%'
+    openai_api_key: '%env(default:openai_empty:OPENAI_API_KEY)%'
+    openai_empty: ''
     openai_model_default: 'gpt-4o-mini'
     openai_model: '%env(default:openai_model_default:OPENAI_MODEL)%'
 
@@ -49,6 +50,10 @@ services:
         arguments:
             $apiKey: '%openai_api_key%'
             $model: '%openai_model%'
+
+    App\Command\RecommendationsCommand:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

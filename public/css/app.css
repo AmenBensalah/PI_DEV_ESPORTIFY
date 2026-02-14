@@ -4979,8 +4979,8 @@ body.page-equipes {
 
 .shop-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
 }
 
 .shop-product-card {
@@ -5002,7 +5002,7 @@ body.page-equipes {
 
 .shop-card-image {
   position: relative;
-  height: 200px;
+  height: 260px;
   background: rgba(6, 9, 18, 0.9);
   overflow: hidden;
 }
@@ -5035,7 +5035,7 @@ body.page-equipes {
 
 .shop-card-title {
   font-family: 'Orbitron', sans-serif;
-  font-size: 18px;
+  font-size: 21px;
   margin: 0;
   color: #fff;
 }
@@ -5049,7 +5049,7 @@ body.page-equipes {
 
 .shop-price {
   color: #4fd1ff;
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 800;
   font-family: 'Orbitron', sans-serif;
 }

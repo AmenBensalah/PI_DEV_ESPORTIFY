@@ -23,11 +23,9 @@
 
 <section class="admin-tournament-shell">
     <div class="admin-tournament-tabs">
-        <a href="{{ path('admin_boutique_produit_index', app.request.query.all | merge({'categorie': ''})) }}"
-           class="tab {{ currentCat is empty ? 'active' : '' }}">Tous</a>
+        <a href="#" data-cat="" class="tab js-filter-cat active">Tous</a>
         {% for cat in categories %}
-            <a href="{{ path('admin_boutique_produit_index', app.request.query.all | merge({'categorie': cat.id})) }}"
-               class="tab {{ currentCat == cat.id ? 'active' : '' }}">{{ cat.nom }}</a>
+            <a href="#" data-cat="{{ cat.id }}" class="tab js-filter-cat">{{ cat.nom }}</a>
         {% endfor %}
     </div>
 
@@ -36,52 +34,47 @@
             <i class="fas fa-search"></i>
             Recherche avancée
         </div>
-        <form method="GET" class="admin-tournament-form">
+        <form id="admin-product-filter-form" class="admin-tournament-form" onsubmit="return false;">
+            <input type="hidden" name="ajax" value="1">
+            <input type="hidden" name="categorie" id="filter-categorie" value="{{ currentCat }}">
+            <input type="hidden" name="sort" id="filter-sort" value="{{ currentSort }}">
+            
             <div class="field">
                 <label>Produit</label>
-                <input type="text" name="q" placeholder="Nom du produit..." value="{{ currentSearch }}">
+                <input type="text" name="q" id="filter-q" placeholder="Nom du produit..." value="{{ currentSearch }}">
             </div>
             <div class="field">
                 <label>Prix min</label>
-                <input type="number" name="minPrice" placeholder="0" value="{{ minPrice }}">
+                <input type="number" name="minPrice" id="filter-min" placeholder="0" value="{{ minPrice }}">
             </div>
             <div class="field">
                 <label>Prix max</label>
-                <input type="number" name="maxPrice" placeholder="999" value="{{ maxPrice }}">
-            </div>
-            <div class="field">
-                <label>Catégorie</label>
-                <select name="categorie">
-                    <option value="">-- Toutes --</option>
-                    {% for cat in categories %}
-                        <option value="{{ cat.id }}" {% if currentCat == cat.id %}selected{% endif %}>{{ cat.nom }}</option>
-                    {% endfor %}
-                </select>
+                <input type="number" name="maxPrice" id="filter-max" placeholder="999" value="{{ maxPrice }}">
             </div>
             <div class="field">
                 <label>Statut</label>
-                <select name="statut">
+                <select name="statut" id="filter-statut">
                     <option value="">-- Tous --</option>
                     <option value="1" {% if currentStatut == '1' %}selected{% endif %}>Disponible</option>
                     <option value="0" {% if currentStatut == '0' %}selected{% endif %}>Rupture</option>
                 </select>
             </div>
             <div class="admin-tournament-actions">
-                <button type="submit" class="admin-tournament-btn">
+                <button type="button" id="btn-search" class="admin-tournament-btn">
                     <i class="fas fa-search"></i> Rechercher
                 </button>
-                <a href="{{ path('admin_boutique_produit_index') }}" class="admin-tournament-btn ghost">
+                <button type="button" id="btn-reset" class="admin-tournament-btn ghost">
                     <i class="fas fa-rotate"></i> Réinitialiser
-                </a>
+                </button>
             </div>
         </form>
 
         <div class="admin-tournament-sort">
             <span>Trier :</span>
-            <a href="{{ path('admin_boutique_produit_index', app.request.query.all | merge({'sort':'prix_asc'})) }}">Prix ↑</a>
-            <a href="{{ path('admin_boutique_produit_index', app.request.query.all | merge({'sort':'prix_desc'})) }}">Prix ↓</a>
-            <a href="{{ path('admin_boutique_produit_index', app.request.query.all | merge({'sort':'stock'})) }}">Stock</a>
-            <a href="{{ path('admin_boutique_produit_index', app.request.query.all | merge({'sort':''})) }}">Date</a>
+            <a href="#" class="js-sort" data-sort="prix_asc">Prix ↑</a>
+            <a href="#" class="js-sort" data-sort="prix_desc">Prix ↓</a>
+            <a href="#" class="js-sort" data-sort="stock">Stock</a>
+            <a href="#" class="js-sort" data-sort="">Date</a>
         </div>
     </div>
 
@@ -91,68 +84,92 @@
         </div>
     {% endfor %}
 
-    {% if produits %}
-        <div class="admin-tournament-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Produit</th>
-                        <th>Catégorie</th>
-                        <th>Prix</th>
-                        <th>Stock</th>
-                        <th>Statut</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for p in produits %}
-                        <tr style="animation-delay: {{ loop.index0 * 0.05 }}s;" class="admin-tournament-row">
-                            <td>#{{ p.id }}</td>
-                            <td class="name">{{ p.nom }}</td>
-                            <td>
-                                {% if p.categorie %}
-                                    <span class="badge badge-info">{{ p.categorie.nom }}</span>
-                                {% else %}
-                                    <span class="badge badge-muted">Aucune</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ p.prix }} €</td>
-                            <td>{{ p.stock }}</td>
-                            <td>
-                                {% if p.statut == 'disponible' and p.stock > 0 %}
-                                    <span class="badge badge-success">Disponible</span>
-                                {% else %}
-                                    <span class="badge badge-danger">Rupture</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="admin-tournament-row-actions">
-                                    <a href="{{ path('admin_boutique_produit_show', {id: p.id}) }}" class="admin-tournament-icon" title="Voir">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="{{ path('admin_boutique_produit_edit', {id: p.id}) }}" class="admin-tournament-icon cyan" title="Modifier">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <form method="post" action="{{ path('admin_boutique_produit_delete', {id: p.id}) }}" onsubmit="return confirm('Supprimer ce produit ?');">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ p.id) }}">
-                                        <button type="submit" class="admin-tournament-icon danger" title="Supprimer">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    {% else %}
-        <div class="admin-tournament-empty">
-            <div class="empty-ring"></div>
-            <strong>Aucun produit trouvé</strong>
-            <p>Ajoutez votre premier produit ou ajustez les filtres.</p>
-        </div>
-    {% endif %}
+    <div id="product-table-container" class="admin-tournament-table">
+        {% include 'admin/boutique/produit/_table.html.twig' %}
+    </div>
 </section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('admin-product-filter-form');
+        const container = document.getElementById('product-table-container');
+        const catInput = document.getElementById('filter-categorie');
+        const sortInput = document.getElementById('filter-sort');
+        
+        let debounceTimer;
+
+        const fetchResults = () => {
+            const formData = new FormData(form);
+            const params = new URLSearchParams(formData);
+            
+            // Show loading state
+            container.style.opacity = '0.5';
+            
+            fetch(`${window.location.pathname}?${params.toString()}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                container.innerHTML = html;
+                container.style.opacity = '1';
+                
+                // Update URL without reload
+                const newUrl = `${window.location.pathname}?${params.toString()}`;
+                window.history.pushState({path: newUrl}, '', newUrl);
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                container.style.opacity = '1';
+            });
+        };
+
+        // Live search on inputs
+        ['filter-q', 'filter-min', 'filter-max'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) {
+                el.addEventListener('input', () => {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(fetchResults, 400);
+                });
+            }
+        });
+
+        // Immediate search on select
+        document.getElementById('filter-statut').addEventListener('change', fetchResults);
+        
+        // Buttons
+        document.getElementById('btn-search').addEventListener('click', fetchResults);
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            form.reset();
+            catInput.value = '';
+            sortInput.value = '';
+            // Update tabs active state
+            document.querySelectorAll('.js-filter-cat').forEach(t => t.classList.remove('active'));
+            document.querySelector('.js-filter-cat[data-cat=""]').classList.add('active');
+            fetchResults();
+        });
+
+        // Category Tabs
+        document.querySelectorAll('.js-filter-cat').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.js-filter-cat').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                catInput.value = tab.dataset.cat;
+                fetchResults();
+            });
+        });
+
+        // Sorting
+        document.querySelectorAll('.js-sort').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                sortInput.value = link.dataset.sort;
+                fetchResults();
+            });
+        });
+    });
+</script>
 {% endblock %}

@@ -90,22 +90,22 @@
                     <form id="order-client-form" action="{{ path('front_order_step1') }}" method="post" class="order-form two-cols">
                         <div class="field">
                             <label for="nom"><i class="fa-solid fa-user"></i> Nom</label>
-                            <input id="nom" name="nom" value="{{ commande.nom ?? '' }}" placeholder="Nom">
+                            <input id="nom" name="nom" value="{{ commande.nom ?? '' }}" placeholder="Nom" required>
                         </div>
 
                         <div class="field">
                             <label for="prenom"><i class="fa-solid fa-user"></i> Prénom</label>
-                            <input id="prenom" name="prenom" value="{{ commande.prenom ?? '' }}" placeholder="Prénom">
+                            <input id="prenom" name="prenom" value="{{ commande.prenom ?? '' }}" placeholder="Prénom" required>
                         </div>
 
                         <div class="field">
                             <label for="quantite"><i class="fa-solid fa-box"></i> Quantité totale</label>
-                            <input id="quantite" name="quantite" value="{{ commande.quantite ?? total_quantite }}" placeholder="Quantité totale">
+                            <input id="quantite" name="quantite" type="number" readonly value="{{ commande.quantite ?? total_quantite }}" placeholder="Quantité totale">
                         </div>
 
                         <div class="field">
                             <label for="numtel"><i class="fa-solid fa-phone"></i> Téléphone</label>
-                            <input id="numtel" name="numtel" value="{{ commande.numtel ?? '' }}" placeholder="Téléphone">
+                            <input id="numtel" name="numtel" type="tel" value="{{ commande.numtel ?? '' }}" placeholder="Téléphone (ex: 55555555)" required>
                         </div>
                     </form>
                 </div>

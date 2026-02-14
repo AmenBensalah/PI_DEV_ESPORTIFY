@@ -11,6 +11,8 @@ use App\Entity\Commentaire;
 use App\Entity\Like;
 use App\Entity\EventParticipant;
 use App\Entity\Post;
+use App\Entity\Commande;
+use App\Entity\Recommendation;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -89,8 +91,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, Post>
      */
     #[ORM\ManyToMany(targetEntity: Post::class, inversedBy: 'savedBy')]
+
     #[ORM\JoinTable(name: 'user_saved_posts')]
     private Collection $savedPosts;
+
+    /**
+     * @var Collection<int, Recommendation>
+     */
+    #[ORM\OneToMany(targetEntity: Recommendation::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $recommendations;
+
+    // TEMPORAIRE : Relation Commandes désactivée
+    // /**
+    //  * @var Collection<int, Commande>
+    //  */
+    // #[ORM\OneToMany(targetEntity: Commande::class, mappedBy: 'user')]
+    // private Collection $commandes;
 
     public function __construct()
     {
@@ -101,6 +117,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->likes = new ArrayCollection();
         $this->eventParticipations = new ArrayCollection();
         $this->savedPosts = new ArrayCollection();
+        $this->recommendations = new ArrayCollection();
+        // $this->commandes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -420,4 +438,65 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->savedPosts->contains($post);
     }
+
+    /**
+     * @return Collection<int, Recommendation>
+     */
+    public function getRecommendations(): Collection
+    {
+        return $this->recommendations;
+    }
+
+    public function addRecommendation(Recommendation $recommendation): static
+    {
+        if (!$this->recommendations->contains($recommendation)) {
+            $this->recommendations->add($recommendation);
+            $recommendation->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRecommendation(Recommendation $recommendation): static
+    {
+        if ($this->recommendations->removeElement($recommendation)) {
+            // set the owning side to null (unless already changed)
+            if ($recommendation->getUser() === $this) {
+                $recommendation->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    // TEMPORAIRE : Méthodes Commandes désactivées
+    // /**
+    //  * @return Collection<int, Commande>
+    //  */
+    // public function getCommandes(): Collection
+    // {
+    //     return $this->commandes;
+    // }
+
+    // public function addCommande(Commande $commande): static
+    // {
+    //     if (!$this->commandes->contains($commande)) {
+    //         $this->commandes->add($commande);
+    //         $commande->setUser($this);
+    //     }
+
+    //     return $this;
+    // }
+
+    // public function removeCommande(Commande $commande): static
+    // {
+    //     if ($this->commandes->removeElement($commande)) {
+    //         // set the owning side to null (unless already changed)
+    //         if ($commande->getUser() === $this) {
+    //             $commande->setUser(null);
+    //         }
+    //     }
+
+    //     return $this;
+    // }
 }

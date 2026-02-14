@@ -50,19 +50,19 @@
             <form id="order-shipping-form" action="{{ path('front_order_step2') }}" method="post" class="order-form two-cols">
                 <div class="field">
                     <label for="pays"><i class="fa-solid fa-globe"></i> Pays</label>
-                    <input id="pays" name="pays" value="{{ commande.pays ?? '' }}" placeholder="Pays">
+                    <input id="pays" name="pays" value="{{ commande.pays ?? '' }}" placeholder="Pays" required>
                 </div>
                 <div class="field">
                     <label for="gouvernerat"><i class="fa-solid fa-map"></i> Gouvernorat</label>
-                    <input id="gouvernerat" name="gouvernerat" value="{{ commande.gouvernerat ?? '' }}" placeholder="Gouvernorat">
+                    <input id="gouvernerat" name="gouvernerat" value="{{ commande.gouvernerat ?? '' }}" placeholder="Gouvernorat" required>
                 </div>
                 <div class="field">
                     <label for="code_postal"><i class="fa-solid fa-hashtag"></i> Code postal</label>
-                    <input id="code_postal" name="code_postal" value="{{ commande.codePostal ?? '' }}" placeholder="Code postal">
+                    <input id="code_postal" name="code_postal" type="number" value="{{ commande.codePostal ?? '' }}" placeholder="Code postal" required>
                 </div>
                 <div class="field">
                     <label for="adresse"><i class="fa-solid fa-location-dot"></i> Adresse</label>
-                    <input id="adresse" name="adresse" value="{{ commande.adresse ?? '' }}" placeholder="Adresse">
+                    <input id="adresse" name="adresse" value="{{ commande.adresse ?? '' }}" placeholder="Adresse" required>
                 </div>
                 <div class="field" style="grid-column: 1 / -1;">
                     <label for="adresse_detail"><i class="fa-solid fa-pen"></i> Adresse exacte / description</label>

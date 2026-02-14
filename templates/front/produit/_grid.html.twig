@@ -1,0 +1,49 @@
+{% for produit in produits %}
+    <article class="shop-product-card product-card"
+             data-price="{{ produit.prix }}"
+             data-name="{{ produit.nom|lower }}"
+             data-stock="{{ produit.stock }}"
+             data-category="{{ produit.categorie ? produit.categorie.id : '' }}"
+             style="animation: fadeIn 0.4s ease forwards;">
+        <div class="shop-card-image">
+            {% if produit.image %}
+                <img src="{{ produit.image starts with 'http' ? produit.image : asset(produit.image) }}" alt="{{ produit.nom }}" onerror="this.src='https://placehold.co/400x400/1b1e2e/FFF?text=E-Sportify'">
+            {% else %}
+                <img src="https://placehold.co/400x400/1b1e2e/FFF?text=E-Sportify" alt="{{ produit.nom }}">
+            {% endif %}
+            <div class="shop-card-badges">
+                <span class="badge badge-info"><i class="fa-solid fa-tag"></i>{{ produit.categorie ? produit.categorie.nom : 'Divers' }}</span>
+                {% if produit.stock == 0 %}
+                    <span class="badge badge-danger">Rupture</span>
+                {% elseif produit.stock < 5 %}
+                    <span class="badge badge-warning">Derniers</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="shop-card-body">
+            <h3 class="shop-card-title">{{ produit.nom }}</h3>
+            <div class="shop-card-meta">
+                <span class="shop-price">{{ produit.prix|number_format(2, '.', ' ') }} €</span>
+                <span class="shop-stock {{ produit.stock == 0 ? 'out' : 'in' }}">
+                    {{ produit.stock == 0 ? 'Rupture' : 'En stock' }}
+                </span>
+            </div>
+            <div class="shop-card-actions">
+                <a href="{{ path('app_front_produit_show', { id: produit.id }) }}" class="shop-link">Voir détails</a>
+                <form action="{{ path('front_order_add_product', { id: produit.id }) }}" method="post" style="margin: 0;">
+                    <input type="hidden" name="quantite" value="1">
+                    <button type="submit" class="shop-add-btn" title="Ajouter au panier">
+                        <i class="fas fa-shopping-cart"></i> Ajouter au panier
+                    </button>
+                </form>
+            </div>
+        </div>
+    </article>
+{% else %}
+    <div class="empty-state" style="width: 100%; grid-column: 1 / -1;">
+        <i class="fas fa-ghost"></i>
+        <h3>Aucun produit trouvé</h3>
+        <p>Essayez une autre recherche ou revenez plus tard.</p>
+    </div>
+{% endfor %}

@@ -13,14 +13,20 @@ class OpenAIChatService
     public function __construct(
         private HttpClientInterface $httpClient,
         private LoggerInterface $logger,
-        private string $apiKey,
+        private GeminiService $geminiService,
+        private ?string $apiKey,
         private string $model
     ) {
     }
 
     public function isEnabled(): bool
     {
-        return trim($this->apiKey) !== '';
+        return ($this->apiKey !== null && trim($this->apiKey) !== '' && strpos($this->apiKey, 'sk-') === 0) || $this->geminiService->isAvailable();
+    }
+
+    public function isOpenAIEnabled(): bool
+    {
+        return $this->apiKey !== null && trim($this->apiKey) !== '' && strpos($this->apiKey, 'sk-') === 0;
     }
 
     /**
@@ -28,8 +34,31 @@ class OpenAIChatService
      */
     public function createCompletion(array $messages, float $temperature = 0.2, int $maxTokens = 300): ?string
     {
-        if (!$this->isEnabled()) {
-            $this->logger->warning('OpenAI API Key is missing');
+        if (!$this->isOpenAIEnabled()) {
+            if ($this->geminiService->isAvailable()) {
+                $this->logger->info('OpenAI disabled, falling back to Gemini');
+                
+                $userMsg = "";
+                $history = [];
+                $system = "";
+
+                foreach ($messages as $m) {
+                    if ($m['role'] === 'system') {
+                        $system .= $m['content'] . "\n";
+                    } elseif ($m['role'] === 'user') {
+                        if ($userMsg !== "") {
+                            $history[] = ['role' => 'user', 'content' => $userMsg];
+                        }
+                        $userMsg = $m['content'];
+                    } else {
+                        $history[] = ['role' => 'bot', 'content' => $m['content']];
+                    }
+                }
+
+                return $this->geminiService->chat($userMsg, $history, $system);
+            }
+
+            $this->logger->warning('OpenAI API Key is missing and Gemini is unavailable');
             return null;
         }
 

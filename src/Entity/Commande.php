@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\CommandeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
+use App\Entity\User;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -20,6 +21,10 @@ class Commande
 
     #[ORM\OneToMany(mappedBy: 'commande', targetEntity: LigneCommande::class, orphanRemoval: true)]
     private Collection $lignesCommande;
+
+    // TEMPORAIRE : Relation User désactivée pour éviter l'erreur SQL
+    // #[ORM\ManyToOne(inversedBy: 'commandes')]
+    // private ?User $user = null;
 
     #[ORM\Column(length: 255)]
     private ?string $statut = 'draft';
@@ -241,4 +246,17 @@ class Commande
 
         return $this;
     }
+
+    // TEMPORAIRE : Méthodes User désactivées
+    // public function getUser(): ?User
+    // {
+    //     return $this->user;
+    // }
+
+    // public function setUser(?User $user): static
+    // {
+    //     $this->user = $user;
+
+    //     return $this;
+    // }
 }
