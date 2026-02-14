@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block body_class %}page-equipes{% endblock %}
+
+{% block title %}Signaler {{ equipe.nomEquipe }} - E-Sportify{% endblock %}
+
+{% block body %}
+<div class="equipes-content equipe-detail">
+    <div class="flash-messages-container">
+        {% for message in app.flashes('success') %}
+            <div class="flash-success" role="status" aria-live="polite" style="margin:12px 0;">
+                <i class="fas fa-check-circle" style="color: var(--success-color); font-size: 18px; margin-right:10px;"></i>
+                <span style="color: var(--success-color); font-weight:600;">{{ message }}</span>
+            </div>
+        {% endfor %}
+        {% for message in app.flashes('error') %}
+            <div class="flash-error" role="status" aria-live="polite" style="margin:12px 0; background: rgba(255,0,110,0.06); border:1px solid var(--primary-pink); padding:10px 12px; border-radius:8px;">
+                <i class="fas fa-exclamation-circle" style="color: var(--primary-pink); font-size: 18px; margin-right:10px;"></i>
+                <span style="color: var(--primary-pink); font-weight:600;">{{ message }}</span>
+            </div>
+        {% endfor %}
+    </div>
+
+    <section class="team-cover" style="--cover-image: url('{{ asset('images/gaming1.jpg') }}');">
+        <div class="team-cover-inner">
+            <div class="team-cover-logo">
+                {% if equipe.logo %}
+                    <img src="{{ asset('uploads/equipes/' ~ equipe.logo) }}" alt="{{ equipe.nomEquipe }}">
+                {% else %}
+                    <div class="team-cover-placeholder">
+                        <i class="fas fa-users"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="team-cover-content">
+                <span class="badge badge-info"><i class="fas fa-medal"></i> {{ (equipe.classement|default('Non classé'))|upper }}</span>
+                <h1 class="team-cover-title">Signaler {{ equipe.nomEquipe }}</h1>
+                <p class="team-description">Expliquez clairement le problème. Après plusieurs signalements, l'équipe peut être suspendue automatiquement.</p>
+                <div class="team-cover-actions">
+                    <a href="{{ path('app_equipes_show', {'id': equipe.id}) }}" class="btn-outline">
+                        <i class="fas fa-arrow-left"></i> Retour à l'équipe
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="admin-form-card" style="max-width: 880px; margin-top: 22px;">
+        <form method="post">
+            <input type="hidden" name="_token" value="{{ csrf_token('report_team_' ~ equipe.id) }}">
+            <div class="admin-form-row">
+                <div class="admin-form-field" style="width:100%;">
+                    <label for="reason">Raison du signalement</label>
+                    <textarea id="reason" name="reason" rows="6" placeholder="Décrivez les comportements ou contenus problématiques..." class="admin-form-input">{{ reason|default('') }}</textarea>
+                    <small style="color: var(--text-secondary); display:block; margin-top:6px;">
+                        Merci d'être précis (minimum 10 caractères). Les faux signalements peuvent entraîner des sanctions.
+                    </small>
+                </div>
+            </div>
+            <div class="admin-form-actions" style="margin-top: 16px;">
+                <button type="submit" class="btn-gradient">
+                    <i class="fas fa-flag"></i> Envoyer le signalement
+                </button>
+                <a href="{{ path('app_equipes_show', {'id': equipe.id}) }}" class="btn-outline">Annuler</a>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}

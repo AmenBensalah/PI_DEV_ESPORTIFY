@@ -43,6 +43,9 @@ class Equipe
     #[ORM\Column(options: ["default" => false])]
     private ?bool $isPrivate = false;
 
+    #[ORM\Column(options: ["default" => true])]
+    private ?bool $isActive = true;
+
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?User $manager = null;
@@ -245,6 +248,17 @@ class Equipe
     {
         $this->manager = $manager;
 
+        return $this;
+    }
+
+    public function isActive(): bool
+    {
+        return (bool) $this->isActive;
+    }
+
+    public function setIsActive(bool $isActive): static
+    {
+        $this->isActive = $isActive;
         return $this;
     }
 

@@ -1,17 +1,35 @@
 {% extends 'base.html.twig' %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/recrutements.css') }}">
+{% endblock %}
+
+{% block body_class %}page-recrutements-manage{% endblock %}
+
 {% block title %}Gestion des Demandes - E-Sportify{% endblock %}
 
 {% block body %}
     <div id="recruitment-container">
         <!-- Page Header -->
         <div class="page-header animate__animated animate__fadeInDown">
-            <h1 class="hero-title" style="font-size: 42px; margin-bottom: 10px;">
+            <h1 class="hero-title recrutements-title">
                 <i class="fas fa-user-plus"></i> GESTION DES CANDIDATURES
             </h1>
-            <p class="hero-subtitle" style="margin-bottom: 40px;">
-                Candidatures pour l'équipe <span style="color: var(--primary-blue);">{{ equipe.nomEquipe }}</span>
+            <p class="hero-subtitle recrutements-subtitle">
+                Candidatures pour l'équipe <span class="team-name">{{ equipe.nomEquipe }}</span>
             </p>
+            <div class="page-header-actions">
+                {% if aiEnabled %}
+                    <a href="{{ path('app_recrutements_manage', {'id': equipe.id, 'ai': useAi ? 0 : 1}) }}" class="btn-outline">
+                        <i class="fas fa-brain"></i>
+                        {% if useAi %}Désactiver IA{% else %}Activer IA{% endif %}
+                    </a>
+                {% else %}
+                    <span class="badge badge-danger">IA désactivée (clé manquante)</span>
+                {% endif %}
+                <span class="badge badge-info">Tri par score local</span>
+            </div>
         </div>
 
         <!-- Filter Tabs -->
@@ -31,7 +49,7 @@
         </div>
 
         <!-- Recruitment Requests List -->
-        <div id="requests-list" class="requests-list" data-recruitment-filter-target="list" style="margin-bottom: 60px;">
+        <div id="requests-list" class="requests-list" data-recruitment-filter-target="list">
             {% for candidature in candidatures %}
             <div class="card recruitment-card animate__animated animate__fadeInUp" role="article" aria-label="Candidature de {{ candidature.user.pseudo }}" 
                  data-status="{% if candidature.statut == 'En attente' %}pending{% elseif candidature.statut == 'Accepté' %}accepted{% else %}refused{% endif %}"
@@ -61,6 +79,10 @@
                                     </span>
                                     <span class="badge badge-primary">
                                         <i class="fas fa-gamepad"></i> {{ candidature.niveau }}
+                                    </span>
+                                    {% set score = localScores[candidature.id].score|default(0) %}
+                                    <span class="badge badge-info">
+                                        <i class="fas fa-chart-line"></i> Score local {{ score }}
                                     </span>
                                     <span class="badge" style="background: rgba(0, 217, 255, 0.1); color: var(--primary-blue); border: 1px solid var(--primary-blue);">
                                         <i class="fas fa-envelope"></i> {{ candidature.user.email }}
@@ -97,6 +119,33 @@
                             </div>
                         </div>
 
+                        <!-- IA + Raisons (Local) -->
+                        <div class="ai-insights-grid">
+                            <div class="ai-card local">
+                                <h4 class="ai-card-title"><i class="fas fa-list-check"></i> Raisons (local)</h4>
+                                <p class="ai-card-text">
+                                    {{ localScores[candidature.id].reasons|default([])|join(', ') }}
+                                </p>
+                            </div>
+                            <div class="ai-card ai">
+                                <h4 class="ai-card-title"><i class="fas fa-brain"></i> Résumé IA</h4>
+                                {% set insight = aiInsights[candidature.id]|default(null) %}
+                                {% if insight %}
+                                    <p class="ai-card-text">{{ insight.summary }}</p>
+                                    <div class="ai-flags">
+                                        <span class="badge badge-info">Reco: {{ insight.recommendation|upper }}</span>
+                                        {% for flag in insight.flags %}
+                                            <span class="badge badge-danger">{{ flag }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <p class="ai-card-text muted">
+                                        {% if useAi %}Analyse IA indisponible.{% else %}IA désactivée.{% endif %}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+
                         <!-- Raison (Long) -->
                         <div style="background: var(--darker-bg); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
                             <h4 style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;">
@@ -110,18 +159,18 @@
                         <!-- Actions -->
                         <div class="card-actions">
                             {% if candidature.statut == 'En attente' %}
-                                <form method="post" action="{{ path('app_recrutements_accept', {'id': candidature.id}) }}" style="display: inline;">
-                                    <button type="submit" class="btn-gradient" style="padding: 12px 24px; border: none; cursor: pointer;" onclick="return confirm('✅ Accepter {{ candidature.user.pseudo }} ?')">
+                                <form method="post" action="{{ path('app_recrutements_accept', {'id': candidature.id}) }}" class="inline-form">
+                                    <button type="submit" class="btn-gradient" onclick="return confirm('✅ Accepter {{ candidature.user.pseudo }} ?')">
                                         <i class="fas fa-check"></i> Accepter
                                     </button>
                                 </form>
-                                <form method="post" action="{{ path('app_recrutements_refuse', {'id': candidature.id}) }}" style="display: inline;">
-                                    <button type="submit" class="btn-danger" style="padding: 12px 24px; background: rgba(255, 0, 110, 0.1); border: 2px solid var(--primary-pink); color: var(--primary-pink); border-radius: 12px; cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 700;" onclick="return confirm('❌ Refuser {{ candidature.user.pseudo }} ?')">
+                                <form method="post" action="{{ path('app_recrutements_refuse', {'id': candidature.id}) }}" class="inline-form">
+                                    <button type="submit" class="btn-danger" onclick="return confirm('❌ Refuser {{ candidature.user.pseudo }} ?')">
                                         <i class="fas fa-times"></i> Refuser
                                     </button>
                                 </form>
                             {% else %}
-                                <button disabled class="btn-outline" style="opacity: 0.5; cursor: not-allowed; border: 1px solid var(--text-secondary); color: var(--text-secondary);">
+                                <button disabled class="btn-outline">
                                     <i class="fas fa-lock"></i> Traitée
                                 </button>
                             {% endif %}

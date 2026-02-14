@@ -95,7 +95,7 @@
             </div>
         </div>
 
-        {# --- INFO GRID : ID, Date, Classement, Statut --- #}
+{# --- INFO GRID : ID, Date, Classement, Statut --- #}
         <div class="team-info-grid" style="margin-bottom: 40px;">
             <div class="info-item">
                 <div class="info-item-label"><i class="fas fa-hashtag"></i> ID de l'Équipe</div>
@@ -123,6 +123,199 @@
                     {% else %}
                         <span class="badge badge-success"><i class="fas fa-globe"></i> Publique</span>
                     {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# --- IA: ÉQUILIBRE & PERFORMANCE --- #}
+        {% set balanceScore = teamBalance.balanceScore|default(0) %}
+        {% set balanceBadge = balanceScore >= 75 ? 'badge-success' : (balanceScore >= 45 ? 'badge-warning' : 'badge-danger') %}
+        <div class="team-info-grid team-ai-grid" style="margin-bottom: 40px;">
+            <div class="info-item">
+                <div class="info-item-label"><i class="fas fa-scale-balanced"></i> Équilibre des rôles</div>
+                <div class="info-item-value">
+                    {% if teamBalance.imbalanced %}
+                        <span class="badge badge-danger">Déséquilibrée</span>
+                    {% else %}
+                        <span class="badge badge-success">Équilibrée</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-label"><i class="fas fa-user-shield"></i> Rôle dominant</div>
+                <div class="info-item-value">
+                    {% if teamBalance.dominantRole %}
+                        {{ teamBalance.dominantRole|upper }} ({{ (teamBalance.dominantRatio * 100)|round(0) }}%)
+                    {% else %}
+                        <span style="color: var(--text-secondary);">N/A</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-label"><i class="fas fa-gamepad"></i> Type de jeu</div>
+                <div class="info-item-value">
+                    <span class="badge badge-info">{{ teamBalance.gameType|upper }}</span>
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-label"><i class="fas fa-triangle-exclamation"></i> Rôles manquants</div>
+                <div class="info-item-value">
+                    {% if teamBalance.missingRoles is empty %}
+                        <span class="badge badge-success">Aucun</span>
+                    {% else %}
+                        {{ teamBalance.missingRoles|join(', ')|upper }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-label"><i class="fas fa-gauge-high"></i> Score d'équilibre</div>
+                <div class="info-item-value">
+                    <span class="badge {{ balanceBadge }}">{{ balanceScore }}/100</span>
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-item-label"><i class="fas fa-chart-line"></i> Tendance recrutements</div>
+                <div class="info-item-value">
+                    {% set trend = teamPerformance.trendTotal %}
+                    {% if trend > 0 %}
+                        <span class="badge badge-success">+{{ trend }}%</span>
+                    {% elseif trend < 0 %}
+                        <span class="badge badge-danger">{{ trend }}%</span>
+                    {% else %}
+                        <span class="badge badge-info">0%</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="team-ai-panels" style="margin-bottom: 40px;">
+            <div class="team-ai-card">
+                <h4 style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;">
+                    <i class="fas fa-users"></i> Répartition des rôles
+                </h4>
+                {% set maxRoleCount = 1 %}
+                {% for roleName, roleCount in teamBalance.roleCounts %}
+                    {% if roleCount > maxRoleCount %}
+                        {% set maxRoleCount = roleCount %}
+                    {% endif %}
+                {% endfor %}
+                <div class="role-bars">
+                    {% for role in teamBalance.coreRoles %}
+                        {% set count = teamBalance.roleCounts[role]|default(0) %}
+                        {% set width = maxRoleCount > 0 ? ((count / maxRoleCount) * 100) : 0 %}
+                        <div class="role-bar">
+                            <div class="role-bar-label">{{ role|upper }}</div>
+                            <div class="role-bar-track">
+                                <div class="role-bar-fill" style="width: {{ width|round(0) }}%;"></div>
+                            </div>
+                            <div class="role-bar-value">{{ count }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="team-ai-card accent">
+                <h4 style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;">
+                    <i class="fas fa-trophy"></i> Performance (30 jours)
+                </h4>
+                <p style="color: var(--text-primary); margin-bottom: 6px;">
+                    Acceptés : {{ teamPerformance.acceptedLast30 }} (précédent: {{ teamPerformance.acceptedPrev30 }})
+                </p>
+                <p style="color: var(--text-primary);">
+                    Candidatures : {{ teamPerformance.totalLast30 }} (précédent: {{ teamPerformance.totalPrev30 }})
+                </p>
+                {% set acceptedWidth = teamPerformance.acceptedPrev30 > 0 ? ((teamPerformance.acceptedLast30 / teamPerformance.acceptedPrev30) * 100) : (teamPerformance.acceptedLast30 > 0 ? 100 : 10) %}
+                {% if acceptedWidth > 100 %}{% set acceptedWidth = 100 %}{% endif %}
+                {% set totalWidth = teamPerformance.totalPrev30 > 0 ? ((teamPerformance.totalLast30 / teamPerformance.totalPrev30) * 100) : (teamPerformance.totalLast30 > 0 ? 100 : 10) %}
+                {% if totalWidth > 100 %}{% set totalWidth = 100 %}{% endif %}
+                <div class="trend-bars">
+                    <div class="trend-row">
+                        <span class="trend-label">Acceptés</span>
+                        <div class="trend-track">
+                            <div class="trend-fill" style="width: {{ acceptedWidth|round(0) }}%;"></div>
+                        </div>
+                        <span class="trend-value">{{ teamPerformance.trendAccepted }}%</span>
+                    </div>
+                    <div class="trend-row">
+                        <span class="trend-label">Candidatures</span>
+                        <div class="trend-track">
+                            <div class="trend-fill accent" style="width: {{ totalWidth|round(0) }}%;"></div>
+                        </div>
+                        <span class="trend-value">{{ teamPerformance.trendTotal }}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# --- IA: NIVEAU MOYEN & ACTIVITÉ --- #}
+        <div class="team-ai-panels" style="margin-bottom: 40px;">
+            <div class="team-ai-card">
+                <h4 style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;">
+                    <i class="fas fa-chart-bar"></i> Niveau moyen & répartition
+                </h4>
+                <p style="color: var(--text-primary); margin-bottom: 6px;">
+                    Niveau moyen : <strong>{{ teamLevelStats.averageLabel }}</strong>
+                    {% if teamLevelStats.total > 0 %}
+                        ({{ teamLevelStats.averageScore|number_format(2, '.', ' ') }})
+                    {% endif %}
+                </p>
+                <div class="level-bars">
+                    {% set totalLevels = teamLevelStats.total > 0 ? teamLevelStats.total : 1 %}
+                    {% for level, count in teamLevelStats.counts %}
+                        {% set width = (count / totalLevels) * 100 %}
+                        <div class="level-row">
+                            <span class="level-label">{{ level }}</span>
+                            <div class="level-track">
+                                <div class="level-fill" style="width: {{ width|round(0) }}%;"></div>
+                            </div>
+                            <span class="level-value">{{ count }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="team-ai-card accent">
+                <h4 style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;">
+                    <i class="fas fa-flag"></i> Points forts & faiblesses
+                </h4>
+                <div class="strength-weakness">
+                    <div>
+                        <div class="sw-title"><i class="fas fa-check-circle"></i> Points forts</div>
+                        {% if teamLevelStats.strengths is empty %}
+                            <p class="sw-text muted">Aucun point fort détecté.</p>
+                        {% else %}
+                            <ul class="sw-list">
+                                {% for item in teamLevelStats.strengths %}
+                                    <li>{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div class="sw-title"><i class="fas fa-triangle-exclamation"></i> Faiblesses</div>
+                        {% if teamLevelStats.weaknesses is empty %}
+                            <p class="sw-text muted">Aucune faiblesse détectée.</p>
+                        {% else %}
+                            <ul class="sw-list">
+                                {% for item in teamLevelStats.weaknesses %}
+                                    <li>{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="activity-line">
+                    {% if teamLevelStats.isActive %}
+                        <span class="badge badge-success">Équipe active</span>
+                    {% else %}
+                        <span class="badge badge-warning">Équipe inactive</span>
+                    {% endif %}
+                    <span class="activity-date">
+                        Dernier membre accepté :
+                        {% if teamLevelStats.lastAcceptedAt %}
+                            {{ teamLevelStats.lastAcceptedAt|date('d/m/Y') }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </span>
                 </div>
             </div>
         </div>

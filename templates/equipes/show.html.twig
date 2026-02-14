@@ -1,11 +1,19 @@
 ﻿{% extends 'base.html.twig' %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/team-ai-stats.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/team-ai-bot.css') }}">
+{% endblock %}
+
 {% block body_class %}page-equipes{% endblock %}
 
 {% block title %}{{ equipe.nomEquipe }} - E-Sportify{% endblock %}
 
 {% block body %}
-<div class="equipes-content equipe-detail">
+{% set showTeamChat = isMember or isManager %}
+<div class="equipes-content equipe-detail" 
+     {% if showTeamChat %}data-team-id="{{ equipe.id }}"{% else %}data-ai-bot-team-id="{{ equipe.id }}"{% endif %}>
     <div class="flash-messages-container">
         {% for message in app.flashes('success') %}
             <div class="flash-success" role="status" aria-live="polite" style="margin:12px 0;">
@@ -33,6 +41,9 @@
                 {% endif %}
             </div>
             <div class="team-cover-content">
+                {% if not equipe.isActive and is_granted('ROLE_ADMIN') %}
+                    <span class="badge badge-danger" style="margin-bottom:10px;"><i class="fas fa-ban"></i> Équipe suspendue</span>
+                {% endif %}
                 <span class="badge badge-info"><i class="fas fa-medal"></i> {{ (equipe.classement|default('Non classé'))|upper }}</span>
                 <h1 class="team-cover-title">{{ equipe.nomEquipe }}</h1>
                 <p class="team-description">{{ equipe.description|default('Aucune description disponible pour le moment.') }}</p>
@@ -68,6 +79,12 @@
                         </form>
                     {% endif %}
 
+                    {% if app.user and not is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('app_equipes_report', {'id': equipe.id}) }}" class="btn-outline">
+                            <i class="fas fa-flag"></i> Signaler l'équipe
+                        </a>
+                    {% endif %}
+
                     <a href="{{ path('app_equipes_index') }}" class="btn-outline">
                         <i class="fas fa-arrow-left"></i> Retour au hub
                     </a>
@@ -95,6 +112,508 @@
             <div class="team-stat-label">Création</div>
         </div>
     </section>
+
+    {% if isManager %}
+        {% set balanceScore = teamBalance.balanceScore|default(0) %}
+        {% set balanceBadge = balanceScore >= 75 ? 'badge-success' : (balanceScore >= 45 ? 'badge-warning' : 'badge-danger') %}
+        <section class="team-roster team-ai-section" style="margin-top: 24px;">
+            <div class="team-roster-header">
+                <h2>Statistiques IA</h2>
+                <p class="team-description">Analyse basée sur les candidatures acceptées (niveau + activité).</p>
+            </div>
+            <div class="ai-chart-grid">
+                <div class="ai-chart-card summary">
+                    <h4 class="ai-chart-title"><i class="fas fa-chart-radar"></i> Vue d'ensemble de l'équipe</h4>
+                    <canvas id="summaryChart" height="200"></canvas>
+                </div>
+                <div class="ai-chart-card">
+                    <h4 class="ai-chart-title"><i class="fas fa-chart-pie"></i> Répartition des niveaux</h4>
+                    <canvas id="levelChart" height="160"></canvas>
+                </div>
+                <div class="ai-chart-card">
+                    <h4 class="ai-chart-title"><i class="fas fa-chart-bar"></i> Répartition des rôles</h4>
+                    <canvas id="roleChart" height="160"></canvas>
+                </div>
+                <div class="ai-chart-card wide">
+                    <h4 class="ai-chart-title"><i class="fas fa-chart-line"></i> Performance (30 jours)</h4>
+                    <canvas id="perfChart" height="140"></canvas>
+                </div>
+            </div>
+            <div class="team-info-grid team-ai-grid" style="margin-bottom: 30px;">
+                <div class="info-item">
+                    <div class="info-item-label"><i class="fas fa-scale-balanced"></i> Équilibre des rôles</div>
+                    <div class="info-item-value">
+                        {% if teamBalance.imbalanced %}
+                            <span class="badge badge-danger">Déséquilibrée</span>
+                        {% else %}
+                            <span class="badge badge-success">Équilibrée</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-item-label"><i class="fas fa-user-shield"></i> Rôle dominant</div>
+                    <div class="info-item-value">
+                        {% if teamBalance.dominantRole %}
+                            {{ teamBalance.dominantRole|upper }} ({{ (teamBalance.dominantRatio * 100)|round(0) }}%)
+                        {% else %}
+                            <span style="color: var(--text-secondary);">N/A</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-item-label"><i class="fas fa-gamepad"></i> Type de jeu</div>
+                    <div class="info-item-value">
+                        <span class="badge badge-info">{{ teamBalance.gameType|upper }}</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-item-label"><i class="fas fa-triangle-exclamation"></i> Rôles manquants</div>
+                    <div class="info-item-value">
+                        {% if teamBalance.missingRoles is empty %}
+                            <span class="badge badge-success">Aucun</span>
+                        {% else %}
+                            {{ teamBalance.missingRoles|join(', ')|upper }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-item-label"><i class="fas fa-gauge-high"></i> Score d'équilibre</div>
+                    <div class="info-item-value">
+                        <span class="badge {{ balanceBadge }}">{{ balanceScore }}/100</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-item-label"><i class="fas fa-chart-line"></i> Tendance recrutements</div>
+                    <div class="info-item-value">
+                        {% set trend = teamPerformance.trendTotal %}
+                        {% if trend > 0 %}
+                            <span class="badge badge-success">+{{ trend }}%</span>
+                        {% elseif trend < 0 %}
+                            <span class="badge badge-danger">{{ trend }}%</span>
+                        {% else %}
+                            <span class="badge badge-info">0%</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="team-ai-panels" style="margin-bottom: 30px;">
+                <div class="team-ai-card">
+                    <h4 style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;">
+                        <i class="fas fa-users"></i> Répartition des rôles
+                    </h4>
+                    {% set maxRoleCount = 1 %}
+                    {% for roleName, roleCount in teamBalance.roleCounts %}
+                        {% if roleCount > maxRoleCount %}
+                            {% set maxRoleCount = roleCount %}
+                        {% endif %}
+                    {% endfor %}
+                    <div class="role-bars">
+                        {% for role in teamBalance.coreRoles %}
+                            {% set count = teamBalance.roleCounts[role]|default(0) %}
+                            {% set width = maxRoleCount > 0 ? ((count / maxRoleCount) * 100) : 0 %}
+                            <div class="role-bar">
+                                <div class="role-bar-label">{{ role|upper }}</div>
+                                <div class="role-bar-track">
+                                    <div class="role-bar-fill" style="width: {{ width|round(0) }}%;"></div>
+                                </div>
+                                <div class="role-bar-value">{{ count }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="team-ai-card accent">
+                    <h4 style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;">
+                        <i class="fas fa-trophy"></i> Performance (30 jours)
+                    </h4>
+                    <p style="color: var(--text-primary); margin-bottom: 6px;">
+                        Acceptés : {{ teamPerformance.acceptedLast30 }} (précédent: {{ teamPerformance.acceptedPrev30 }})
+                    </p>
+                    <p style="color: var(--text-primary);">
+                        Candidatures : {{ teamPerformance.totalLast30 }} (précédent: {{ teamPerformance.totalPrev30 }})
+                    </p>
+                    {% set acceptedWidth = teamPerformance.acceptedPrev30 > 0 ? ((teamPerformance.acceptedLast30 / teamPerformance.acceptedPrev30) * 100) : (teamPerformance.acceptedLast30 > 0 ? 100 : 10) %}
+                    {% if acceptedWidth > 100 %}{% set acceptedWidth = 100 %}{% endif %}
+                    {% set totalWidth = teamPerformance.totalPrev30 > 0 ? ((teamPerformance.totalLast30 / teamPerformance.totalPrev30) * 100) : (teamPerformance.totalLast30 > 0 ? 100 : 10) %}
+                    {% if totalWidth > 100 %}{% set totalWidth = 100 %}{% endif %}
+                    <div class="trend-bars">
+                        <div class="trend-row">
+                            <span class="trend-label">Acceptés</span>
+                            <div class="trend-track">
+                                <div class="trend-fill" style="width: {{ acceptedWidth|round(0) }}%;"></div>
+                            </div>
+                            <span class="trend-value">{{ teamPerformance.trendAccepted }}%</span>
+                        </div>
+                        <div class="trend-row">
+                            <span class="trend-label">Candidatures</span>
+                            <div class="trend-track">
+                                <div class="trend-fill accent" style="width: {{ totalWidth|round(0) }}%;"></div>
+                            </div>
+                            <span class="trend-value">{{ teamPerformance.trendTotal }}%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="team-ai-panels" style="margin-bottom: 12px;">
+                <div class="team-ai-card">
+                    <h4 style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;">
+                        <i class="fas fa-chart-bar"></i> Niveau moyen & répartition
+                    </h4>
+                    <p style="color: var(--text-primary); margin-bottom: 6px;">
+                        Niveau moyen : <strong>{{ teamLevelStats.averageLabel }}</strong>
+                        {% if teamLevelStats.total > 0 %}
+                            ({{ teamLevelStats.averageScore|number_format(2, '.', ' ') }})
+                        {% endif %}
+                    </p>
+                    <div class="level-bars">
+                        {% set totalLevels = teamLevelStats.total > 0 ? teamLevelStats.total : 1 %}
+                        {% for level, count in teamLevelStats.counts %}
+                            {% set width = (count / totalLevels) * 100 %}
+                            <div class="level-row">
+                                <span class="level-label">{{ level }}</span>
+                                <div class="level-track">
+                                    <div class="level-fill" style="width: {{ width|round(0) }}%;"></div>
+                                </div>
+                                <span class="level-value">{{ count }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="team-ai-card accent">
+                    <h4 style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;">
+                        <i class="fas fa-flag"></i> Points forts & faiblesses
+                    </h4>
+                    <div class="strength-weakness">
+                        <div>
+                            <div class="sw-title"><i class="fas fa-check-circle"></i> Points forts</div>
+                            {% if teamLevelStats.strengths is empty %}
+                                <p class="sw-text muted">Aucun point fort détecté.</p>
+                            {% else %}
+                                <ul class="sw-list">
+                                    {% for item in teamLevelStats.strengths %}
+                                        <li>{{ item }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div class="sw-title"><i class="fas fa-triangle-exclamation"></i> Faiblesses</div>
+                            {% if teamLevelStats.weaknesses is empty %}
+                                <p class="sw-text muted">Aucune faiblesse détectée.</p>
+                            {% else %}
+                                <ul class="sw-list">
+                                    {% for item in teamLevelStats.weaknesses %}
+                                        <li>{{ item }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="activity-line">
+                        {% if teamLevelStats.isActive %}
+                            <span class="badge badge-success">Équipe active</span>
+                        {% else %}
+                            <span class="badge badge-warning">Équipe inactive</span>
+                        {% endif %}
+                        <span class="activity-date">
+                            Dernier membre accepté :
+                            {% if teamLevelStats.lastAcceptedAt %}
+                                {{ teamLevelStats.lastAcceptedAt|date('d/m/Y') }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            (function () {
+                const levelLabels = {{ teamLevelStats.counts|keys|json_encode|raw }};
+                const levelValues = [{% for count in teamLevelStats.counts %}{{ count }}{% if not loop.last %}, {% endif %}{% endfor %}];
+                const roleLabels = {{ teamBalance.coreRoles|json_encode|raw }};
+                const roleValues = {{ teamBalance.coreRoles|map(r => teamBalance.roleCounts[r]|default(0))|json_encode|raw }};
+
+                // Summary Radar Chart
+                const summaryCtx = document.getElementById('summaryChart');
+                if (summaryCtx) {
+                    const balanceScore = {{ teamBalance.balanceScore|default(0) }};
+                    const avgLevel = {{ teamLevelStats.averageScore|default(0) }};
+                    const activityScore = {{ teamLevelStats.isActive ? 100 : 30 }};
+                    const recruitmentTrend = Math.max(0, Math.min(100, 50 + {{ teamPerformance.trendTotal|default(0) }}));
+                    const teamSize = {{ membersCount }};
+                    const teamSizeScore = Math.min(100, (teamSize / 5) * 100);
+
+                    new Chart(summaryCtx, {
+                        type: 'radar',
+                        data: {
+                            labels: ['Équilibre', 'Niveau Moyen', 'Activité', 'Recrutement', 'Effectif'],
+                            datasets: [{
+                                label: 'Performance Équipe',
+                                data: [balanceScore, avgLevel * 20, activityScore, recruitmentTrend, teamSizeScore],
+                                backgroundColor: 'rgba(0, 217, 255, 0.15)',
+                                borderColor: '#00d9ff',
+                                borderWidth: 2,
+                                pointBackgroundColor: '#00d9ff',
+                                pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: '#00d9ff',
+                                pointRadius: 5,
+                                pointHoverRadius: 7
+                            }]
+                        },
+                        options: {
+                            plugins: {
+                                legend: { labels: { color: '#cdd3e1', font: { size: 13, weight: '600' } } },
+                                tooltip: {
+                                    backgroundColor: 'rgba(7, 11, 24, 0.95)',
+                                    titleColor: '#00d9ff',
+                                    bodyColor: '#cdd3e1',
+                                    borderColor: '#00d9ff',
+                                    borderWidth: 1,
+                                    padding: 12,
+                                    displayColors: false
+                                }
+                            },
+                            scales: {
+                                r: {
+                                    angleLines: { color: 'rgba(255, 255, 255, 0.08)' },
+                                    grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                                    pointLabels: { color: '#cdd3e1', font: { size: 12, weight: '600' } },
+                                    ticks: { color: '#8b92a8', backdropColor: 'transparent', stepSize: 20 },
+                                    suggestedMin: 0,
+                                    suggestedMax: 100
+                                }
+                            }
+                        }
+                    });
+                }
+
+                const levelCtx = document.getElementById('levelChart');
+                if (levelCtx) {
+                    new Chart(levelCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: levelLabels,
+                            datasets: [{
+                                data: levelValues,
+                                backgroundColor: [
+                                    '#00d9ff',
+                                    '#8257ff',
+                                    '#ff006e',
+                                    '#46ffbe',
+                                    '#ffc107'
+                                ],
+                                borderWidth: 0,
+                                hoverOffset: 8
+                            }]
+                        },
+                        options: {
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        color: '#cdd3e1',
+                                        font: { size: 12, weight: '600' },
+                                        padding: 15,
+                                        usePointStyle: true,
+                                        pointStyle: 'circle'
+                                    }
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(7, 11, 24, 0.95)',
+                                    titleColor: '#00d9ff',
+                                    bodyColor: '#cdd3e1',
+                                    borderColor: '#00d9ff',
+                                    borderWidth: 1,
+                                    padding: 12,
+                                    displayColors: true,
+                                    callbacks: {
+                                        label: function(context) {
+                                            const label = context.label || '';
+                                            const value = context.parsed || 0;
+                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            const percentage = ((value / total) * 100).toFixed(1);
+                                            return `${label}: ${value} (${percentage}%)`;
+                                        }
+                                    }
+                                }
+                            },
+                            cutout: '65%',
+                            animation: {
+                                animateRotate: true,
+                                animateScale: true
+                            }
+                        }
+                    });
+                }
+
+                const roleCtx = document.getElementById('roleChart');
+                if (roleCtx) {
+                    new Chart(roleCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: roleLabels.map(r => r.toUpperCase()),
+                            datasets: [{
+                                label: 'Nombre de joueurs',
+                                data: roleValues,
+                                backgroundColor: function(context) {
+                                    const gradient = context.chart.ctx.createLinearGradient(0, 0, 0, 300);
+                                    gradient.addColorStop(0, 'rgba(0, 217, 255, 0.8)');
+                                    gradient.addColorStop(1, 'rgba(130, 87, 255, 0.8)');
+                                    return gradient;
+                                },
+                                borderRadius: 8,
+                                borderSkipped: false,
+                                hoverBackgroundColor: '#00d9ff'
+                            }]
+                        },
+                        options: {
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: 'rgba(7, 11, 24, 0.95)',
+                                    titleColor: '#00d9ff',
+                                    bodyColor: '#cdd3e1',
+                                    borderColor: '#00d9ff',
+                                    borderWidth: 1,
+                                    padding: 12,
+                                    displayColors: false
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    ticks: {
+                                        color: '#cdd3e1',
+                                        font: { size: 11, weight: '700' }
+                                    },
+                                    grid: { display: false }
+                                },
+                                y: {
+                                    ticks: {
+                                        color: '#8b92a8',
+                                        font: { size: 11 },
+                                        stepSize: 1
+                                    },
+                                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                                    beginAtZero: true
+                                }
+                            },
+                            animation: {
+                                duration: 1000,
+                                easing: 'easeInOutQuart'
+                            }
+                        }
+                    });
+                }
+
+                const perfCtx = document.getElementById('perfChart');
+                if (perfCtx) {
+                    new Chart(perfCtx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Précédents 30j', 'Derniers 30j'],
+                            datasets: [
+                                {
+                                    label: 'Acceptés',
+                                    data: [{{ teamPerformance.acceptedPrev30 }}, {{ teamPerformance.acceptedLast30 }}],
+                                    borderColor: '#46ffbe',
+                                    backgroundColor: function(context) {
+                                        const gradient = context.chart.ctx.createLinearGradient(0, 0, 0, 200);
+                                        gradient.addColorStop(0, 'rgba(70, 255, 190, 0.3)');
+                                        gradient.addColorStop(1, 'rgba(70, 255, 190, 0.05)');
+                                        return gradient;
+                                    },
+                                    tension: 0.4,
+                                    fill: true,
+                                    borderWidth: 3,
+                                    pointRadius: 6,
+                                    pointHoverRadius: 8,
+                                    pointBackgroundColor: '#46ffbe',
+                                    pointBorderColor: '#fff',
+                                    pointBorderWidth: 2,
+                                    pointHoverBackgroundColor: '#fff',
+                                    pointHoverBorderColor: '#46ffbe'
+                                },
+                                {
+                                    label: 'Candidatures',
+                                    data: [{{ teamPerformance.totalPrev30 }}, {{ teamPerformance.totalLast30 }}],
+                                    borderColor: '#8257ff',
+                                    backgroundColor: function(context) {
+                                        const gradient = context.chart.ctx.createLinearGradient(0, 0, 0, 200);
+                                        gradient.addColorStop(0, 'rgba(130, 87, 255, 0.3)');
+                                        gradient.addColorStop(1, 'rgba(130, 87, 255, 0.05)');
+                                        return gradient;
+                                    },
+                                    tension: 0.4,
+                                    fill: true,
+                                    borderWidth: 3,
+                                    pointRadius: 6,
+                                    pointHoverRadius: 8,
+                                    pointBackgroundColor: '#8257ff',
+                                    pointBorderColor: '#fff',
+                                    pointBorderWidth: 2,
+                                    pointHoverBackgroundColor: '#fff',
+                                    pointHoverBorderColor: '#8257ff'
+                                }
+                            ]
+                        },
+                        options: {
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    labels: {
+                                        color: '#cdd3e1',
+                                        font: { size: 12, weight: '600' },
+                                        padding: 15,
+                                        usePointStyle: true,
+                                        pointStyle: 'circle'
+                                    }
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(7, 11, 24, 0.95)',
+                                    titleColor: '#00d9ff',
+                                    bodyColor: '#cdd3e1',
+                                    borderColor: '#00d9ff',
+                                    borderWidth: 1,
+                                    padding: 12,
+                                    displayColors: true
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    ticks: {
+                                        color: '#cdd3e1',
+                                        font: { size: 11, weight: '600' }
+                                    },
+                                    grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                                },
+                                y: {
+                                    ticks: {
+                                        color: '#8b92a8',
+                                        font: { size: 11 },
+                                        stepSize: 1
+                                    },
+                                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                                    beginAtZero: true
+                                }
+                            },
+                            interaction: {
+                                intersect: false,
+                                mode: 'index'
+                            },
+                            animation: {
+                                duration: 1200,
+                                easing: 'easeInOutQuart'
+                            }
+                        }
+                    });
+                }
+            })();
+        </script>
+    {% endif %}
 
     <section class="team-roster">
         <div class="team-roster-header">
@@ -151,4 +670,9 @@
         </div>
     </section>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/team-ai-bot.js') }}?v=1.3"></script>
 {% endblock %}

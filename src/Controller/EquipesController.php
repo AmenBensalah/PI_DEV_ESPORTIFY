@@ -89,7 +89,7 @@ final class EquipesController extends AbstractController
         $canJoinTeam = !$hasManagerRole && !$isMember;
 
         return $this->render('equipes/index.html.twig', [
-            'featuredTeams' => $equipeRepository->findBy([], ['id' => 'DESC'], 4),
+            'featuredTeams' => $equipeRepository->findActiveLatest(4),
             'myTeam' => $myTeam,
             'isManager' => $isManager,
             'isMember' => $isMember,
@@ -361,9 +361,22 @@ final class EquipesController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_equipes_show', methods: ['GET'])]
-    public function show(Equipe $equipe, \App\Repository\CandidatureRepository $candidatureRepository, Request $request, \App\Repository\UserRepository $userRepository): Response
+    #[Route('/{id}', name: 'app_equipes_show', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function show(
+        Equipe $equipe,
+        \App\Repository\CandidatureRepository $candidatureRepository,
+        Request $request,
+        \App\Repository\UserRepository $userRepository,
+        \App\Service\TeamBalanceService $teamBalanceService,
+        \App\Service\TeamPerformanceService $teamPerformanceService,
+        \App\Service\TeamLevelStatsService $teamLevelStatsService
+    ): Response
     {
+        if (!$equipe->isActive() && !$this->isGranted('ROLE_ADMIN')) {
+            $this->addFlash('error', 'Cette équipe est suspendue.');
+            return $this->redirectToRoute('app_equipes_index');
+        }
+
         $user = $this->getUser();
         $isMember = false;
         $isManager = false;
@@ -391,6 +404,11 @@ final class EquipesController extends AbstractController
             }
         }
 
+        $allCandidatures = $candidatureRepository->findBy(
+            ['equipe' => $equipe],
+            ['dateCandidature' => 'DESC']
+        );
+
         // Fetch dynamic members (Accepted candidatures)
         $membersCandidatures = $candidatureRepository->findBy([
             'equipe' => $equipe,
@@ -411,18 +429,30 @@ final class EquipesController extends AbstractController
 
         $canJoinTeam = !$isAdmin && !$hasManagerRole && !$isMember && !$membershipAny;
 
+        $teamBalance = $teamBalanceService->analyze($equipe, $allCandidatures);
+        $teamPerformance = $teamPerformanceService->analyze($equipe);
+        $teamLevelStats = $teamLevelStatsService->analyze($equipe, $allCandidatures);
+
         return $this->render('equipes/show.html.twig', [
             'equipe' => $equipe,
             'isManager' => $isManager,
             'isMember' => $isMember,
             'members' => $members,
             'canJoinTeam' => $canJoinTeam,
+            'teamBalance' => $teamBalance,
+            'teamPerformance' => $teamPerformance,
+            'teamLevelStats' => $teamLevelStats,
         ]);
     }
 
-    #[Route('/{id}/postuler', name: 'app_equipes_apply', methods: ['GET', 'POST'])]
+    #[Route('/{id}/postuler', name: 'app_equipes_apply', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
     public function postuler(Request $request, Equipe $equipe, EntityManagerInterface $entityManager, \App\Repository\CandidatureRepository $candidatureRepository): Response
     {
+        if (!$equipe->isActive() && !$this->isGranted('ROLE_ADMIN')) {
+            $this->addFlash('error', 'Cette équipe est suspendue.');
+            return $this->redirectToRoute('app_equipes_index');
+        }
+
         $user = $this->getUser();
         $session = $request->getSession();
         
@@ -511,7 +541,7 @@ final class EquipesController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/quitter', name: 'app_equipes_leave', methods: ['POST'])]
+    #[Route('/{id}/quitter', name: 'app_equipes_leave', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function quitter(Equipe $equipe, Request $request, \App\Repository\CandidatureRepository $candidatureRepository, EntityManagerInterface $entityManager): Response
     {
         $user = $this->getUser();
@@ -551,15 +581,29 @@ final class EquipesController extends AbstractController
         return $this->redirectToRoute('fil_home');
     }
 
-    #[Route('/{id}/manage', name: 'app_equipes_manage', methods: ['GET'])]
-    public function manage(Equipe $equipe): Response
+    #[Route('/{id}/manage', name: 'app_equipes_manage', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function manage(
+        Equipe $equipe,
+        \App\Repository\CandidatureRepository $candidatureRepository,
+        \App\Service\TeamBalanceService $teamBalanceService,
+        \App\Service\TeamPerformanceService $teamPerformanceService,
+        \App\Service\TeamLevelStatsService $teamLevelStatsService
+    ): Response
     {
+        $candidatures = $candidatureRepository->findBy(['equipe' => $equipe], ['dateCandidature' => 'DESC']);
+        $balance = $teamBalanceService->analyze($equipe, $candidatures);
+        $performance = $teamPerformanceService->analyze($equipe);
+        $levelStats = $teamLevelStatsService->analyze($equipe, $candidatures);
+
         return $this->render('equipes/manage.html.twig', [
             'equipe' => $equipe,
+            'teamBalance' => $balance,
+            'teamPerformance' => $performance,
+            'teamLevelStats' => $levelStats,
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_equipes_edit', methods: ['GET', 'POST'])]
+    #[Route('/{id}/edit', name: 'app_equipes_edit', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
     public function edit(Request $request, Equipe $equipe, EntityManagerInterface $entityManager): Response
     {
         $from = $request->query->get('from');
@@ -695,7 +739,7 @@ final class EquipesController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_equipes_delete', methods: ['POST'])]
+    #[Route('/{id}', name: 'app_equipes_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function delete(Request $request, Equipe $equipe, EntityManagerInterface $entityManager): Response
     {
         // SECURITY CHECK: Only Team Manager (ROLE_MANAGER + session) OR Admin can delete
@@ -745,7 +789,7 @@ final class EquipesController extends AbstractController
         return $this->redirectToRoute('app_equipes_index', [], Response::HTTP_SEE_OTHER);
     }
 
-    #[Route('/{id}/add-member', name: 'app_equipes_add_member', methods: ['POST'])]
+    #[Route('/{id}/add-member', name: 'app_equipes_add_member', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function addMember(Request $request, Equipe $equipe, EntityManagerInterface $entityManager, \App\Repository\UserRepository $userRepository, \App\Repository\CandidatureRepository $candidatureRepository): Response
     {
         // SECURITY CHECK
@@ -804,7 +848,7 @@ final class EquipesController extends AbstractController
         return $this->redirectToRoute('app_equipes_manage', ['id' => $equipe->getId()]);
     }
 
-    #[Route('/{id}/remove-member', name: 'app_equipes_remove_member', methods: ['POST'])]
+    #[Route('/{id}/remove-member', name: 'app_equipes_remove_member', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function removeMember(Request $request, Equipe $equipe, EntityManagerInterface $entityManager, \App\Repository\CandidatureRepository $candidatureRepository, \App\Repository\UserRepository $userRepository): Response
     {
         // SECURITY CHECK

@@ -8,6 +8,7 @@
     <link rel="shortcut icon" href="{{ asset('images/logo-esportify.png') }}">
 
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/chat-widget.css') }}">
     {% block stylesheets %}{% endblock %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -198,6 +199,13 @@
 </div>
 
 <script src="{{ asset('js/app.js') }}"></script>
+<script src="{{ asset('js/chat-widget.js') }}"></script>
+<script>
+    // Set current user ID for chat widget
+    if (window.chatWidget) {
+        window.chatWidget.currentUserId = {{ app.user ? app.user.id : 0 }};
+    }
+</script>
 <script>
 (() => {
     const setup = (root) => {
@@ -2434,9 +2442,18 @@
     }
 
     normalizeFeedTextNodes(document);
-    fetchNotifCount();
-    fetchMsgCount();
+    const liveRefreshIntervalMs = 15000;
+    const canLiveRefresh = () => Number(document.body.dataset.userId || 0) > 0;
+
+    if (canLiveRefresh()) {
+        fetchNotifCount();
+        fetchMsgCount();
+    }
+
     const runLiveRefresh = async () => {
+        if (!canLiveRefresh()) {
+            return;
+        }
         await fetchNotifCount();
         await fetchMsgCount();
         if (notifDropdown && notifDropdown.classList.contains('open')) {
@@ -2445,8 +2462,10 @@
         if (msgDropdown && msgDropdown.classList.contains('open')) {
             fetchMsgPanel();
         }
-        refreshOpenMiniChat();
-        if (typeof refreshMessengerThreadLive === 'function') {
+        if (chatDock && chatDock.children.length > 0) {
+            refreshOpenMiniChat();
+        }
+        if (messengerPage && typeof refreshMessengerThreadLive === 'function') {
             refreshMessengerThreadLive();
         }
     };
@@ -2454,9 +2473,10 @@
         if (document.visibilityState === 'visible') {
             runLiveRefresh();
         }
-    }, 3500);
+    }, liveRefreshIntervalMs);
 })();
 </script>
+    {% block javascripts %}{% endblock %}
 </body>
 </html>
 

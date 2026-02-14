@@ -23,7 +23,14 @@ final class RecrutementsController extends AbstractController
     }
 
     #[Route('/manage/{id}', name: 'app_recrutements_manage', defaults: ['id' => null], methods: ['GET'])]
-    public function manage(?\App\Entity\Equipe $equipe, \App\Repository\CandidatureRepository $candidatureRepository, \App\Repository\EquipeRepository $equipeRepository, Request $request): Response
+    public function manage(
+        ?\App\Entity\Equipe $equipe,
+        \App\Repository\CandidatureRepository $candidatureRepository,
+        \App\Repository\EquipeRepository $equipeRepository,
+        \App\Service\CandidatureScoreService $scoreService,
+        \App\Service\CandidatureAiService $aiService,
+        Request $request
+    ): Response
     {
         // 1. Get the target team (either from URL {id} or session)
         if (!$equipe) {
@@ -51,7 +58,13 @@ final class RecrutementsController extends AbstractController
 
         // Fetch candidatures for this team
         $candidatures = $candidatureRepository->findBy(['equipe' => $equipe], ['dateCandidature' => 'DESC']);
-        
+        $aiEnabled = $aiService->isEnabled();
+        $useAi = $request->query->get('ai') === '1' && $aiEnabled;
+        $aiLimit = 8;
+        $aiCount = 0;
+        $aiInsights = [];
+        $localScores = [];
+
         // Count stats
         $pendingCount = 0;
         $acceptedCount = 0;
@@ -70,6 +83,33 @@ final class RecrutementsController extends AbstractController
                     break;
             }
         }
+
+        foreach ($candidatures as $candidature) {
+            $scoreData = $scoreService->score($candidature, $equipe);
+            $localScores[$candidature->getId()] = $scoreData;
+        }
+
+        if ($useAi) {
+            foreach ($candidatures as $candidature) {
+                if ($candidature->getStatut() !== 'En attente') {
+                    continue;
+                }
+                if ($aiCount >= $aiLimit) {
+                    break;
+                }
+                $insight = $aiService->analyze($candidature, $equipe);
+                if ($insight) {
+                    $aiInsights[$candidature->getId()] = $insight;
+                    $aiCount++;
+                }
+            }
+        }
+
+        usort($candidatures, function ($a, $b) use ($localScores) {
+            $sa = $localScores[$a->getId()]['score'] ?? 0;
+            $sb = $localScores[$b->getId()]['score'] ?? 0;
+            return $sb <=> $sa;
+        });
         
         return $this->render('recrutements/manage.html.twig', [
             'candidatures' => $candidatures,
@@ -77,6 +117,10 @@ final class RecrutementsController extends AbstractController
             'pendingCount' => $pendingCount,
             'acceptedCount' => $acceptedCount,
             'refusedCount' => $refusedCount,
+            'localScores' => $localScores,
+            'aiInsights' => $aiInsights,
+            'aiEnabled' => $aiEnabled,
+            'useAi' => $useAi,
         ]);
     }
 

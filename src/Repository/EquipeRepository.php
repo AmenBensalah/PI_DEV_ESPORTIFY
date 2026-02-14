@@ -23,9 +23,25 @@ class EquipeRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('e')
             ->andWhere('LOWER(e.nomEquipe) LIKE LOWER(:term)')
+            ->andWhere('e.isActive = :active')
             ->setParameter('term', '%'.strtolower($term).'%')
+            ->setParameter('active', true)
             ->orderBy('e.nomEquipe', 'ASC')
             ->setMaxResults(20)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return Equipe[]
+     */
+    public function findActiveLatest(int $limit = 4): array
+    {
+        return $this->createQueryBuilder('e')
+            ->andWhere('e.isActive = :active')
+            ->setParameter('active', true)
+            ->orderBy('e.id', 'DESC')
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
     }

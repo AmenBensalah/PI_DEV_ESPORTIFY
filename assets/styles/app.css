@@ -3780,6 +3780,545 @@ body.with-sidebar .footer {
     color: white;
 }
 
+/* Recrutements Manage - polish */
+.page-recrutements-manage .filter-tabs {
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    align-items: center;
+}
+
+.page-recrutements-manage .filter-tab {
+    border-radius: 999px;
+    padding: 8px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(7, 11, 24, 0.7);
+    color: var(--text-primary);
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+
+.page-recrutements-manage .filter-tab.active {
+    background: linear-gradient(90deg, rgba(0, 217, 255, 0.2), rgba(130, 87, 255, 0.25));
+    border-color: rgba(0, 217, 255, 0.5);
+    box-shadow: 0 6px 18px rgba(0, 217, 255, 0.18);
+}
+
+.page-recrutements-manage .btn-gradient,
+.page-recrutements-manage .btn-outline,
+.page-recrutements-manage .btn-danger {
+    border-radius: 14px !important;
+    padding: 12px 22px !important;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    font-family: 'Rajdhani', sans-serif;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.page-recrutements-manage .btn-outline {
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    background: rgba(12, 16, 32, 0.65) !important;
+    color: var(--text-primary) !important;
+}
+
+.page-recrutements-manage .btn-danger {
+    border: 2px solid rgba(255, 0, 110, 0.55) !important;
+    background: rgba(255, 0, 110, 0.12) !important;
+    color: var(--primary-pink) !important;
+}
+
+.page-recrutements-manage .card-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.page-recrutements-manage .btn-gradient:hover,
+.page-recrutements-manage .btn-outline:hover,
+.page-recrutements-manage .btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+.page-recrutements-manage .btn-outline:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.page-recrutements-manage .page-header {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.page-recrutements-manage .page-header-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 18px;
+}
+
+.page-recrutements-manage .recrutements-title {
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+.page-recrutements-manage .recrutements-subtitle {
+    margin-bottom: 28px;
+}
+
+.page-recrutements-manage .team-name {
+    color: var(--primary-blue);
+    font-weight: 700;
+}
+
+.page-recrutements-manage #requests-list {
+    margin-bottom: 60px;
+}
+
+.page-recrutements-manage .inline-form {
+    display: inline;
+}
+
+.page-recrutements-manage .hero-title {
+    font-size: 42px !important;
+    margin-bottom: 10px !important;
+}
+
+.page-recrutements-manage .hero-subtitle {
+    margin-bottom: 28px !important;
+}
+
+.page-recrutements-manage #requests-list {
+    margin-bottom: 60px;
+}
+
+.page-recrutements-manage .card.recruitment-card {
+    padding: 20px !important;
+    border-radius: 18px;
+    backdrop-filter: blur(6px);
+}
+
+.page-recrutements-manage .card.recruitment-card[style*='border-color:'] {
+    border-color: transparent !important;
+}
+
+.page-recrutements-manage .card.recruitment-card.status-accepted {
+    border-color: rgba(70, 255, 190, 0.45) !important;
+}
+
+.page-recrutements-manage .card.recruitment-card.status-refused {
+    border-color: rgba(255, 0, 110, 0.45) !important;
+}
+
+.page-recrutements-manage .card.recruitment-card .avatar {
+    font-size: 24px !important;
+    background: var(--gradient-1) !important;
+}
+
+.page-recrutements-manage .card-actions button,
+.page-recrutements-manage .card-actions .btn-gradient,
+.page-recrutements-manage .card-actions .btn-danger,
+.page-recrutements-manage .card-actions .btn-outline {
+    padding: 12px 24px !important;
+    border-radius: 12px !important;
+    font-family: 'Rajdhani', sans-serif !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+}
+
+.page-recrutements-manage .card-actions .btn-danger {
+    border: 2px solid rgba(255, 0, 110, 0.55) !important;
+    background: rgba(255, 0, 110, 0.12) !important;
+    color: var(--primary-pink) !important;
+}
+
+.page-recrutements-manage .card-actions .btn-gradient {
+    border: none !important;
+}
+
+.page-recrutements-manage .card-actions .btn-outline {
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    color: var(--text-primary) !important;
+}
+
+.page-recrutements-manage .badge {
+    padding: 6px 12px !important;
+    border-radius: 999px !important;
+    font-size: 12px !important;
+}
+
+.page-recrutements-manage .badge[style*='background: rgba(0, 217, 255'] {
+    border: 1px solid rgba(0, 217, 255, 0.65) !important;
+}
+
+.page-recrutements-manage .card.recruitment-card [style*='background: var(--darker-bg)'] {
+    background: var(--darker-bg) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.page-recrutements-manage .recruitment-card {
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(7, 11, 24, 0.82), rgba(7, 11, 24, 0.92));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.page-recrutements-manage .recruitment-card .badge {
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+.page-recrutements-manage .recruitment-card .avatar {
+    box-shadow: 0 0 18px rgba(0, 217, 255, 0.25);
+    border: 2px solid rgba(0, 217, 255, 0.35);
+}
+
+.page-recrutements-manage .ai-insights-grid {
+    margin-top: 8px;
+}
+
+.page-recrutements-manage .ai-card {
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+}
+
+@media (max-width: 900px) {
+    .page-recrutements-manage .card-actions {
+        gap: 8px;
+    }
+    .page-recrutements-manage .btn-gradient,
+    .page-recrutements-manage .btn-outline,
+    .page-recrutements-manage .btn-danger {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+.page-recrutements-manage .ai-insights-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.page-recrutements-manage .ai-card {
+    background: var(--darker-bg);
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.page-recrutements-manage .ai-card.local {
+    border-color: rgba(0, 217, 255, 0.25);
+    background: linear-gradient(135deg, rgba(0, 217, 255, 0.08), rgba(7, 11, 24, 0.8));
+}
+
+.page-recrutements-manage .ai-card.ai {
+    border-color: rgba(130, 87, 255, 0.28);
+    background: linear-gradient(135deg, rgba(130, 87, 255, 0.1), rgba(7, 11, 24, 0.82));
+}
+
+.page-recrutements-manage .ai-card-title {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+}
+
+.page-recrutements-manage .ai-card-text {
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.page-recrutements-manage .ai-card-text.muted {
+    color: var(--text-secondary);
+}
+
+.page-recrutements-manage .ai-flags {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.page-equipes .team-ai-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.page-equipes .team-ai-panels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.page-equipes .team-ai-card {
+    background: var(--darker-bg);
+    padding: 18px;
+    border-radius: 14px;
+    border: 1px solid rgba(0, 217, 255, 0.15);
+}
+
+.page-equipes .team-ai-card.accent {
+    border-color: rgba(120, 86, 255, 0.2);
+}
+
+.page-equipes .role-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.page-equipes .role-bar {
+    display: grid;
+    grid-template-columns: 90px 1fr 40px;
+    gap: 10px;
+    align-items: center;
+    font-size: 12px;
+}
+
+.page-equipes .role-bar-label {
+    color: var(--text-secondary);
+    font-weight: 600;
+    letter-spacing: 0.6px;
+}
+
+.page-equipes .role-bar-track {
+    position: relative;
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.page-equipes .role-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(0, 217, 255, 0.7), rgba(120, 86, 255, 0.8));
+}
+
+.page-equipes .role-bar-value {
+    color: var(--text-primary);
+    font-weight: 700;
+    text-align: right;
+}
+
+.page-equipes .trend-bars {
+    margin-top: 14px;
+    display: grid;
+    gap: 10px;
+}
+
+.page-equipes .trend-row {
+    display: grid;
+    grid-template-columns: 100px 1fr 60px;
+    gap: 10px;
+    align-items: center;
+    font-size: 12px;
+}
+
+.page-equipes .trend-label {
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.page-equipes .trend-track {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.page-equipes .trend-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(0, 217, 255, 0.8), rgba(70, 255, 190, 0.8));
+}
+
+.page-equipes .trend-fill.accent {
+    background: linear-gradient(90deg, rgba(120, 86, 255, 0.8), rgba(255, 0, 110, 0.65));
+}
+
+.page-equipes .trend-value {
+    text-align: right;
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.page-equipes .level-bars {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.page-equipes .level-row {
+    display: grid;
+    grid-template-columns: 120px 1fr 40px;
+    gap: 10px;
+    align-items: center;
+    font-size: 12px;
+}
+
+.page-equipes .level-label {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.page-equipes .level-track {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.page-equipes .level-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(0, 217, 255, 0.8), rgba(120, 86, 255, 0.7));
+}
+
+.page-equipes .level-value {
+    text-align: right;
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.page-equipes .strength-weakness {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 6px;
+}
+
+.page-equipes .sw-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.page-equipes .sw-text {
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.page-equipes .sw-text.muted {
+    color: var(--text-secondary);
+}
+
+.page-equipes .sw-list {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.page-equipes .activity-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+}
+
+.page-equipes .activity-date {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.page-equipes .team-ai-section .team-roster-header h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 28px;
+    letter-spacing: 1px;
+}
+
+.page-equipes .team-ai-section {
+    background: linear-gradient(180deg, rgba(7, 11, 24, 0.88), rgba(7, 11, 24, 0.98));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+    position: relative;
+    overflow: hidden;
+}
+
+.page-equipes .team-ai-section::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, rgba(120, 86, 255, 0.18), transparent 50%),
+                radial-gradient(circle at top left, rgba(0, 217, 255, 0.18), transparent 45%);
+    pointer-events: none;
+}
+
+.page-equipes .team-ai-section .team-info-grid,
+.page-equipes .team-ai-section .team-ai-panels {
+    position: relative;
+    z-index: 1;
+}
+
+.page-equipes .team-ai-section .info-item {
+    background: rgba(10, 16, 32, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: inset 0 0 0 1px rgba(0, 217, 255, 0.08);
+}
+
+.page-equipes .team-ai-section .info-item-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-secondary);
+}
+
+.page-equipes .team-ai-section .team-ai-card {
+    background: rgba(10, 16, 32, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
+}
+
+.page-equipes .team-ai-section .team-ai-card.accent {
+    border-color: rgba(120, 86, 255, 0.35);
+}
+
+.page-equipes .team-ai-section .role-bar-track,
+.page-equipes .team-ai-section .trend-track,
+.page-equipes .team-ai-section .level-track {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.page-equipes .team-ai-section .role-bar-fill,
+.page-equipes .team-ai-section .trend-fill,
+.page-equipes .team-ai-section .level-fill {
+    box-shadow: 0 0 12px rgba(0, 217, 255, 0.4);
+}
+
+.page-equipes .team-ai-section .badge {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+}
+
+@media (max-width: 900px) {
+    .page-equipes .strength-weakness {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 900px) {
+    .page-recrutements-manage .ai-insights-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ========================================
    FIX: CENTRAGE DU FORMULAIRE
    ======================================== */

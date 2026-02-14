@@ -94,6 +94,8 @@
                         <th>Région</th>
                         <th>Membres</th>
                         <th>Visibilité</th>
+                        <th>Signalements</th>
+                        <th>Statut</th>
                         <th>Créée</th>
                         <th>Actions</th>
                     </tr>
@@ -122,6 +124,17 @@
                                     <span class="badge badge-success">Public</span>
                                 {% endif %}
                             </td>
+                            <td>
+                                {% set reportCount = reportCounts[equipe.id]|default(0) %}
+                                <span class="badge {{ reportCount > 0 ? 'badge-info' : 'badge-success' }}">{{ reportCount }}</span>
+                            </td>
+                            <td>
+                                {% if equipe.isActive %}
+                                    <span class="badge badge-success">Active</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Suspendue</span>
+                                {% endif %}
+                            </td>
                             <td>{{ equipe.dateCreation ? equipe.dateCreation|date('d/m/Y') : 'N/A' }}</td>
                             <td>
                                 <div class="admin-tournament-row-actions">
@@ -131,6 +144,14 @@
                                     <a href="{{ path('app_equipes_edit', {'id': equipe.id}) }}" class="admin-tournament-icon cyan" title="Modifier">
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                    <form method="post" action="{{ path('admin_equipes_toggle', {'id': equipe.id}) }}" 
+                                          {% if equipe.isActive %}onsubmit="return handleSuspension(this, '{{ equipe.nomEquipe }}');"{% endif %}>
+                                        <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ equipe.id) }}">
+                                        <input type="hidden" name="reason" value="">
+                                        <button type="submit" class="admin-tournament-icon" title="{{ equipe.isActive ? 'Suspendre' : 'Réactiver' }}">
+                                            <i class="fas {{ equipe.isActive ? 'fa-ban' : 'fa-rotate' }}"></i>
+                                        </button>
+                                    </form>
                                     <form method="post" action="{{ path('admin_equipes_delete', {'id': equipe.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette équipe ?');">
                                         <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ equipe.id) }}">
                                         <button type="submit" class="admin-tournament-icon danger" title="Supprimer">
@@ -152,4 +173,20 @@
         </div>
     {% endif %}
 </section>
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function handleSuspension(form, teamName) {
+            const reason = prompt(`Pourquoi suspendez-vous l'équipe "${teamName}" ?\n(Laissez vide pour le message par défaut : "equipe suspendue par l'admin")`);
+            
+            if (reason === null) {
+                return false; // User cancelled
+            }
+            
+            form.querySelector('input[name="reason"]').value = reason;
+            return true;
+        }
+    </script>
+{% endblock %}
 {% endblock %}
