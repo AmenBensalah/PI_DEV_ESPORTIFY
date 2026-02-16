@@ -1,0 +1,69 @@
+{% for r in requests %}
+    <tr class="admin-tournament-row">
+        <td>{{ r.id }}</td>
+        <td>{{ r.tournoi ? r.tournoi.name : '-' }}</td>
+        <td>
+            {% if r.user %}
+                {{ r.user.pseudo|default('-') }}
+            {% elseif r.applicantName %}
+                {{ r.applicantName }}
+            {% elseif r.applicantEmail %}
+                {{ r.applicantEmail }}
+            {% else %}
+                <span class="badge badge-muted">Anonyme</span>
+            {% endif %}
+        </td>
+        <td>
+            {% if r.user %}
+                {{ r.user.nom|default(r.user.pseudo)|default('-') }}
+            {% elseif r.applicantName %}
+                {{ r.applicantName }}
+            {% else %}
+                -
+            {% endif %}
+        </td>
+        <td>
+            {% if r.user %}
+                {{ r.user.email|default('-') }}
+            {% elseif r.applicantEmail %}
+                {{ r.applicantEmail }}
+            {% else %}
+                -
+            {% endif %}
+        </td>
+        <td>{{ r.message }}</td>
+        <td>
+            {% if r.status == 'en_attente' or r.status == 'pending' %}
+                <span class="badge badge-warn">En attente</span>
+            {% elseif r.status == 'approuvée' or r.status == 'approved' or r.status == 'approuvee' %}
+                <span class="badge badge-success">Approuvée</span>
+            {% elseif r.status == 'rejetée' or r.status == 'rejected' or r.status == 'rejetee' %}
+                <span class="badge badge-danger">Rejetée</span>
+            {% else %}
+                <span class="badge badge-info">{{ r.status }}</span>
+            {% endif %}
+        </td>
+        <td>{{ r.createdAt|date('d/m/Y H:i') }}</td>
+        <td>
+            <div class="admin-tournament-row-actions">
+                {% if r.tournoi %}
+                    <a href="{{ path('admin_tournoi_preview', {id: r.tournoi.idTournoi}) }}" class="admin-tournament-btn ghost" style="padding: 6px 10px; font-size: 12px;">
+                        Voir
+                    </a>
+                {% else %}
+                    <span class="badge badge-muted">Tournoi indisponible</span>
+                {% endif %}
+                {% if r.status == 'en_attente' or r.status == 'pending' %}
+                    <a href="{{ path('admin_participation_approve', {id: r.id}) }}" class="admin-tournament-btn" style="padding: 6px 10px; font-size: 12px;" onclick="return confirm('Approuver cette demande ?');">
+                        Approuver
+                    </a>
+                    <a href="{{ path('admin_participation_reject', {id: r.id}) }}" class="admin-tournament-btn ghost" style="padding: 6px 10px; font-size: 12px; border-color: rgba(247, 37, 133, 0.45); color: #ff8ab8; background: rgba(247, 37, 133, 0.12);" onclick="return confirm('Rejeter cette demande ?');">
+                        Rejeter
+                    </a>
+                {% else %}
+                    <span class="badge badge-info">Déjà traité</span>
+                {% endif %}
+            </div>
+        </td>
+    </tr>
+{% endfor %}

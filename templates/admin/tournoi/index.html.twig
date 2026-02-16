@@ -35,10 +35,10 @@
             <i class="fas fa-search"></i>
             Recherche avancée
         </div>
-        <form method="GET" class="admin-tournament-form">
+        <form method="GET" class="admin-tournament-form" data-ajax-search-form>
             <div class="field">
                 <label>Nom du jeu</label>
-                <input type="text" name="game" placeholder="ex: Valorant, Chess..." value="{{ filterGame }}">
+                <input type="text" name="game" placeholder="ex: Valorant, Chess..." value="{{ filterGame }}" data-ajax-search-input>
             </div>
             <div class="field">
                 <label>Type de jeu</label>
@@ -92,8 +92,7 @@
         </div>
     {% endfor %}
 
-    {% if tournois %}
-        <div class="admin-tournament-table">
+        <div class="admin-tournament-table" data-ajax-search-table {% if not tournois %}style="display:none;"{% endif %}>
             <table>
                 <thead>
                     <tr>
@@ -105,58 +104,17 @@
                         <th>Statut</th>
                         <th>Début</th>
                         <th>Fin</th>
+                        <th>Places restantes</th>
                         <th>Prix</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {% for tournoi in tournois %}
-                        <tr style="animation-delay: {{ loop.index0 * 0.05 }}s;" class="admin-tournament-row">
-                            <td>{{ tournoi.idTournoi }}</td>
-                            <td class="name">{{ tournoi.name }}</td>
-                            <td><span class="badge badge-info">{{ tournoi.typeGame }}</span></td>
-                            <td><span class="badge badge-success">{{ tournoi.typeTournoi|upper }}</span></td>
-                            <td>{{ tournoi.game }}</td>
-                            <td>
-                                {% if tournoi.currentStatus == 'planned' %}
-                                    <span class="badge badge-warn">Planifié</span>
-                                {% elseif tournoi.currentStatus == 'ongoing' %}
-                                    <span class="badge badge-success">En cours</span>
-                                {% else %}
-                                    <span class="badge badge-info">Terminé</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ tournoi.startDate|date('d/m/Y H:i') }}</td>
-                            <td>{{ tournoi.endDate|date('d/m/Y H:i') }}</td>
-                            <td>${{ tournoi.prizeWon }}</td>
-                            <td>
-                                <div class="admin-tournament-row-actions">
-                                    <a href="{{ path('admin_tournoi_show', {id: tournoi.idTournoi}) }}" class="admin-tournament-icon" title="Voir">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    {% if tournoi.currentStatus == 'planned' %}
-                                        <a href="{{ path('admin_tournoi_edit', {id: tournoi.idTournoi}) }}" class="admin-tournament-icon cyan" title="Modifier">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                    {% else %}
-                                        <span class="admin-tournament-icon cyan disabled" title="Modification indisponible">
-                                            <i class="fas fa-edit"></i>
-                                        </span>
-                                    {% endif %}
-                                    <form method="POST" action="{{ path('admin_tournoi_delete', {id: tournoi.idTournoi}) }}" onsubmit="return confirm('Êtes-vous sûr ?');">
-                                        <button type="submit" class="admin-tournament-icon danger" title="Supprimer">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
+                <tbody data-ajax-search-rows>
+                    {% include 'admin/tournoi/_table_rows.html.twig' with { tournois: tournois } %}
                 </tbody>
             </table>
         </div>
-    {% else %}
-        <div class="admin-tournament-empty">
+        <div class="admin-tournament-empty" data-ajax-search-empty {% if tournois %}style="display:none;"{% endif %}>
             <div class="empty-ring"></div>
             <strong>Aucun tournoi trouvé</strong>
             <p>Commence par créer un nouveau tournoi.</p>
@@ -164,6 +122,86 @@
                 <i class="fas fa-plus"></i> Créer le premier tournoi
             </a>
         </div>
-    {% endif %}
 </section>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+(() => {
+    const form = document.querySelector('[data-ajax-search-form]');
+    if (!form) {
+        return;
+    }
+
+    const searchInput = form.querySelector('[data-ajax-search-input]');
+    const rowsContainer = document.querySelector('[data-ajax-search-rows]');
+    const tableContainer = document.querySelector('[data-ajax-search-table]');
+    const emptyState = document.querySelector('[data-ajax-search-empty]');
+    if (!searchInput || !rowsContainer || !tableContainer || !emptyState) {
+        return;
+    }
+
+    const endpoint = '{{ path('admin_tournoi_search') }}';
+    const currentSort = '{{ currentSort|default('') }}';
+    const currentOrder = '{{ currentOrder|default('ASC') }}';
+    let debounceTimer = null;
+    let currentController = null;
+
+    const updateVisibility = (count) => {
+        if (count > 0) {
+            tableContainer.style.display = '';
+            emptyState.style.display = 'none';
+            return;
+        }
+        tableContainer.style.display = 'none';
+        emptyState.style.display = '';
+    };
+
+    const runSearch = () => {
+        const params = new URLSearchParams(new FormData(form));
+        if (currentSort) {
+            params.set('sort', currentSort);
+        }
+        if (currentOrder) {
+            params.set('order', currentOrder);
+        }
+
+        if (currentController) {
+            currentController.abort();
+        }
+        currentController = new AbortController();
+
+        fetch(`${endpoint}?${params.toString()}`, {
+            method: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            signal: currentController.signal
+        })
+            .then((response) => response.ok ? response.json() : Promise.reject(new Error('HTTP ' + response.status)))
+            .then((data) => {
+                rowsContainer.innerHTML = data.rows || '';
+                updateVisibility(Number(data.count || 0));
+            })
+            .catch((error) => {
+                if (error.name === 'AbortError') {
+                    return;
+                }
+                console.error('Recherche AJAX échouée:', error);
+            });
+    };
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        runSearch();
+    });
+
+    searchInput.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(runSearch, 180);
+    });
+
+    form.querySelectorAll('select').forEach((field) => {
+        field.addEventListener('change', runSearch);
+    });
+})();
+</script>
 {% endblock %}

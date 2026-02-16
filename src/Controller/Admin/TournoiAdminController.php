@@ -2,11 +2,19 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\TournoiMatch;
+use App\Entity\TournoiMatchParticipantResult;
 use App\Entity\Tournoi;
+use App\Entity\User;
+use App\Repository\CandidatureRepository;
+use App\Repository\EquipeRepository;
+use App\Repository\TournoiMatchParticipantResultRepository;
+use App\Repository\TournoiMatchRepository;
 use App\Repository\TournoiRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -30,51 +38,66 @@ class TournoiAdminController extends AbstractController
     #[Route('/tournoi', name: 'tournoi_index')]
     public function index(Request $request, TournoiRepository $tournoiRepository): Response
     {
-        $criteria = [];
-        
-        // Filter by game name (search)
-        if ($request->query->get('game')) {
-            $criteria['game'] = $request->query->get('game');
-        }
-        
-        // Filter by tournament type (solo/squad)
-        if ($request->query->get('type_tournoi')) {
-            $criteria['type_tournoi'] = $request->query->get('type_tournoi');
-        }
-        
-        // Filter by game type (FPS, Sports, etc.)
-        if ($request->query->get('type_game')) {
-            $criteria['type_game'] = $request->query->get('type_game');
-        }
-        
-        // Filter by status (stored status column)
-        $filterStatus = $request->query->get('status');
-        
-        // Sorting
-        $allowedSorts = ['name', 'startDate'];
-        $sort = $request->query->get('sort');
-        $order = strtoupper($request->query->get('order', 'ASC')) === 'DESC' ? 'DESC' : 'ASC';
+        $filterStatus = trim((string)$request->query->get('status', ''));
+        $sort = trim((string)$request->query->get('sort', ''));
+        $order = strtoupper((string)$request->query->get('order', 'ASC')) === 'DESC' ? 'DESC' : 'ASC';
 
-        if ($sort && in_array($sort, $allowedSorts, true)) {
-            $orderBy = [$sort => $order];
-            $tournois = $tournoiRepository->findBy($criteria, $orderBy);
-        } else {
-            $tournois = $tournoiRepository->findBy($criteria);
-        }
-        
-        // If filtering by current status (dynamic), filter in PHP
-        if ($filterStatus) {
-            $tournois = array_filter($tournois, function($tournoi) use ($filterStatus) {
+        $tournois = $tournoiRepository->findForAdminFilters([
+            'q' => $request->query->get('q'),
+            'game' => $request->query->get('game'),
+            'type_tournoi' => $request->query->get('type_tournoi'),
+            'type_game' => $request->query->get('type_game'),
+            'sort' => $sort,
+            'order' => $order,
+        ]);
+
+        if ($filterStatus !== '') {
+            $tournois = array_values(array_filter($tournois, static function (Tournoi $tournoi) use ($filterStatus) {
                 return $tournoi->getCurrentStatus() === $filterStatus;
-            });
+            }));
         }
 
         return $this->render('admin/tournoi/index.html.twig', [
             'tournois' => $tournois,
+            'filterQ' => $request->query->get('q', ''),
             'filterGame' => $request->query->get('game', ''),
             'filterTypeTournoi' => $request->query->get('type_tournoi', ''),
             'filterTypeGame' => $request->query->get('type_game', ''),
             'filterStatus' => $filterStatus,
+            'currentSort' => $sort,
+            'currentOrder' => $order,
+        ]);
+    }
+
+    #[Route('/tournoi/search', name: 'tournoi_search', methods: ['GET'])]
+    public function search(Request $request, TournoiRepository $tournoiRepository): JsonResponse
+    {
+        $filterStatus = trim((string)$request->query->get('status', ''));
+        $sort = trim((string)$request->query->get('sort', ''));
+        $order = strtoupper((string)$request->query->get('order', 'ASC')) === 'DESC' ? 'DESC' : 'ASC';
+
+        $tournois = $tournoiRepository->findForAdminFilters([
+            'q' => $request->query->get('q'),
+            'game' => $request->query->get('game'),
+            'type_tournoi' => $request->query->get('type_tournoi'),
+            'type_game' => $request->query->get('type_game'),
+            'sort' => $sort,
+            'order' => $order,
+        ]);
+
+        if ($filterStatus !== '') {
+            $tournois = array_values(array_filter($tournois, static function (Tournoi $tournoi) use ($filterStatus) {
+                return $tournoi->getCurrentStatus() === $filterStatus;
+            }));
+        }
+
+        $rowsHtml = $this->renderView('admin/tournoi/_table_rows.html.twig', [
+            'tournois' => $tournois,
+        ]);
+
+        return $this->json([
+            'rows' => $rowsHtml,
+            'count' => count($tournois),
         ]);
     }
 
@@ -339,11 +362,313 @@ class TournoiAdminController extends AbstractController
     }
 
     #[Route('/tournoi/{id}/show', name: 'tournoi_show')]
-    public function show(Tournoi $tournoi): Response
+    public function show(
+        Tournoi $tournoi,
+        TournoiMatchRepository $tournoiMatchRepository,
+        EquipeRepository $equipeRepository,
+        CandidatureRepository $candidatureRepository
+    ): Response
     {
+        $participantTeams = $this->buildParticipantTeams($tournoi, $equipeRepository, $candidatureRepository);
+        $participantScores = $this->buildParticipantScores(
+            $tournoi,
+            $tournoiMatchRepository->findByTournoiOrdered($tournoi),
+            $participantTeams
+        );
+
         return $this->render('admin/tournoi/show.html.twig', [
             'tournoi' => $tournoi,
+            'participantScores' => $participantScores,
+            'participantTeams' => $participantTeams,
+            'readonly' => false,
+            'backRoute' => 'admin_tournoi_index',
         ]);
+    }
+
+    #[Route('/tournoi/{id}/preview', name: 'tournoi_preview', methods: ['GET'])]
+    public function preview(
+        Tournoi $tournoi,
+        TournoiMatchRepository $tournoiMatchRepository,
+        EquipeRepository $equipeRepository,
+        CandidatureRepository $candidatureRepository
+    ): Response
+    {
+        $participantTeams = $this->buildParticipantTeams($tournoi, $equipeRepository, $candidatureRepository);
+        $participantScores = $this->buildParticipantScores(
+            $tournoi,
+            $tournoiMatchRepository->findByTournoiOrdered($tournoi),
+            $participantTeams
+        );
+
+        return $this->render('admin/tournoi/show.html.twig', [
+            'tournoi' => $tournoi,
+            'participantScores' => $participantScores,
+            'participantTeams' => $participantTeams,
+            'readonly' => true,
+            'backRoute' => 'admin_participation_index',
+        ]);
+    }
+
+    #[Route('/tournoi/{id}/planning', name: 'tournoi_planning', methods: ['GET'])]
+    public function planning(
+        Tournoi $tournoi,
+        TournoiMatchRepository $tournoiMatchRepository,
+        EquipeRepository $equipeRepository,
+        CandidatureRepository $candidatureRepository
+    ): Response
+    {
+        $participants = $this->getSortedParticipants($tournoi);
+        $participantTeams = $this->buildParticipantTeams($tournoi, $equipeRepository, $candidatureRepository);
+        $matches = $tournoiMatchRepository->findByTournoiOrdered($tournoi);
+
+        return $this->render('admin/tournoi/planning.html.twig', [
+            'tournoi' => $tournoi,
+            'participants' => $participants,
+            'participantTeams' => $participantTeams,
+            'matches' => $matches,
+        ]);
+    }
+
+    #[Route('/tournoi/{id}/planning/match/{matchId}/participants', name: 'tournoi_match_participants', methods: ['GET'])]
+    public function matchParticipants(
+        Tournoi $tournoi,
+        int $matchId,
+        TournoiMatchRepository $tournoiMatchRepository,
+        EquipeRepository $equipeRepository,
+        CandidatureRepository $candidatureRepository
+    ): Response {
+        $match = $tournoiMatchRepository->find($matchId);
+        if (!$match || $match->getTournoi()?->getIdTournoi() !== $tournoi->getIdTournoi()) {
+            throw $this->createNotFoundException('Match introuvable pour ce tournoi.');
+        }
+
+        $participants = $this->getSortedParticipants($tournoi);
+        $participantTeams = $this->buildParticipantTeams($tournoi, $equipeRepository, $candidatureRepository);
+        $participantScores = $this->buildParticipantScores(
+            $tournoi,
+            $tournoiMatchRepository->findByTournoiOrdered($tournoi),
+            $participantTeams
+        );
+        $matchPlacements = [];
+        foreach ($match->getParticipantResults() as $result) {
+            $participantId = $result->getParticipant()?->getId();
+            if ($participantId !== null) {
+                $matchPlacements[$participantId] = $result->getPlacement();
+            }
+        }
+
+        return $this->render('admin/tournoi/match_participants.html.twig', [
+            'tournoi' => $tournoi,
+            'match' => $match,
+            'participants' => $participants,
+            'participantTeams' => $participantTeams,
+            'participantScores' => $participantScores,
+            'matchPlacements' => $matchPlacements,
+        ]);
+    }
+
+    #[Route('/tournoi/{id}/planning/match/{matchId}/participants/{participantId}/placement', name: 'tournoi_match_participant_placement', methods: ['POST'])]
+    public function setMatchParticipantPlacement(
+        Tournoi $tournoi,
+        int $matchId,
+        int $participantId,
+        Request $request,
+        TournoiMatchRepository $tournoiMatchRepository,
+        TournoiMatchParticipantResultRepository $participantResultRepository,
+        EntityManagerInterface $em
+    ): Response {
+        $match = $tournoiMatchRepository->find($matchId);
+        if (!$match || $match->getTournoi()?->getIdTournoi() !== $tournoi->getIdTournoi()) {
+            throw $this->createNotFoundException('Match introuvable pour ce tournoi.');
+        }
+
+        $participant = null;
+        foreach ($tournoi->getParticipants() as $candidate) {
+            if ($candidate->getId() === $participantId) {
+                $participant = $candidate;
+                break;
+            }
+        }
+
+        if (!$participant) {
+            throw $this->createNotFoundException('Participant introuvable pour ce tournoi.');
+        }
+
+        $placement = strtolower(trim((string) $request->request->get('placement', '')));
+        $pointsMap = [
+            'first' => 3,
+            'second' => 2,
+            'third' => 1,
+        ];
+
+        if (!isset($pointsMap[$placement])) {
+            return $this->redirectToRoute('admin_tournoi_match_participants', [
+                'id' => $tournoi->getIdTournoi(),
+                'matchId' => $match->getId(),
+            ]);
+        }
+
+        $result = $participantResultRepository->findOneByMatchAndParticipant($match, $participant);
+        if (!$result) {
+            $result = new TournoiMatchParticipantResult();
+            $result->setMatch($match);
+            $result->setParticipant($participant);
+            $em->persist($result);
+        }
+
+        $result->setPlacement($placement);
+        $result->setPoints($pointsMap[$placement]);
+        $match->setStatus('played');
+        $em->flush();
+
+        return $this->redirectToRoute('admin_tournoi_match_participants', [
+            'id' => $tournoi->getIdTournoi(),
+            'matchId' => $match->getId(),
+        ]);
+    }
+
+    #[Route('/tournoi/{id}/planning/match/create', name: 'tournoi_match_create', methods: ['GET', 'POST'])]
+    public function createMatch(
+        Tournoi $tournoi,
+        Request $request,
+        EntityManagerInterface $em,
+        EquipeRepository $equipeRepository,
+        CandidatureRepository $candidatureRepository
+    ): Response
+    {
+        $participants = $this->getSortedParticipants($tournoi);
+        $participantTeams = $this->buildParticipantTeams($tournoi, $equipeRepository, $candidatureRepository);
+        $formData = [];
+        $errors = [];
+
+        if ($request->isMethod('POST')) {
+            $formData = $request->request->all();
+            $match = new TournoiMatch();
+            $match->setTournoi($tournoi);
+
+            $errors = $this->hydrateAndValidateMatch($match, $formData);
+
+            if (empty($errors)) {
+                $em->persist($match);
+                $em->flush();
+
+                return $this->redirectToRoute('admin_tournoi_planning', ['id' => $tournoi->getIdTournoi()]);
+            }
+        }
+
+        return $this->render('admin/tournoi/match_form.html.twig', [
+            'tournoi' => $tournoi,
+            'participants' => $participants,
+            'participantTeams' => $participantTeams,
+            'matchNameSuggestions' => $this->buildMatchNameSuggestions($participants, $participantTeams, $tournoi->getTypeTournoi()),
+            'errors' => $errors,
+            'formData' => $formData,
+            'isEdit' => false,
+        ]);
+    }
+
+    #[Route('/tournoi/{id}/planning/match/{matchId}/edit', name: 'tournoi_match_edit', methods: ['GET', 'POST'])]
+    public function editMatch(
+        Tournoi $tournoi,
+        int $matchId,
+        Request $request,
+        EntityManagerInterface $em,
+        TournoiMatchRepository $tournoiMatchRepository,
+        EquipeRepository $equipeRepository,
+        CandidatureRepository $candidatureRepository
+    ): Response {
+        $match = $tournoiMatchRepository->find($matchId);
+
+        if (!$match || $match->getTournoi()?->getIdTournoi() !== $tournoi->getIdTournoi()) {
+            throw $this->createNotFoundException('Match introuvable pour ce tournoi.');
+        }
+
+        $participants = $this->getSortedParticipants($tournoi);
+        $participantTeams = $this->buildParticipantTeams($tournoi, $equipeRepository, $candidatureRepository);
+        $errors = [];
+        $formData = [
+            'home_name' => $match->getHomeName() ?? ($match->getPlayerA()?->getNom() ?? ''),
+            'away_name' => $match->getAwayName() ?? ($match->getPlayerB()?->getNom() ?? ''),
+            'scheduled_at' => $match->getScheduledAt() ? $match->getScheduledAt()->format('Y-m-d\TH:i') : '',
+        ];
+
+        if ($request->isMethod('POST')) {
+            $formData = $request->request->all();
+            $errors = $this->hydrateAndValidateMatch($match, $formData);
+
+            if (empty($errors)) {
+                $em->flush();
+                return $this->redirectToRoute('admin_tournoi_planning', ['id' => $tournoi->getIdTournoi()]);
+            }
+        }
+
+        return $this->render('admin/tournoi/match_form.html.twig', [
+            'tournoi' => $tournoi,
+            'participants' => $participants,
+            'participantTeams' => $participantTeams,
+            'matchNameSuggestions' => $this->buildMatchNameSuggestions($participants, $participantTeams, $tournoi->getTypeTournoi()),
+            'errors' => $errors,
+            'formData' => $formData,
+            'isEdit' => true,
+            'match' => $match,
+        ]);
+    }
+
+    #[Route('/tournoi/{id}/planning/match/{matchId}/result', name: 'tournoi_match_result', methods: ['POST'])]
+    public function setMatchResult(
+        Tournoi $tournoi,
+        int $matchId,
+        Request $request,
+        TournoiMatchRepository $tournoiMatchRepository,
+        EntityManagerInterface $em
+    ): Response {
+        $match = $tournoiMatchRepository->find($matchId);
+
+        if (!$match || $match->getTournoi()?->getIdTournoi() !== $tournoi->getIdTournoi()) {
+            throw $this->createNotFoundException('Match introuvable pour ce tournoi.');
+        }
+
+        $result = strtoupper(trim((string) $request->request->get('result', '')));
+        if (!in_array($result, ['1', 'X', '2'], true)) {
+            $this->addFlash('error', 'Resultat invalide. Choisissez 1, X ou 2.');
+            return $this->redirectToRoute('admin_tournoi_planning', ['id' => $tournoi->getIdTournoi()]);
+        }
+
+        if ($result === '1') {
+            $match->setScoreA(3);
+            $match->setScoreB(0);
+        } elseif ($result === '2') {
+            $match->setScoreA(0);
+            $match->setScoreB(3);
+        } else {
+            $match->setScoreA(1);
+            $match->setScoreB(1);
+        }
+
+        $match->setStatus('played');
+
+        $em->flush();
+
+        return $this->redirectToRoute('admin_tournoi_planning', ['id' => $tournoi->getIdTournoi()]);
+    }
+
+    #[Route('/tournoi/{id}/planning/match/{matchId}/delete', name: 'tournoi_match_delete', methods: ['POST'])]
+    public function deleteMatch(
+        Tournoi $tournoi,
+        int $matchId,
+        TournoiMatchRepository $tournoiMatchRepository,
+        EntityManagerInterface $em
+    ): Response {
+        $match = $tournoiMatchRepository->find($matchId);
+
+        if (!$match || $match->getTournoi()?->getIdTournoi() !== $tournoi->getIdTournoi()) {
+            throw $this->createNotFoundException('Match introuvable pour ce tournoi.');
+        }
+
+        $em->remove($match);
+        $em->flush();
+
+        return $this->redirectToRoute('admin_tournoi_planning', ['id' => $tournoi->getIdTournoi()]);
     }
 
     #[Route('/tournoi/{id}/delete', name: 'tournoi_delete', methods: ['POST'])]
@@ -377,5 +702,245 @@ class TournoiAdminController extends AbstractController
             'category' => $typeGame,
             'subCategory' => $typeTournoi,
         ]);
+    }
+
+    /**
+     * @return array<int, User>
+     */
+    private function getSortedParticipants(Tournoi $tournoi): array
+    {
+        $participants = $tournoi->getParticipants()->toArray();
+        usort($participants, static function (User $a, User $b): int {
+            return strcasecmp((string) $a->getNom(), (string) $b->getNom());
+        });
+
+        return $participants;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return string[]
+     */
+    private function hydrateAndValidateMatch(TournoiMatch $match, array $data): array
+    {
+        $errors = [];
+        $homeName = trim((string) ($data['home_name'] ?? ''));
+        $awayName = trim((string) ($data['away_name'] ?? ''));
+        $scheduledAtRaw = trim((string) ($data['scheduled_at'] ?? ''));
+        $tournoi = $match->getTournoi();
+        $isBattleRoyale = $tournoi && $tournoi->getTypeGame() === 'Battle_royale';
+
+        if ($homeName === '') {
+            $errors[] = $isBattleRoyale
+                ? 'Le nom de la map est obligatoire.'
+                : 'Le nom A domicile est obligatoire.';
+        } else {
+            $match->setHomeName($homeName);
+        }
+
+        if ($isBattleRoyale) {
+            $match->setAwayName(null);
+        } elseif ($awayName === '') {
+            $errors[] = 'Le nom A l\'exterieur est obligatoire.';
+        } else {
+            $match->setAwayName($awayName);
+        }
+
+        if ($scheduledAtRaw === '') {
+            $errors[] = 'La date du match est obligatoire.';
+        } else {
+            try {
+                $scheduledAt = new \DateTime($scheduledAtRaw);
+                $match->setScheduledAt($scheduledAt);
+
+                if ($tournoi && $tournoi->getStartDate() && $tournoi->getEndDate()) {
+                    $startDate = $tournoi->getStartDate();
+                    $endDate = $tournoi->getEndDate();
+
+                    if ($scheduledAt < $startDate || $scheduledAt > $endDate) {
+                        $errors[] = sprintf(
+                            'La date du match doit etre entre le %s et le %s.',
+                            $startDate->format('d/m/Y H:i'),
+                            $endDate->format('d/m/Y H:i')
+                        );
+                    }
+                }
+            } catch (\Throwable) {
+                $errors[] = 'La date du match est invalide.';
+            }
+        }
+
+        // Manual naming mode: user links and scores are not set from this form.
+        $match->setPlayerA(null);
+        $match->setPlayerB(null);
+        if ($match->getStatus() === '') {
+            $match->setStatus('planned');
+        }
+        $match->setScoreA(null);
+        $match->setScoreB(null);
+
+        return $errors;
+    }
+
+    /**
+     * @param TournoiMatch[] $matches
+     * @return array<int, int>
+     */
+    private function buildParticipantScores(Tournoi $tournoi, array $matches, array $participantTeams = []): array
+    {
+        $scoresById = [];
+        $nameIndex = [];
+
+        foreach ($tournoi->getParticipants() as $participant) {
+            $participantId = $participant->getId();
+            if ($participantId === null) {
+                continue;
+            }
+
+            $scoresById[$participantId] = 0;
+
+            $nomKey = $this->normalizeParticipantName($participant->getNom());
+            if ($nomKey !== '') {
+                $nameIndex[$nomKey][] = $participantId;
+            }
+
+            $pseudoKey = $this->normalizeParticipantName($participant->getPseudo());
+            if ($pseudoKey !== '') {
+                $nameIndex[$pseudoKey][] = $participantId;
+            }
+
+            if (isset($participantTeams[$participantId])) {
+                $teamKey = $this->normalizeParticipantName((string) $participantTeams[$participantId]);
+                if ($teamKey !== '' && $teamKey !== '-') {
+                    $nameIndex[$teamKey][] = $participantId;
+                }
+            }
+        }
+
+        foreach ($matches as $match) {
+            if ($match->getStatus() !== 'played' || $match->getScoreA() === null || $match->getScoreB() === null) {
+                continue;
+            }
+
+            $homeKey = $this->normalizeParticipantName($match->getHomeName() ?? $match->getPlayerA()?->getNom());
+            $awayKey = $this->normalizeParticipantName($match->getAwayName() ?? $match->getPlayerB()?->getNom());
+
+            if ($homeKey !== '' && isset($nameIndex[$homeKey])) {
+                foreach (array_unique($nameIndex[$homeKey]) as $participantId) {
+                    $scoresById[$participantId] += $match->getScoreA();
+                }
+            }
+            if ($awayKey !== '' && isset($nameIndex[$awayKey])) {
+                foreach (array_unique($nameIndex[$awayKey]) as $participantId) {
+                    $scoresById[$participantId] += $match->getScoreB();
+                }
+            }
+        }
+
+        foreach ($matches as $match) {
+            foreach ($match->getParticipantResults() as $participantResult) {
+                $participantId = $participantResult->getParticipant()?->getId();
+                if ($participantId !== null && isset($scoresById[$participantId])) {
+                    $scoresById[$participantId] += $participantResult->getPoints();
+                }
+            }
+        }
+
+        return $scoresById;
+    }
+
+    private function normalizeParticipantName(?string $value): string
+    {
+        $trimmed = trim((string) $value);
+        if ($trimmed === '') {
+            return '';
+        }
+
+        return mb_strtolower((string) preg_replace('/\s+/', ' ', $trimmed));
+    }
+
+    /**
+     * @param array<int, User> $participants
+     * @param array<int, string> $participantTeams
+     * @return string[]
+     */
+    private function buildMatchNameSuggestions(array $participants, array $participantTeams, string $tournoiType): array
+    {
+        $values = [];
+
+        if ($tournoiType === 'squad') {
+            foreach ($participants as $participant) {
+                $participantId = $participant->getId();
+                if ($participantId === null || !isset($participantTeams[$participantId])) {
+                    continue;
+                }
+
+                $teamName = trim((string) $participantTeams[$participantId]);
+                if ($teamName !== '' && $teamName !== '-') {
+                    $values[] = $teamName;
+                }
+            }
+        } else {
+            foreach ($participants as $participant) {
+                $nom = trim((string) $participant->getNom());
+                if ($nom !== '') {
+                    $values[] = $nom;
+                }
+                $pseudo = trim((string) $participant->getPseudo());
+                if ($pseudo !== '') {
+                    $values[] = $pseudo;
+                }
+            }
+        }
+
+        $values = array_values(array_unique($values));
+        sort($values, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return $values;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function buildParticipantTeams(
+        Tournoi $tournoi,
+        EquipeRepository $equipeRepository,
+        CandidatureRepository $candidatureRepository
+    ): array {
+        $teamsByParticipantId = [];
+        if ($tournoi->getTypeTournoi() !== 'squad') {
+            return $teamsByParticipantId;
+        }
+
+        foreach ($tournoi->getParticipants() as $participant) {
+            $participantId = $participant->getId();
+            if ($participantId === null) {
+                continue;
+            }
+
+            $teamName = '-';
+            $managerTeam = $equipeRepository->findOneBy(['manager' => $participant]);
+            if ($managerTeam && $managerTeam->getNomEquipe()) {
+                $teamName = (string) $managerTeam->getNomEquipe();
+            } else {
+                $acceptedMembership = $candidatureRepository->createQueryBuilder('c')
+                    ->innerJoin('c.equipe', 'e')
+                    ->andWhere('c.user = :user')
+                    ->andWhere('c.statut LIKE :acceptedPrefix')
+                    ->setParameter('user', $participant)
+                    ->setParameter('acceptedPrefix', 'Accept%')
+                    ->setMaxResults(1)
+                    ->getQuery()
+                    ->getOneOrNullResult();
+
+                if ($acceptedMembership && $acceptedMembership->getEquipe()?->getNomEquipe()) {
+                    $teamName = (string) $acceptedMembership->getEquipe()->getNomEquipe();
+                }
+            }
+
+            $teamsByParticipantId[$participantId] = $teamName;
+        }
+
+        return $teamsByParticipantId;
     }
 }

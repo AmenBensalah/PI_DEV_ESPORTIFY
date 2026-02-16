@@ -61,13 +61,12 @@
                     <div class="tournoi-message">{{ r.message }}</div>
 
                     <footer class="actions">
+                        <a href="{{ path('tournoi_show', {id: r.tournoi.idTournoi}) }}" class="neo-btn ghost">Voir</a>
                         {% if r.status == 'en_attente' or r.status == 'pending' %}
                             <a href="{{ path('tournoi_participation_request_edit', {id: r.id}) }}" class="neo-btn">Modifier</a>
                             <form method="POST" action="{{ path('tournoi_participation_request_delete', {id: r.id}) }}">
                                 <button type="submit" class="neo-btn ghost" onclick="return confirm('Supprimer cette demande ?')">Supprimer</button>
                             </form>
-                        {% else %}
-                            <span class="badge muted">-</span>
                         {% endif %}
                     </footer>
                 </article>

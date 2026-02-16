@@ -1,0 +1,198 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Planning du Tournoi - Admin{% endblock %}
+{% block page_title %}Planning des matchs{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .planning-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+
+        .planning-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .planning-title {
+            color: #fff;
+            font-weight: 700;
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        .planning-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 12px;
+        }
+
+        .planning-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .planning-table th,
+        .planning-table td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: left;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .planning-table th {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            font-size: 12px;
+        }
+
+        .planning-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .planning-empty {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .result-picker {
+            display: inline-flex;
+            gap: 6px;
+        }
+
+        .result-btn {
+            min-width: 34px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all .2s ease;
+        }
+
+        .result-btn:hover {
+            border-color: rgba(110, 231, 255, 0.55);
+            background: rgba(110, 231, 255, 0.16);
+        }
+
+        .result-btn.active {
+            border-color: rgba(110, 231, 255, 0.8);
+            background: rgba(110, 231, 255, 0.26);
+            box-shadow: 0 0 0 1px rgba(110, 231, 255, 0.35) inset;
+        }
+
+        @media (max-width: 980px) {
+            .planning-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<section class="admin-tournament-hero">
+    <div class="admin-tournament-hero-inner">
+        <div class="admin-tournament-kicker">Admin</div>
+        <h2 class="admin-tournament-title">Planning - {{ tournoi.name }}</h2>
+        <p class="admin-tournament-lead">Planification et affichage des matchs entre les participants.</p>
+    </div>
+    <div class="admin-tournament-hero-glow"></div>
+</section>
+
+<section class="admin-tournament-shell">
+    <div class="planning-grid">
+        <div class="planning-card">
+            <div class="planning-title">Matchs planifies</div>
+            <div class="planning-actions">
+                <a href="{{ path('admin_tournoi_match_create', {id: tournoi.idTournoi}) }}" class="admin-tournament-btn">
+                    <i class="fas fa-plus"></i> Ajouter un match
+                </a>
+            </div>
+            {% if matches|length > 0 %}
+                <table class="planning-table">
+                    <thead>
+                        <tr>
+                            <th>Match</th>
+                            <th>Date</th>
+                            {% if tournoi.typeGame == 'Battle_royale' %}
+                                <th>Map</th>
+                            {% else %}
+                                <th>A domicile</th>
+                                <th>A l'exterieur</th>
+                                <th>1X2</th>
+                            {% endif %}
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for match in matches %}
+                            {% set selectedResult = '' %}
+                            {% if match.status == 'played' and match.scoreA is not null and match.scoreB is not null %}
+                                {% if match.scoreA > match.scoreB %}
+                                    {% set selectedResult = '1' %}
+                                {% elseif match.scoreA < match.scoreB %}
+                                    {% set selectedResult = '2' %}
+                                {% else %}
+                                    {% set selectedResult = 'X' %}
+                                {% endif %}
+                            {% endif %}
+                            <tr>
+                                <td>#{{ match.id }}</td>
+                                <td>{{ match.scheduledAt ? match.scheduledAt|date('d/m/Y H:i') : '-' }}</td>
+                                {% if tournoi.typeGame == 'Battle_royale' %}
+                                    <td>{{ match.homeName ?: '-' }}</td>
+                                {% else %}
+                                    <td>{{ match.homeName ?: (match.playerA ? match.playerA.nom : '-') }}</td>
+                                    <td>{{ match.awayName ?: (match.playerB ? match.playerB.nom : '-') }}</td>
+                                    <td>
+                                        <form method="POST" action="{{ path('admin_tournoi_match_result', {id: tournoi.idTournoi, matchId: match.id}) }}">
+                                            <div class="result-picker">
+                                                <button type="submit" name="result" value="1" class="result-btn {{ selectedResult == '1' ? 'active' : '' }}" title="1 = A domicile gagne">1</button>
+                                                <button type="submit" name="result" value="X" class="result-btn {{ selectedResult == 'X' ? 'active' : '' }}" title="X = Match nul">X</button>
+                                                <button type="submit" name="result" value="2" class="result-btn {{ selectedResult == '2' ? 'active' : '' }}" title="2 = A l'exterieur gagne">2</button>
+                                            </div>
+                                        </form>
+                                    </td>
+                                {% endif %}
+                                <td>
+                                    <div style="display: flex; gap: 8px;">
+                                        <a href="{{ path('admin_tournoi_match_participants', {id: tournoi.idTournoi, matchId: match.id}) }}" class="admin-tournament-btn ghost" title="Voir les participants" aria-label="Voir les participants">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ path('admin_tournoi_match_edit', {id: tournoi.idTournoi, matchId: match.id}) }}" class="admin-tournament-btn ghost" title="Modifier" aria-label="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form method="POST" action="{{ path('admin_tournoi_match_delete', {id: tournoi.idTournoi, matchId: match.id}) }}" onsubmit="return confirm('Supprimer ce match ?');">
+                                            <button type="submit" class="admin-tournament-btn ghost" title="Supprimer" aria-label="Supprimer" style="border-color: rgba(247, 37, 133, 0.45); color: #ff8ab8; background: rgba(247, 37, 133, 0.12);">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="planning-empty">Aucun match. Utilisez "Ajouter un match" pour commencer.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="admin-tournament-show-footer" style="margin-top: 14px;">
+        <a href="{{ path('admin_tournoi_show', {id: tournoi.idTournoi}) }}" class="admin-tournament-btn ghost">
+            <i class="fas fa-arrow-left"></i> Retour au detail du tournoi
+        </a>
+    </div>
+</section>
+{% endblock %}

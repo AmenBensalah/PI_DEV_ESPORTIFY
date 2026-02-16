@@ -1,0 +1,49 @@
+{% for tournoi in tournois %}
+    <tr style="animation-delay: {{ loop.index0 * 0.05 }}s;" class="admin-tournament-row">
+        <td>{{ tournoi.idTournoi }}</td>
+        <td class="name">{{ tournoi.name }}</td>
+        <td><span class="badge badge-info">{{ tournoi.typeGame }}</span></td>
+        <td><span class="badge badge-success">{{ tournoi.typeTournoi|upper }}</span></td>
+        <td>{{ tournoi.game }}</td>
+        <td>
+            {% if tournoi.currentStatus == 'planned' %}
+                <span class="badge badge-warn">Planifié</span>
+            {% elseif tournoi.currentStatus == 'ongoing' %}
+                <span class="badge badge-success">En cours</span>
+            {% else %}
+                <span class="badge badge-info">Terminé</span>
+            {% endif %}
+        </td>
+        <td>{{ tournoi.startDate|date('d/m/Y H:i') }}</td>
+        <td>{{ tournoi.endDate|date('d/m/Y H:i') }}</td>
+        <td>
+            {% if tournoi.remainingPlaces is null %}
+                ∞
+            {% else %}
+                {{ tournoi.remainingPlaces }} / {{ tournoi.maxPlaces }}
+            {% endif %}
+        </td>
+        <td>${{ tournoi.prizeWon }}</td>
+        <td>
+            <div class="admin-tournament-row-actions">
+                <a href="{{ path('admin_tournoi_show', {id: tournoi.idTournoi}) }}" class="admin-tournament-icon" title="Voir">
+                    <i class="fas fa-eye"></i>
+                </a>
+                {% if tournoi.currentStatus == 'planned' %}
+                    <a href="{{ path('admin_tournoi_edit', {id: tournoi.idTournoi}) }}" class="admin-tournament-icon cyan" title="Modifier">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                {% else %}
+                    <span class="admin-tournament-icon cyan disabled" title="Modification indisponible">
+                        <i class="fas fa-edit"></i>
+                    </span>
+                {% endif %}
+                <form method="POST" action="{{ path('admin_tournoi_delete', {id: tournoi.idTournoi}) }}" onsubmit="return confirm('Êtes-vous sûr ?');">
+                    <button type="submit" class="admin-tournament-icon danger" title="Supprimer">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </td>
+    </tr>
+{% endfor %}

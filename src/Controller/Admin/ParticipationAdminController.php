@@ -8,6 +8,8 @@ use App\Enum\Role;
 use App\Repository\ParticipationRequestRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -17,11 +19,52 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class ParticipationAdminController extends AbstractController
 {
     #[Route('/', name: 'index')]
-    public function index(ParticipationRequestRepository $repo): Response
+    public function index(Request $request, ParticipationRequestRepository $repo): Response
     {
-        $requests = $repo->findBy([], ['createdAt' => 'DESC']);
+        $sort = trim((string)$request->query->get('sort', 'createdAt'));
+        $order = strtoupper((string)$request->query->get('order', 'DESC')) === 'ASC' ? 'ASC' : 'DESC';
+        $status = trim((string)$request->query->get('status', ''));
+
+        $requests = $repo->findForAdminFilters([
+            'tournoi' => $request->query->get('tournoi'),
+            'user' => $request->query->get('user'),
+            'status' => $status,
+            'sort' => $sort,
+            'order' => $order,
+        ]);
+
         return $this->render('admin/participation/index.html.twig', [
             'requests' => $requests,
+            'filterTournoi' => (string)$request->query->get('tournoi', ''),
+            'filterUser' => (string)$request->query->get('user', ''),
+            'filterStatus' => $status,
+            'currentSort' => $sort,
+            'currentOrder' => $order,
+        ]);
+    }
+
+    #[Route('/search', name: 'search', methods: ['GET'])]
+    public function search(Request $request, ParticipationRequestRepository $repo): JsonResponse
+    {
+        $sort = trim((string)$request->query->get('sort', 'createdAt'));
+        $order = strtoupper((string)$request->query->get('order', 'DESC')) === 'ASC' ? 'ASC' : 'DESC';
+        $status = trim((string)$request->query->get('status', ''));
+
+        $requests = $repo->findForAdminFilters([
+            'tournoi' => $request->query->get('tournoi'),
+            'user' => $request->query->get('user'),
+            'status' => $status,
+            'sort' => $sort,
+            'order' => $order,
+        ]);
+
+        $rowsHtml = $this->renderView('admin/participation/_table_rows.html.twig', [
+            'requests' => $requests,
+        ]);
+
+        return $this->json([
+            'rows' => $rowsHtml,
+            'count' => count($requests),
         ]);
     }
 

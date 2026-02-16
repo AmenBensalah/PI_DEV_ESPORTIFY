@@ -1,0 +1,77 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}Participants du Match - Admin{% endblock %}
+{% block page_title %}Participants du Match{% endblock %}
+
+{% block body %}
+<section class="admin-tournament-hero">
+    <div class="admin-tournament-hero-inner">
+        <div class="admin-tournament-kicker">Admin</div>
+        <h2 class="admin-tournament-title">Match #{{ match.id }} - {{ tournoi.name }}</h2>
+        <p class="admin-tournament-lead">
+            Date: {{ match.scheduledAt ? match.scheduledAt|date('d/m/Y H:i') : '-' }}
+            {% if tournoi.typeGame == 'Battle_royale' %}
+                | Map: {{ match.homeName ?: '-' }}
+            {% else %}
+                | {{ match.homeName ?: (match.playerA ? match.playerA.nom : '-') }} vs {{ match.awayName ?: (match.playerB ? match.playerB.nom : '-') }}
+            {% endif %}
+        </p>
+    </div>
+    <div class="admin-tournament-hero-glow"></div>
+</section>
+
+<section class="admin-tournament-shell">
+    <div class="admin-tournament-panel">
+        <div class="admin-tournament-panel-title">
+            <i class="fas fa-users"></i>
+            Participants ({{ participants|length }})
+        </div>
+
+        {% if participants|length > 0 %}
+            <div style="overflow-x: auto;">
+                <table class="planning-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); text-align: left; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; font-size: 12px;">Nom</th>
+                            <th style="padding: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); text-align: left; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; font-size: 12px;">Pseudo</th>
+                            <th style="padding: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); text-align: left; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; font-size: 12px;">Email</th>
+                            {% if tournoi.typeTournoi == 'squad' %}
+                                <th style="padding: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); text-align: left; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; font-size: 12px;">Equipe</th>
+                            {% endif %}
+                            <th style="padding: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); text-align: left; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; font-size: 12px;">Classement</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for participant in participants %}
+                            {% set currentPlacement = matchPlacements[participant.id]|default('') %}
+                            <tr>
+                                <td style="padding: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); color: #fff;">{{ participant.nom }}</td>
+                                <td style="padding: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); color: #fff;">{{ participant.pseudo ?: '-' }}</td>
+                                <td style="padding: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); color: #fff;">{{ participant.email }}</td>
+                                {% if tournoi.typeTournoi == 'squad' %}
+                                    <td style="padding: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); color: #fff;">{{ participantTeams[participant.id]|default('-') }}</td>
+                                {% endif %}
+                                <td style="padding: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); color: #fff;">
+                                    <form method="POST" action="{{ path('admin_tournoi_match_participant_placement', {id: tournoi.idTournoi, matchId: match.id, participantId: participant.id}) }}" style="display: inline-flex; gap: 6px;">
+                                        <button type="submit" name="placement" value="first" class="admin-tournament-btn ghost" style="padding: 6px 10px; min-width: 74px; {{ currentPlacement == 'first' ? 'border-color: rgba(110, 231, 255, 0.8); background: rgba(110, 231, 255, 0.2);' : '' }}">Premier</button>
+                                        <button type="submit" name="placement" value="second" class="admin-tournament-btn ghost" style="padding: 6px 10px; min-width: 84px; {{ currentPlacement == 'second' ? 'border-color: rgba(110, 231, 255, 0.8); background: rgba(110, 231, 255, 0.2);' : '' }}">Deuxieme</button>
+                                        <button type="submit" name="placement" value="third" class="admin-tournament-btn ghost" style="padding: 6px 10px; min-width: 82px; {{ currentPlacement == 'third' ? 'border-color: rgba(110, 231, 255, 0.8); background: rgba(110, 231, 255, 0.2);' : '' }}">Troisieme</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div style="color: var(--text-muted);">Aucun participant pour ce tournoi.</div>
+        {% endif %}
+
+        <div class="admin-tournament-show-footer" style="margin-top: 14px;">
+            <a href="{{ path('admin_tournoi_planning', {id: tournoi.idTournoi}) }}" class="admin-tournament-btn ghost">
+                <i class="fas fa-arrow-left"></i> Retour au planning
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

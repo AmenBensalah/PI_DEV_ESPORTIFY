@@ -1,0 +1,102 @@
+{% extends 'admin/layout.html.twig' %}
+
+{% block title %}{{ isEdit ? 'Modifier le Match' : 'Ajouter un Match' }} - Admin{% endblock %}
+{% block page_title %}{{ isEdit ? 'Modifier le Match' : 'Ajouter un Match' }}{% endblock %}
+
+{% block body %}
+<div class="admin-form-wrapper animate__animated animate__fadeInUp">
+    <div class="admin-form-card">
+        <div class="admin-form-header">
+            <div class="admin-form-icon">
+                <i class="fas fa-gamepad"></i>
+            </div>
+            <div>
+                <h2 class="admin-form-title">{{ isEdit ? 'Modifier un Match' : 'Ajouter un Match' }}</h2>
+                <p class="admin-form-subtitle">Tournoi: {{ tournoi.name }}</p>
+            </div>
+        </div>
+
+        <form method="POST" class="admin-form">
+            {% if app.flashes('error') %}
+                {% for message in app.flashes('error') %}
+                    <div class="admin-form-error" style="margin-bottom: 12px;">
+                        <i class="fas fa-exclamation-circle"></i> {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if errors is defined and errors|length > 0 %}
+                {% for message in errors %}
+                    <div class="admin-form-error" style="margin-bottom: 12px;">
+                        <i class="fas fa-exclamation-circle"></i> {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="admin-form-grid">
+                <div>
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">
+                            {% if tournoi.typeGame == 'Battle_royale' %}
+                                <i class="fas fa-map"></i> Map
+                            {% else %}
+                                <i class="fas fa-home"></i> A domicile
+                            {% endif %}
+                        </label>
+                        <input
+                            type="text"
+                            name="home_name"
+                            value="{{ formData.home_name|default('') }}"
+                            class="admin-form-input"
+                            placeholder="{% if tournoi.typeGame == 'Battle_royale' %}Nom de la map{% elseif tournoi.typeTournoi == 'squad' %}Nom equipe domicile{% else %}Nom equipe/joueur domicile{% endif %}"
+                            {% if tournoi.typeGame != 'Battle_royale' %}list="match-name-suggestions"{% endif %}
+                            required
+                        >
+                    </div>
+
+                    {% if tournoi.typeGame != 'Battle_royale' %}
+                        <div class="admin-form-group">
+                            <label class="admin-form-label">
+                                <i class="fas fa-plane-departure"></i> A l'exterieur
+                            </label>
+                            <input
+                                type="text"
+                                name="away_name"
+                                value="{{ formData.away_name|default('') }}"
+                                class="admin-form-input"
+                                placeholder="{{ tournoi.typeTournoi == 'squad' ? 'Nom equipe exterieur' : 'Nom equipe/joueur exterieur' }}"
+                                list="match-name-suggestions"
+                                required
+                            >
+                        </div>
+                    {% endif %}
+
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">
+                            <i class="fas fa-calendar-alt"></i> Date du match
+                        </label>
+                        <input type="datetime-local" name="scheduled_at" value="{{ formData.scheduled_at|default('') }}" class="admin-form-input">
+                    </div>
+                </div>
+            </div>
+
+            {% if tournoi.typeGame != 'Battle_royale' and matchNameSuggestions is defined and matchNameSuggestions|length > 0 %}
+                <datalist id="match-name-suggestions">
+                    {% for suggestion in matchNameSuggestions %}
+                        <option value="{{ suggestion }}"></option>
+                    {% endfor %}
+                </datalist>
+            {% endif %}
+
+            <div class="admin-form-actions">
+                <a href="{{ path('admin_tournoi_planning', {id: tournoi.idTournoi}) }}" class="admin-form-cancel">
+                    <i class="fas fa-arrow-left"></i> Annuler
+                </a>
+                <button type="submit" class="admin-form-submit">
+                    <i class="fas fa-save"></i> {{ isEdit ? 'Mettre a jour' : 'Ajouter' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

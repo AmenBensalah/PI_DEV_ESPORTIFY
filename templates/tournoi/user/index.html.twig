@@ -149,13 +149,25 @@
                         <a href="{{ path('tournoi_show', {id: tournoi.idTournoi}) }}" class="neo-btn ghost">Voir</a>
                         {% set alreadyIn = participantTournoiIds[tournoi.idTournoi]|default(false) %}
                         {% set alreadyRequested = requestTournoiIds[tournoi.idTournoi]|default(false) %}
+                        {% set isSquad = tournoi.typeTournoi == 'squad' %}
                         {% if app.user and alreadyIn %}
                             <button class="neo-btn" disabled>Deja inscrit</button>
                         {% elseif app.user and alreadyRequested %}
                             <button class="neo-btn" disabled>Demande envoyee</button>
                         {% else %}
                             {% if tournoi.currentStatus == 'planned' and (tournoi.remainingPlaces is null or tournoi.remainingPlaces > 0) %}
-                                <a href="{{ path('tournoi_participate', {id: tournoi.idTournoi}) }}" class="neo-btn">Rejoindre</a>
+                                {% if app.user and isSquad and not userHasTeam %}
+                                    <span id="join-msg-{{ tournoi.idTournoi }}" class="badge danger join-inline-message" style="display:none;">Tu dois etre dans une equipe pour participer</span>
+                                    <button
+                                        type="button"
+                                        class="neo-btn join-squad-blocked"
+                                        data-msg-id="join-msg-{{ tournoi.idTournoi }}"
+                                    >
+                                        Rejoindre
+                                    </button>
+                                {% else %}
+                                    <a href="{{ path('tournoi_participate', {id: tournoi.idTournoi}) }}" class="neo-btn">Rejoindre</a>
+                                {% endif %}
                             {% endif %}
                         {% endif %}
                     </footer>
@@ -170,4 +182,19 @@
         </div>
     {% endif %}
 </section>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.querySelectorAll('.join-squad-blocked').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var msgId = button.getAttribute('data-msg-id');
+                var msg = document.getElementById(msgId);
+                if (msg) {
+                    msg.style.display = 'inline-flex';
+                }
+            });
+        });
+    </script>
 {% endblock %}

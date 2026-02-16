@@ -20,10 +20,10 @@
 
 <section class="admin-tournament-shell">
     <div class="admin-tournament-tabs">
-        <a href="#" class="tab active" data-status="">Tous</a>
-        <a href="#" class="tab" data-status="pending">En attente</a>
-        <a href="#" class="tab" data-status="approved">Approuvées</a>
-        <a href="#" class="tab" data-status="rejected">Rejetées</a>
+        <a href="{{ path('admin_participation_index', app.request.query.all|merge({'status': ''})) }}" class="tab {{ filterStatus|default('') == '' ? 'active' : '' }}" data-status="">Tous</a>
+        <a href="{{ path('admin_participation_index', app.request.query.all|merge({'status': 'pending'})) }}" class="tab {{ filterStatus|default('') == 'pending' ? 'active' : '' }}" data-status="pending">En attente</a>
+        <a href="{{ path('admin_participation_index', app.request.query.all|merge({'status': 'approved'})) }}" class="tab {{ filterStatus|default('') == 'approved' ? 'active' : '' }}" data-status="approved">Approuvées</a>
+        <a href="{{ path('admin_participation_index', app.request.query.all|merge({'status': 'rejected'})) }}" class="tab {{ filterStatus|default('') == 'rejected' ? 'active' : '' }}" data-status="rejected">Rejetées</a>
     </div>
 
     <div class="admin-tournament-panel">
@@ -31,40 +31,42 @@
             <i class="fas fa-search"></i>
             Recherche avancée
         </div>
-        <form class="admin-tournament-form" data-filter-form>
+        <form method="GET" class="admin-tournament-form" data-participation-ajax-form>
             <div class="field">
                 <label>Tournoi</label>
-                <input type="text" name="tournoi" placeholder="Nom du tournoi">
+                <input type="text" name="tournoi" placeholder="Nom du tournoi" value="{{ filterTournoi|default('') }}" data-ajax-input>
             </div>
             <div class="field">
                 <label>Utilisateur</label>
-                <input type="text" name="user" placeholder="Pseudo ou email">
+                <input type="text" name="user" placeholder="Pseudo ou email" value="{{ filterUser|default('') }}" data-ajax-input>
             </div>
             <div class="field">
                 <label>Statut</label>
                 <select name="status">
                     <option value="">-- Tous --</option>
-                    <option value="pending">En attente</option>
-                    <option value="approved">Approuvée</option>
-                    <option value="rejected">Rejetée</option>
+                    <option value="pending" {% if filterStatus|default('') == 'pending' %}selected{% endif %}>En attente</option>
+                    <option value="approved" {% if filterStatus|default('') == 'approved' %}selected{% endif %}>Approuvée</option>
+                    <option value="rejected" {% if filterStatus|default('') == 'rejected' %}selected{% endif %}>Rejetée</option>
                 </select>
             </div>
+            <input type="hidden" name="sort" value="{{ currentSort|default('createdAt') }}" data-sort-field>
+            <input type="hidden" name="order" value="{{ currentOrder|default('DESC') }}" data-order-field>
             <div class="admin-tournament-actions">
                 <button type="submit" class="admin-tournament-btn">
                     <i class="fas fa-search"></i> Rechercher
                 </button>
-                <button type="reset" class="admin-tournament-btn ghost">
+                <a href="{{ path('admin_participation_index') }}" class="admin-tournament-btn ghost" data-reset-link>
                     <i class="fas fa-rotate"></i> Réinitialiser
-                </button>
+                </a>
             </div>
         </form>
 
         <div class="admin-tournament-sort">
             <span>Trier :</span>
-            <a href="#" data-sort="createdAt:desc">Date ↓</a>
-            <a href="#" data-sort="createdAt:asc">Date ↑</a>
-            <a href="#" data-sort="status:asc">Statut A→Z</a>
-            <a href="#" data-sort="status:desc">Statut Z→A</a>
+            <a href="{{ path('admin_participation_index', app.request.query.all|merge({'sort':'createdAt','order':'DESC'})) }}" data-sort="createdAt:DESC">Date ↓</a>
+            <a href="{{ path('admin_participation_index', app.request.query.all|merge({'sort':'createdAt','order':'ASC'})) }}" data-sort="createdAt:ASC">Date ↑</a>
+            <a href="{{ path('admin_participation_index', app.request.query.all|merge({'sort':'status','order':'ASC'})) }}" data-sort="status:ASC">Statut A→Z</a>
+            <a href="{{ path('admin_participation_index', app.request.query.all|merge({'sort':'status','order':'DESC'})) }}" data-sort="status:DESC">Statut Z→A</a>
         </div>
     </div>
 
@@ -80,175 +82,159 @@
         </div>
     {% endfor %}
 
-    {% if requests %}
-        <div class="admin-tournament-table">
+        <div class="admin-tournament-table" data-ajax-table {% if not requests %}style="display:none;"{% endif %}>
             <table data-table="participations">
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>Tournoi</th>
-                        <th>Utilisateur</th>
+                        <th>Pseudo</th>
+                        <th>Nom utilisateur</th>
+                        <th>Email</th>
                         <th>Message</th>
                         <th>Statut</th>
                         <th>Créée le</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {% for r in requests %}
-                        {% set normalizedStatus = (r.status == 'en_attente' or r.status == 'pending') ? 'pending' : (r.status == 'approuvée' or r.status == 'approved') ? 'approved' : (r.status == 'rejetée' or r.status == 'rejected') ? 'rejected' : r.status %}
-                        <tr class="admin-tournament-row"
-                            data-search="{{ r.id }} {{ r.tournoi ? r.tournoi.name : '' }} {{ r.user ? (r.user.pseudo|default(r.user.nom)|default(r.user.email)) : '' }} {{ r.message }}"
-                            data-status="{{ normalizedStatus }}"
-                            data-created="{{ r.createdAt ? r.createdAt|date('YmdHis') : '' }}">
-                            <td>{{ r.id }}</td>
-                            <td>{{ r.tournoi ? r.tournoi.name : '-' }}</td>
-                            <td>
-                                {% if r.user %}
-                                    {{ r.user.pseudo|default(r.user.nom)|default(r.user.email) }}
-                                {% else %}
-                                    <span class="badge badge-muted">Anonyme</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ r.message }}</td>
-                            <td>
-                                {% if r.status == 'en_attente' or r.status == 'pending' %}
-                                    <span class="badge badge-warn">En attente</span>
-                                {% elseif r.status == 'approuvée' or r.status == 'approved' %}
-                                    <span class="badge badge-success">Approuvée</span>
-                                {% elseif r.status == 'rejetée' or r.status == 'rejected' %}
-                                    <span class="badge badge-danger">Rejetée</span>
-                                {% else %}
-                                    <span class="badge badge-info">{{ r.status }}</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ r.createdAt|date('d/m/Y H:i') }}</td>
-                            <td>
-                                <div class="admin-tournament-row-actions">
-                                    {% if r.tournoi %}
-                                        <a href="{{ path('admin_tournoi_show', {id: r.tournoi.idTournoi}) }}" class="admin-tournament-icon" title="Voir le tournoi">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    {% else %}
-                                        <span class="admin-tournament-icon disabled" title="Tournoi indisponible">
-                                            <i class="fas fa-eye"></i>
-                                        </span>
-                                    {% endif %}
-                                    {% if r.status == 'en_attente' or r.status == 'pending' %}
-                                        <a href="{{ path('admin_participation_approve', {id: r.id}) }}" class="admin-tournament-icon cyan" title="Approuver" onclick="return confirm('Approuver cette demande ?');">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <a href="{{ path('admin_participation_reject', {id: r.id}) }}" class="admin-tournament-icon danger" title="Rejeter" onclick="return confirm('Rejeter cette demande ?');">
-                                            <i class="fas fa-trash"></i>
-                                        </a>
-                                    {% else %}
-                                        <span class="admin-tournament-icon cyan disabled" title="Déjà traité">
-                                            <i class="fas fa-edit"></i>
-                                        </span>
-                                        <span class="admin-tournament-icon danger disabled" title="Déjà traité">
-                                            <i class="fas fa-trash"></i>
-                                        </span>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
+                <tbody data-ajax-rows>
+                    {% include 'admin/participation/_table_rows.html.twig' with { requests: requests } %}
                 </tbody>
             </table>
         </div>
-    {% else %}
-        <div class="admin-tournament-empty">
+        <div class="admin-tournament-empty" data-ajax-empty {% if requests %}style="display:none;"{% endif %}>
             <div class="empty-ring"></div>
             <strong>Aucune demande trouvée</strong>
             <p>Les nouvelles participations s'afficheront ici.</p>
         </div>
-    {% endif %}
 </section>
 
+{% endblock %}
+
+{% block javascripts %}
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const form = document.querySelector('[data-filter-form]');
-        const tabs = document.querySelectorAll('.admin-tournament-tabs .tab');
-        const rows = Array.from(document.querySelectorAll('[data-table=\"participations\"] tbody tr'));
-        const sortLinks = document.querySelectorAll('.admin-tournament-sort a[data-sort]');
+(() => {
+    const form = document.querySelector('[data-participation-ajax-form]');
+    if (!form) {
+        return;
+    }
 
-        const applyFilters = () => {
-            const formData = new FormData(form);
-            const queryTournoi = (formData.get('tournoi') || '').toLowerCase();
-            const queryUser = (formData.get('user') || '').toLowerCase();
-            const queryStatus = (formData.get('status') || '').toLowerCase();
+    const rowsContainer = document.querySelector('[data-ajax-rows]');
+    const tableContainer = document.querySelector('[data-ajax-table]');
+    const emptyState = document.querySelector('[data-ajax-empty]');
+    const tabs = document.querySelectorAll('.admin-tournament-tabs .tab[data-status]');
+    const sortLinks = document.querySelectorAll('.admin-tournament-sort a[data-sort]');
+    const sortField = form.querySelector('[data-sort-field]');
+    const orderField = form.querySelector('[data-order-field]');
+    const resetLink = form.querySelector('[data-reset-link]');
+    const ajaxInputs = form.querySelectorAll('[data-ajax-input]');
 
-            rows.forEach(row => {
-                const search = (row.dataset.search || '').toLowerCase();
-                const status = (row.dataset.status || '').toLowerCase();
+    if (!rowsContainer || !tableContainer || !emptyState || !sortField || !orderField) {
+        return;
+    }
 
-                const matchesTournoi = !queryTournoi || search.includes(queryTournoi);
-                const matchesUser = !queryUser || search.includes(queryUser);
-                const matchesStatus = !queryStatus || status.includes(queryStatus);
+    const endpoint = '{{ path('admin_participation_search') }}';
+    let debounceTimer = null;
+    let currentController = null;
 
-                row.style.display = matchesTournoi && matchesUser && matchesStatus ? '' : 'none';
-            });
-        };
-
-        const applySort = (field, direction) => {
-            const tbody = rows[0] ? rows[0].closest('tbody') : null;
-            if (!tbody) {
-                return;
-            }
-
-            const sorted = rows.slice().sort((a, b) => {
-                if (field === 'createdAt') {
-                    const aVal = a.dataset.created || '';
-                    const bVal = b.dataset.created || '';
-                    return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-                }
-                if (field === 'status') {
-                    const aVal = a.dataset.status || '';
-                    const bVal = b.dataset.status || '';
-                    return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-                }
-                return 0;
-            });
-
-            sorted.forEach(row => tbody.appendChild(row));
-        };
-
-        if (form) {
-            form.addEventListener('submit', (event) => {
-                event.preventDefault();
-                applyFilters();
-            });
-            form.addEventListener('reset', () => {
-                setTimeout(() => {
-                    tabs.forEach(tab => tab.classList.remove('active'));
-                    if (tabs[0]) {
-                        tabs[0].classList.add('active');
-                    }
-                    applyFilters();
-                }, 0);
-            });
-        }
-
-        tabs.forEach(tab => {
-            tab.addEventListener('click', (event) => {
-                event.preventDefault();
-                tabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                const status = tab.dataset.status || '';
-                if (form) {
-                    form.querySelector('select[name=\"status\"]').value = status;
-                    applyFilters();
-                }
-            });
+    const setActiveTab = (statusValue) => {
+        tabs.forEach((tab) => {
+            tab.classList.toggle('active', (tab.dataset.status || '') === statusValue);
         });
+    };
 
-        sortLinks.forEach(link => {
-            link.addEventListener('click', (event) => {
-                event.preventDefault();
-                const [field, direction] = (link.dataset.sort || '').split(':');
-                applySort(field, direction);
+    const updateVisibility = (count) => {
+        if (count > 0) {
+            tableContainer.style.display = '';
+            emptyState.style.display = 'none';
+            return;
+        }
+        tableContainer.style.display = 'none';
+        emptyState.style.display = '';
+    };
+
+    const runSearch = () => {
+        const params = new URLSearchParams(new FormData(form));
+        if (currentController) {
+            currentController.abort();
+        }
+        currentController = new AbortController();
+
+        fetch(`${endpoint}?${params.toString()}`, {
+            method: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            signal: currentController.signal
+        })
+            .then((response) => response.ok ? response.json() : Promise.reject(new Error('HTTP ' + response.status)))
+            .then((data) => {
+                rowsContainer.innerHTML = data.rows || '';
+                updateVisibility(Number(data.count || 0));
+            })
+            .catch((error) => {
+                if (error.name === 'AbortError') {
+                    return;
+                }
+                console.error('Recherche AJAX échouée:', error);
             });
+    };
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        runSearch();
+    });
+
+    ajaxInputs.forEach((input) => {
+        input.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(runSearch, 180);
         });
     });
+
+    form.querySelectorAll('select[name="status"]').forEach((select) => {
+        select.addEventListener('change', () => {
+            setActiveTab(select.value || '');
+            runSearch();
+        });
+    });
+
+    tabs.forEach((tab) => {
+        tab.addEventListener('click', (event) => {
+            event.preventDefault();
+            const status = tab.dataset.status || '';
+            const statusSelect = form.querySelector('select[name="status"]');
+            if (statusSelect) {
+                statusSelect.value = status;
+            }
+            setActiveTab(status);
+            runSearch();
+        });
+    });
+
+    sortLinks.forEach((link) => {
+        link.addEventListener('click', (event) => {
+            event.preventDefault();
+            const [sort, order] = (link.dataset.sort || '').split(':');
+            if (!sort || !order) {
+                return;
+            }
+            sortField.value = sort;
+            orderField.value = order;
+            runSearch();
+        });
+    });
+
+    if (resetLink) {
+        resetLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            form.querySelector('input[name="tournoi"]').value = '';
+            form.querySelector('input[name="user"]').value = '';
+            form.querySelector('select[name="status"]').value = '';
+            sortField.value = 'createdAt';
+            orderField.value = 'DESC';
+            setActiveTab('');
+            runSearch();
+        });
+    }
+})();
 </script>
 {% endblock %}

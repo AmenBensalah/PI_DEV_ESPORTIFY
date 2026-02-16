@@ -3,8 +3,13 @@
 namespace App\Controller;
 
 use App\Entity\Tournoi;
+use App\Entity\TournoiMatch;
+use App\Entity\User;
 use App\Entity\ParticipationRequest;
+use App\Repository\CandidatureRepository;
+use App\Repository\EquipeRepository;
 use App\Repository\ParticipationRequestRepository;
+use App\Repository\TournoiMatchRepository;
 use App\Repository\TournoiRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,7 +21,13 @@ use Symfony\Component\Routing\Attribute\Route;
 class TournoiController extends AbstractController
 {
     #[Route('/', name: 'index')]
-    public function index(Request $request, TournoiRepository $tournoiRepository, ParticipationRequestRepository $prRepository): Response
+    public function index(
+        Request $request,
+        TournoiRepository $tournoiRepository,
+        ParticipationRequestRepository $prRepository,
+        EquipeRepository $equipeRepository,
+        CandidatureRepository $candidatureRepository
+    ): Response
     {
         // Public listing with search and sorting
         $criteria = [];
@@ -55,8 +66,21 @@ class TournoiController extends AbstractController
         $participantTournoiIds = [];
         $requestTournoiIds = [];
         $requestStatuses = [];
+        $userHasTeam = false;
 
         if ($user) {
+            $isManager = null !== $equipeRepository->findOneBy(['manager' => $user]);
+            $acceptedMembership = $candidatureRepository->createQueryBuilder('c')
+                ->select('c.id')
+                ->andWhere('c.user = :user')
+                ->andWhere('c.statut LIKE :acceptedPrefix')
+                ->setParameter('user', $user)
+                ->setParameter('acceptedPrefix', 'Accept%')
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+            $userHasTeam = $isManager || (null !== $acceptedMembership);
+
             foreach ($tournois as $tournoi) {
                 if ($tournoi->getParticipants()->contains($user)) {
                     $participantTournoiIds[$tournoi->getIdTournoi()] = true;
@@ -84,13 +108,20 @@ class TournoiController extends AbstractController
             'participantTournoiIds' => $participantTournoiIds,
             'requestTournoiIds' => $requestTournoiIds,
             'requestStatuses' => $requestStatuses,
+            'userHasTeam' => $userHasTeam,
         ]);
     }
 
     #[Route('/participation/requests', name: 'participation_requests')]
     public function participationRequests(ParticipationRequestRepository $prRepository): Response
     {
-        $requests = $prRepository->findBy([], ['createdAt' => 'DESC']);
+        $user = $this->getUser();
+        if (!$user) {
+            $this->addFlash('error', 'Connecte-toi pour voir tes demandes.');
+            return $this->redirectToRoute('tournoi_index');
+        }
+
+        $requests = $prRepository->findBy(['user' => $user], ['createdAt' => 'DESC']);
 
         return $this->render('tournoi/user/requests.html.twig', [
             'requests' => $requests,
@@ -100,6 +131,11 @@ class TournoiController extends AbstractController
     #[Route('/participation/requests/{id}/edit', name: 'participation_request_edit', methods: ['GET', 'POST'])]
     public function editParticipationRequest(ParticipationRequest $requestEntity, Request $request, EntityManagerInterface $em): Response
     {
+        if ($requestEntity->getUser() !== $this->getUser()) {
+            $this->addFlash('error', 'Tu ne peux modifier que tes demandes.');
+            return $this->redirectToRoute('tournoi_participation_requests');
+        }
+
         if ($requestEntity->getStatus() !== 'pending') {
             $this->addFlash('error', 'Seules les demandes en attente peuvent etre modifiees.');
             return $this->redirectToRoute('tournoi_participation_requests');
@@ -138,6 +174,11 @@ class TournoiController extends AbstractController
     #[Route('/participation/requests/{id}/delete', name: 'participation_request_delete', methods: ['POST'])]
     public function deleteParticipationRequest(ParticipationRequest $requestEntity, EntityManagerInterface $em): Response
     {
+        if ($requestEntity->getUser() !== $this->getUser()) {
+            $this->addFlash('error', 'Tu ne peux supprimer que tes demandes.');
+            return $this->redirectToRoute('tournoi_participation_requests');
+        }
+
         if ($requestEntity->getStatus() !== 'pending') {
             $this->addFlash('error', 'Seules les demandes en attente peuvent etre supprimees.');
             return $this->redirectToRoute('tournoi_participation_requests');
@@ -163,18 +204,65 @@ class TournoiController extends AbstractController
     }
 
     #[Route('/{id}', name: 'show')]
-    public function show(Tournoi $tournoi): Response
+    public function show(
+        Tournoi $tournoi,
+        TournoiMatchRepository $tournoiMatchRepository,
+        EquipeRepository $equipeRepository,
+        CandidatureRepository $candidatureRepository
+    ): Response
     {
-        // Allow public viewing of tournament details
+        $participants = $this->getSortedParticipants($tournoi);
+        $matches = $tournoiMatchRepository->findByTournoiOrdered($tournoi);
+        $participantTeams = $this->buildParticipantTeams($tournoi, $equipeRepository, $candidatureRepository);
+        $participantScores = $this->buildParticipantScores($tournoi, $matches, $participantTeams);
+        $user = $this->getUser();
+        $isParticipant = $user instanceof User && $tournoi->getParticipants()->contains($user);
+
         return $this->render('tournoi/user/show.html.twig', [
             'tournoi' => $tournoi,
+            'participants' => $participants,
+            'matches' => $matches,
+            'participantScores' => $participantScores,
+            'participantTeams' => $participantTeams,
+            'isParticipant' => $isParticipant,
         ]);
     }
 
     #[Route('/{id}/participate', name: 'participate', methods: ['POST','GET'])]
-    public function participate(Tournoi $tournoi, Request $request, EntityManagerInterface $em, ParticipationRequestRepository $prRepository): Response
+    public function participate(
+        Tournoi $tournoi,
+        Request $request,
+        EntityManagerInterface $em,
+        ParticipationRequestRepository $prRepository,
+        EquipeRepository $equipeRepository,
+        CandidatureRepository $candidatureRepository
+    ): Response
     {
         $user = $this->getUser();
+
+        if ($tournoi->getTypeTournoi() === 'squad') {
+            if (!$user) {
+                $this->addFlash('error', 'Tu dois etre dans une equipe pour participer');
+                return $this->redirectToRoute('tournoi_show', ['id' => $tournoi->getIdTournoi()]);
+            }
+
+            $isManager = null !== $equipeRepository->findOneBy(['manager' => $user]);
+            $acceptedMembership = $candidatureRepository->createQueryBuilder('c')
+                ->select('c.id')
+                ->andWhere('c.user = :user')
+                ->andWhere('c.statut LIKE :acceptedPrefix')
+                ->setParameter('user', $user)
+                ->setParameter('acceptedPrefix', 'Accept%')
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+            $isTeamMember = null !== $acceptedMembership;
+
+            if (!$isManager && !$isTeamMember) {
+                $this->addFlash('error', 'Tu dois etre dans une equipe pour participer');
+                return $this->redirectToRoute('tournoi_show', ['id' => $tournoi->getIdTournoi()]);
+            }
+        }
 
         // prevent participation if tournament is not in planned state
         $status = $tournoi->getCurrentStatus();
@@ -269,5 +357,140 @@ class TournoiController extends AbstractController
         return $this->render('tournoi/user/delete.html.twig', [
             'tournoi' => $tournoi,
         ]);
+    }
+
+    /**
+     * @return array<int, User>
+     */
+    private function getSortedParticipants(Tournoi $tournoi): array
+    {
+        $participants = $tournoi->getParticipants()->toArray();
+        usort($participants, static function (User $a, User $b): int {
+            return strcasecmp((string) $a->getNom(), (string) $b->getNom());
+        });
+
+        return $participants;
+    }
+
+    /**
+     * @param TournoiMatch[] $matches
+     * @return array<int, int>
+     */
+    private function buildParticipantScores(Tournoi $tournoi, array $matches, array $participantTeams = []): array
+    {
+        $scoresById = [];
+        $nameIndex = [];
+
+        foreach ($tournoi->getParticipants() as $participant) {
+            $participantId = $participant->getId();
+            if ($participantId === null) {
+                continue;
+            }
+
+            $scoresById[$participantId] = 0;
+
+            $nomKey = $this->normalizeParticipantName($participant->getNom());
+            if ($nomKey !== '') {
+                $nameIndex[$nomKey][] = $participantId;
+            }
+
+            $pseudoKey = $this->normalizeParticipantName($participant->getPseudo());
+            if ($pseudoKey !== '') {
+                $nameIndex[$pseudoKey][] = $participantId;
+            }
+
+            if (isset($participantTeams[$participantId])) {
+                $teamKey = $this->normalizeParticipantName((string) $participantTeams[$participantId]);
+                if ($teamKey !== '' && $teamKey !== '-') {
+                    $nameIndex[$teamKey][] = $participantId;
+                }
+            }
+        }
+
+        foreach ($matches as $match) {
+            if ($match->getStatus() !== 'played' || $match->getScoreA() === null || $match->getScoreB() === null) {
+                continue;
+            }
+
+            $homeKey = $this->normalizeParticipantName($match->getHomeName() ?? $match->getPlayerA()?->getNom());
+            $awayKey = $this->normalizeParticipantName($match->getAwayName() ?? $match->getPlayerB()?->getNom());
+
+            if ($homeKey !== '' && isset($nameIndex[$homeKey])) {
+                foreach (array_unique($nameIndex[$homeKey]) as $participantId) {
+                    $scoresById[$participantId] += $match->getScoreA();
+                }
+            }
+            if ($awayKey !== '' && isset($nameIndex[$awayKey])) {
+                foreach (array_unique($nameIndex[$awayKey]) as $participantId) {
+                    $scoresById[$participantId] += $match->getScoreB();
+                }
+            }
+        }
+
+        foreach ($matches as $match) {
+            foreach ($match->getParticipantResults() as $participantResult) {
+                $participantId = $participantResult->getParticipant()?->getId();
+                if ($participantId !== null && isset($scoresById[$participantId])) {
+                    $scoresById[$participantId] += $participantResult->getPoints();
+                }
+            }
+        }
+
+        return $scoresById;
+    }
+
+    private function normalizeParticipantName(?string $value): string
+    {
+        $trimmed = trim((string) $value);
+        if ($trimmed === '') {
+            return '';
+        }
+
+        return mb_strtolower((string) preg_replace('/\s+/', ' ', $trimmed));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function buildParticipantTeams(
+        Tournoi $tournoi,
+        EquipeRepository $equipeRepository,
+        CandidatureRepository $candidatureRepository
+    ): array {
+        $teamsByParticipantId = [];
+        if ($tournoi->getTypeTournoi() !== 'squad') {
+            return $teamsByParticipantId;
+        }
+
+        foreach ($tournoi->getParticipants() as $participant) {
+            $participantId = $participant->getId();
+            if ($participantId === null) {
+                continue;
+            }
+
+            $teamName = '-';
+            $managerTeam = $equipeRepository->findOneBy(['manager' => $participant]);
+            if ($managerTeam && $managerTeam->getNomEquipe()) {
+                $teamName = (string) $managerTeam->getNomEquipe();
+            } else {
+                $acceptedMembership = $candidatureRepository->createQueryBuilder('c')
+                    ->innerJoin('c.equipe', 'e')
+                    ->andWhere('c.user = :user')
+                    ->andWhere('c.statut LIKE :acceptedPrefix')
+                    ->setParameter('user', $participant)
+                    ->setParameter('acceptedPrefix', 'Accept%')
+                    ->setMaxResults(1)
+                    ->getQuery()
+                    ->getOneOrNullResult();
+
+                if ($acceptedMembership && $acceptedMembership->getEquipe()?->getNomEquipe()) {
+                    $teamName = (string) $acceptedMembership->getEquipe()->getNomEquipe();
+                }
+            }
+
+            $teamsByParticipantId[$participantId] = $teamName;
+        }
+
+        return $teamsByParticipantId;
     }
 }

@@ -1,112 +1,306 @@
-﻿{% extends 'admin/layout.html.twig' %}
+{% extends 'admin/layout.html.twig' %}
 
-{% block title %}Détails du Tournoi - Admin{% endblock %}
-{% block page_title %}Détails du Tournoi{% endblock %}
+{% block title %}Details du Tournoi - Admin{% endblock %}
+{% block page_title %}Details du Tournoi{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .admin-tournament-show-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .admin-tournament-show-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px;
+            display: grid;
+            gap: 8px;
+        }
+
+        .admin-tournament-show-label {
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+        }
+
+        .admin-tournament-show-value {
+            color: #fff;
+            font-size: 21px;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .admin-tournament-show-value.sm {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .admin-tournament-show-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .admin-tournament-show-footer {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .admin-participants-toggle {
+            margin-top: 12px;
+        }
+
+        .admin-participants-list {
+            margin-top: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .admin-participants-list[hidden] {
+            display: none !important;
+        }
+
+        .admin-participants-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .admin-participants-table th,
+        .admin-participants-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            color: #fff;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .admin-participants-table th {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            font-size: 12px;
+        }
+
+        .admin-participants-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .admin-participants-empty {
+            padding: 14px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        @media (max-width: 980px) {
+            .admin-tournament-show-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-tournament-show-actions {
+                justify-content: flex-start;
+            }
+        }
+    </style>
+{% endblock %}
 
 {% block body %}
-<div style="max-width: 800px;">
-    <div class="stat-card">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 30px;">
-            <h2 style="font-family: 'Orbitron', sans-serif; margin: 0; color: #fff;">
-                {{ tournoi.name }}
-            </h2>
-            <div style="display: flex; gap: 10px;">
+<section class="admin-tournament-hero">
+    <div class="admin-tournament-hero-inner">
+        <div class="admin-tournament-kicker">Admin</div>
+        <h2 class="admin-tournament-title">{{ tournoi.name }}</h2>
+        <p class="admin-tournament-lead">Consultez les caracteristiques completes du tournoi.</p>
+
+        {% if not readonly|default(false) %}
+            <div class="admin-tournament-show-actions">
+                <a href="{{ path('admin_tournoi_planning', {id: tournoi.idTournoi}) }}" class="admin-tournament-btn ghost">
+                    <i class="fas fa-calendar-alt"></i> Planning
+                </a>
                 {% if tournoi.currentStatus == 'planned' %}
-                    <a href="{{ path('admin_tournoi_edit', {id: tournoi.idTournoi}) }}" class="btn btn-primary" style="padding: 10px 15px;">
-                        <i class="fas fa-edit"></i> Éditer
+                    <a href="{{ path('admin_tournoi_edit', {id: tournoi.idTournoi}) }}" class="admin-tournament-btn">
+                        <i class="fas fa-edit"></i> Editer
                     </a>
                 {% endif %}
-                <form method="POST" action="{{ path('admin_tournoi_delete', {id: tournoi.idTournoi}) }}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce tournoi?');">
-                    <button type="submit" class="btn btn-danger" style="padding: 10px 15px;">
+                <form method="POST" action="{{ path('admin_tournoi_delete', {id: tournoi.idTournoi}) }}" onsubmit="return confirm('Etes-vous sur de vouloir supprimer ce tournoi ?');">
+                    <button type="submit" class="admin-tournament-btn ghost" style="border-color: rgba(247, 37, 133, 0.45); color: #ff8ab8; background: rgba(247, 37, 133, 0.12);">
                         <i class="fas fa-trash"></i> Supprimer
                     </button>
                 </form>
             </div>
+        {% endif %}
+
+        <div class="admin-participants-toggle">
+            <button
+                type="button"
+                class="admin-tournament-btn ghost"
+                id="participants-toggle-btn"
+                aria-expanded="false"
+                aria-controls="participants-list"
+            >
+                <i class="fas fa-users"></i> Voir les participants ({{ tournoi.participants|length }})
+            </button>
+        </div>
+    </div>
+    <div class="admin-tournament-hero-glow"></div>
+</section>
+
+<section class="admin-tournament-shell">
+    <div class="admin-tournament-panel">
+        <div class="admin-tournament-panel-title">
+            <i class="fas fa-circle-info"></i>
+            Informations du tournoi
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
-            <div>
-                <h5 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Type de Jeu</h5>
-                <p style="margin: 0;">
-                    <span class="badge badge-info">{{ tournoi.typeGame }}</span>
-                </p>
+        <div class="admin-tournament-show-grid">
+            <div class="admin-tournament-show-item">
+                <span class="admin-tournament-show-label">Type de jeu</span>
+                <span><span class="badge badge-info">{{ tournoi.typeGame }}</span></span>
             </div>
-            <div>
-                <h5 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Type de Tournoi</h5>
-                <p style="margin: 0;">
-                    <span class="badge badge-success">{{ tournoi.typeTournoi|upper }}</span>
-                </p>
+
+            <div class="admin-tournament-show-item">
+                <span class="admin-tournament-show-label">Type de tournoi</span>
+                <span><span class="badge badge-success">{{ tournoi.typeTournoi|upper }}</span></span>
             </div>
-            <div>
-                <h5 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Jeu</h5>
-                <p style="margin: 0; color: #fff;">{{ tournoi.game }}</p>
+
+            <div class="admin-tournament-show-item">
+                <span class="admin-tournament-show-label">Jeu</span>
+                <span class="admin-tournament-show-value sm">{{ tournoi.game }}</span>
             </div>
-            <div>
-                <h5 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Statut</h5>
-                <p style="margin: 0;">
+
+            <div class="admin-tournament-show-item">
+                <span class="admin-tournament-show-label">Statut</span>
+                <span>
                     {% if tournoi.currentStatus == 'planned' %}
-                        <span class="badge badge-warning">Planifié</span>
+                        <span class="badge badge-warn">Planifie</span>
                     {% elseif tournoi.currentStatus == 'ongoing' %}
                         <span class="badge badge-success">En cours</span>
                     {% else %}
-                        <span class="badge badge-info">Terminé</span>
+                        <span class="badge badge-info">Termine</span>
                     {% endif %}
-                </p>
+                </span>
             </div>
-        </div>
 
-        <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.05); margin-bottom: 30px;">
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
-            <div>
-                <h5 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Date de Début</h5>
-                <p style="margin: 0; color: #fff;">{{ tournoi.startDate|date('d/m/Y à H:i') }}</p>
+            <div class="admin-tournament-show-item">
+                <span class="admin-tournament-show-label">Date de debut</span>
+                <span class="admin-tournament-show-value sm">{{ tournoi.startDate|date('d/m/Y H:i') }}</span>
             </div>
-            <div>
-                <h5 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Date de Fin</h5>
-                <p style="margin: 0; color: #fff;">{{ tournoi.endDate|date('d/m/Y à H:i') }}</p>
+
+            <div class="admin-tournament-show-item">
+                <span class="admin-tournament-show-label">Date de fin</span>
+                <span class="admin-tournament-show-value sm">{{ tournoi.endDate|date('d/m/Y H:i') }}</span>
             </div>
-        </div>
 
-        <div style="margin-bottom: 30px;">
-            <h5 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Dotation</h5>
-            <p style="margin: 0; color: var(--primary-cyan); font-size: 24px; font-weight: bold;">${{ tournoi.prizeWon }}</p>
-        </div>
+            <div class="admin-tournament-show-item">
+                <span class="admin-tournament-show-label">Dotation</span>
+                <span class="admin-tournament-show-value">${{ tournoi.prizeWon }}</span>
+            </div>
 
-        <div style="margin-bottom: 30px;">
-            <h5 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Places restantes</h5>
-            <p style="margin: 0; color: #fff; font-size: 18px; font-weight: bold;">
-                {% if tournoi.remainingPlaces is null %}
-                    ∞
-                {% else %}
-                    {{ tournoi.remainingPlaces }} / {{ tournoi.maxPlaces }}
-                {% endif %}
-            </p>
+            <div class="admin-tournament-show-item">
+                <span class="admin-tournament-show-label">Places restantes</span>
+                <span class="admin-tournament-show-value sm">
+                    {% if tournoi.remainingPlaces is null %}
+                        8
+                    {% else %}
+                        {{ tournoi.remainingPlaces }} / {{ tournoi.maxPlaces }}
+                    {% endif %}
+                </span>
+            </div>
         </div>
 
         {% if tournoi.resultat %}
-            <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.05); margin-bottom: 30px;">
-            
-            <div style="background: rgba(76, 201, 240, 0.1); border-left: 4px solid var(--primary-cyan); padding: 20px; border-radius: 8px;">
-                <h4 style="color: var(--primary-cyan); margin-top: 0;">Résultats</h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div>
-                        <h5 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Classement</h5>
-                        <p style="margin: 0; color: #fff; font-size: 18px; font-weight: bold;">{{ tournoi.resultat.rank }}</p>
+            <div class="admin-tournament-panel" style="margin-top: 14px;">
+                <div class="admin-tournament-panel-title">
+                    <i class="fas fa-trophy"></i>
+                    Resultats
+                </div>
+                <div class="admin-tournament-show-grid">
+                    <div class="admin-tournament-show-item">
+                        <span class="admin-tournament-show-label">Classement</span>
+                        <span class="admin-tournament-show-value sm">{{ tournoi.resultat.rank }}</span>
                     </div>
-                    <div>
-                        <h5 style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px; text-transform: uppercase;">Score</h5>
-                        <p style="margin: 0; color: #fff; font-size: 18px; font-weight: bold;">{{ tournoi.resultat.score }}</p>
+                    <div class="admin-tournament-show-item">
+                        <span class="admin-tournament-show-label">Score</span>
+                        <span class="admin-tournament-show-value sm">{{ tournoi.resultat.score }}</span>
                     </div>
                 </div>
             </div>
         {% endif %}
 
-        <div style="margin-top: 30px;">
-            <a href="{{ path('admin_tournoi_index') }}" class="btn" style="background: rgba(255,255,255,0.1); padding: 12px 20px; border-radius: 8px; text-decoration: none;">
-                <i class="fas fa-arrow-left"></i> Retour à la liste
+        <div id="participants-list" class="admin-participants-list" hidden>
+            {% if tournoi.participants|length > 0 %}
+                <table class="admin-participants-table">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Pseudo</th>
+                            <th>Email</th>
+                            {% if tournoi.typeTournoi == 'squad' %}
+                                <th>Equipe</th>
+                            {% endif %}
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for participant in tournoi.participants %}
+                            <tr>
+                                <td>{{ participant.nom }}</td>
+                                <td>{{ participant.pseudo ? participant.pseudo : '-' }}</td>
+                                <td>{{ participant.email }}</td>
+                                {% if tournoi.typeTournoi == 'squad' %}
+                                    <td>{{ participantTeams[participant.id]|default('-') }}</td>
+                                {% endif %}
+                                <td>{{ participantScores[participant.id]|default(0) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="admin-participants-empty">Aucun participant pour ce tournoi.</div>
+            {% endif %}
+        </div>
+
+        <div class="admin-tournament-show-footer">
+            <a href="{{ path(backRoute|default('admin_tournoi_index')) }}" class="admin-tournament-btn ghost">
+                <i class="fas fa-arrow-left"></i> Retour a la liste
             </a>
         </div>
     </div>
-</div>
+</section>
+
+<script>
+    (function () {
+        const toggleBtn = document.getElementById('participants-toggle-btn');
+        const participantsList = document.getElementById('participants-list');
+
+        if (!toggleBtn || !participantsList) {
+            return;
+        }
+
+        toggleBtn.addEventListener('click', function () {
+            const isHidden = participantsList.hasAttribute('hidden');
+
+            if (isHidden) {
+                participantsList.removeAttribute('hidden');
+                toggleBtn.setAttribute('aria-expanded', 'true');
+                toggleBtn.innerHTML = '<i class="fas fa-users"></i> Masquer les participants ({{ tournoi.participants|length }})';
+            } else {
+                participantsList.setAttribute('hidden', '');
+                toggleBtn.setAttribute('aria-expanded', 'false');
+                toggleBtn.innerHTML = '<i class="fas fa-users"></i> Voir les participants ({{ tournoi.participants|length }})';
+            }
+        });
+    })();
+</script>
 {% endblock %}

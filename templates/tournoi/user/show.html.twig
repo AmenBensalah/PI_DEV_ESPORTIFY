@@ -1,79 +1,301 @@
-﻿{% extends 'base.html.twig' %}
+{% extends 'base.html.twig' %}
 
 {% block title %}{{ tournoi.name }}{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .admin-tournament-show-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .admin-tournament-show-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px;
+            display: grid;
+            gap: 8px;
+        }
+
+        .admin-tournament-show-label {
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+        }
+
+        .admin-tournament-show-value {
+            color: #fff;
+            font-size: 21px;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .admin-tournament-show-value.sm {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .planning-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .planning-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .planning-title {
+            color: #fff;
+            font-weight: 700;
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        .planning-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .planning-table th,
+        .planning-table td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: left;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .planning-table th {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            font-size: 12px;
+        }
+
+        .planning-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .planning-empty {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .result-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.24);
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+            font-weight: 700;
+        }
+
+        @media (max-width: 980px) {
+            .admin-tournament-show-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .planning-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
-<section class="tournoi-hero">
-    <div class="tournoi-hero-inner">
-        <div class="tournoi-kicker">Tournoi</div>
-        <h1 class="tournoi-title">{{ tournoi.name }}</h1>
-        <p class="tournoi-lead">{{ tournoi.game }} · {{ tournoi.typeGame }} · {{ tournoi.typeTournoi|upper }}</p>
-        <div class="tournoi-hero-actions">
-            <a href="{{ path('tournoi_index') }}" class="neo-btn ghost">Retour</a>
-            <a href="{{ path('tournoi_participation_requests') }}" class="neo-btn">Mes demandes</a>
+<section class="admin-tournament-hero">
+    <div class="admin-tournament-hero-inner">
+        <div class="admin-tournament-kicker">Tournoi</div>
+        <h2 class="admin-tournament-title">{{ tournoi.name }}</h2>
+        <p class="admin-tournament-lead">Consultation du tournoi, des participants et du planning.</p>
+
+        <div class="admin-tournament-hero-actions">
+            <a href="#participants-planning" class="admin-tournament-btn ghost">
+                <i class="fas fa-calendar-alt"></i> Planning
+            </a>
+            <a href="{{ path('tournoi_participation_requests') }}" class="admin-tournament-btn ghost">
+                <i class="fas fa-clipboard-list"></i> Mes demandes
+            </a>
         </div>
     </div>
-    <div class="tournoi-hero-glow"></div>
+    <div class="admin-tournament-hero-glow"></div>
 </section>
 
-<section class="tournoi-shell">
-    <div class="tournoi-panel tournoi-details">
-        <div class="detail-grid">
-            <div>
-                <span>Type de jeu</span>
-                <strong>{{ tournoi.typeGame }}</strong>
-            </div>
-            <div>
-                <span>Type tournoi</span>
-                <strong>{{ tournoi.typeTournoi|upper }}</strong>
-            </div>
-            <div>
-                <span>Statut</span>
-                {% if tournoi.currentStatus == 'planned' %}
-                    <strong class="status warn">Planifie</strong>
-                {% elseif tournoi.currentStatus == 'ongoing' %}
-                    <strong class="status success">En cours</strong>
-                {% else %}
-                    <strong class="status danger">Termine</strong>
-                {% endif %}
-            </div>
-            <div>
-                <span>Debut</span>
-                <strong>{{ tournoi.startDate|date('Y-m-d H:i') }}</strong>
-            </div>
-            <div>
-                <span>Fin</span>
-                <strong>{{ tournoi.endDate|date('Y-m-d H:i') }}</strong>
-            </div>
-            <div>
-                <span>Prize</span>
-                <strong>${{ tournoi.prizeWon }}</strong>
-            </div>
+<section class="admin-tournament-shell">
+    <div class="admin-tournament-panel">
+        <div class="admin-tournament-panel-title">
+            <i class="fas fa-circle-info"></i>
+            Informations du tournoi
         </div>
 
-        {% if tournoi.resultat %}
-            <div class="tournoi-alert success">
-                <h4>Results</h4>
-                <p><strong>Rank:</strong> {{ tournoi.resultat.rank }}</p>
-                <p><strong>Score:</strong> {{ tournoi.resultat.score }}</p>
+        <div class="admin-tournament-show-grid">
+            <div class="admin-tournament-show-item">
+                <span class="admin-tournament-show-label">Type de jeu</span>
+                <span><span class="badge badge-info">{{ tournoi.typeGame }}</span></span>
             </div>
-        {% endif %}
 
-        <div class="tournoi-actions-row">
-            {% if is_granted('ROLE_USER') %}
-                {% set remaining = tournoi.remainingPlaces %}
-                {% if app.user in tournoi.participants %}
-                    <button class="neo-btn" disabled>Inscrit</button>
-                {% elseif remaining is not null and remaining <= 0 %}
-                    <button class="neo-btn" disabled>Complet</button>
-                {% elseif tournoi.currentStatus != 'planned' %}
-                    <button class="neo-btn" disabled>Non disponible</button>
+            <div class="admin-tournament-show-item">
+                <span class="admin-tournament-show-label">Type de tournoi</span>
+                <span><span class="badge badge-success">{{ tournoi.typeTournoi|upper }}</span></span>
+            </div>
+
+            <div class="admin-tournament-show-item">
+                <span class="admin-tournament-show-label">Jeu</span>
+                <span class="admin-tournament-show-value sm">{{ tournoi.game }}</span>
+            </div>
+
+            <div class="admin-tournament-show-item">
+                <span class="admin-tournament-show-label">Statut</span>
+                <span>
+                    {% if tournoi.currentStatus == 'planned' %}
+                        <span class="badge badge-warn">Planifie</span>
+                    {% elseif tournoi.currentStatus == 'ongoing' %}
+                        <span class="badge badge-success">En cours</span>
+                    {% else %}
+                        <span class="badge badge-info">Termine</span>
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="admin-tournament-show-item">
+                <span class="admin-tournament-show-label">Date de debut</span>
+                <span class="admin-tournament-show-value sm">{{ tournoi.startDate|date('d/m/Y H:i') }}</span>
+            </div>
+
+            <div class="admin-tournament-show-item">
+                <span class="admin-tournament-show-label">Date de fin</span>
+                <span class="admin-tournament-show-value sm">{{ tournoi.endDate|date('d/m/Y H:i') }}</span>
+            </div>
+
+            <div class="admin-tournament-show-item">
+                <span class="admin-tournament-show-label">Dotation</span>
+                <span class="admin-tournament-show-value">${{ tournoi.prizeWon }}</span>
+            </div>
+
+            <div class="admin-tournament-show-item">
+                <span class="admin-tournament-show-label">Places restantes</span>
+                <span class="admin-tournament-show-value sm">
+                    {% if tournoi.remainingPlaces is null %}
+                        Illimite
+                    {% else %}
+                        {{ tournoi.remainingPlaces }} / {{ tournoi.maxPlaces }}
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div id="participants-planning" class="planning-grid" style="margin-top: 14px;">
+        <div class="planning-card">
+            <div class="planning-title">Participants ({{ participants|length }})</div>
+            {% if isParticipant %}
+                {% if participants|length > 0 %}
+                    <table class="planning-table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Pseudo</th>
+                                <th>Email</th>
+                                {% if tournoi.typeTournoi == 'squad' %}
+                                    <th>Equipe</th>
+                                {% endif %}
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for participant in participants %}
+                                <tr>
+                                    <td>{{ participant.nom }}</td>
+                                    <td>{{ participant.pseudo ? participant.pseudo : '-' }}</td>
+                                    <td>{{ participant.email }}</td>
+                                    {% if tournoi.typeTournoi == 'squad' %}
+                                        <td>{{ participantTeams[participant.id]|default('-') }}</td>
+                                    {% endif %}
+                                    <td>{{ participantScores[participant.id]|default(0) }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 {% else %}
-                    <a href="{{ path('tournoi_participate', {id: tournoi.idTournoi}) }}" class="neo-btn">Participer</a>
+                    <div class="planning-empty">Aucun participant pour ce tournoi.</div>
                 {% endif %}
+            {% else %}
+                <div class="planning-empty">Cette section est visible uniquement pour les participants du tournoi.</div>
             {% endif %}
-            <a href="{{ path('tournoi_index') }}" class="neo-btn ghost">Retour</a>
         </div>
+
+        <div class="planning-card">
+            <div class="planning-title">Matchs planifies</div>
+            {% if isParticipant %}
+                {% if matches|length > 0 %}
+                    <table class="planning-table">
+                        <thead>
+                            <tr>
+                                {% if tournoi.typeGame == 'Battle_royale' %}
+                                    <th>Date</th>
+                                    <th>Map</th>
+                                {% else %}
+                                    <th>Match</th>
+                                    <th>Date</th>
+                                    <th>A domicile</th>
+                                    <th>A l'exterieur</th>
+                                    <th>1X2</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for match in matches %}
+                                {% set resultValue = '-' %}
+                                {% if match.status == 'played' and match.scoreA is not null and match.scoreB is not null %}
+                                    {% if match.scoreA > match.scoreB %}
+                                        {% set resultValue = '1' %}
+                                    {% elseif match.scoreA < match.scoreB %}
+                                        {% set resultValue = '2' %}
+                                    {% else %}
+                                        {% set resultValue = 'X' %}
+                                    {% endif %}
+                                {% endif %}
+                                <tr>
+                                    {% if tournoi.typeGame == 'Battle_royale' %}
+                                        <td>{{ match.scheduledAt ? match.scheduledAt|date('d/m/Y H:i') : '-' }}</td>
+                                        <td>{{ match.homeName ?: '-' }}</td>
+                                    {% else %}
+                                        <td>#{{ match.id }}</td>
+                                        <td>{{ match.scheduledAt ? match.scheduledAt|date('d/m/Y H:i') : '-' }}</td>
+                                        <td>{{ match.homeName ?: (match.playerA ? match.playerA.nom : '-') }}</td>
+                                        <td>{{ match.awayName ?: (match.playerB ? match.playerB.nom : '-') }}</td>
+                                        <td><span class="result-pill">{{ resultValue }}</span></td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="planning-empty">Aucun match planifie.</div>
+                {% endif %}
+            {% else %}
+                <div class="planning-empty">Le planning detaille est visible uniquement pour les participants du tournoi.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="admin-tournament-show-footer" style="margin-top: 14px;">
+        <a href="{{ path('tournoi_index') }}" class="admin-tournament-btn ghost">
+            <i class="fas fa-arrow-left"></i> Retour a la liste
+        </a>
     </div>
 </section>
 {% endblock %}
