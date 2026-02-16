@@ -6,6 +6,7 @@
     <title>Inscription - E-Sportify</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <style>
         :root {
             --primary-purple: #9d4edd;
@@ -226,6 +227,85 @@
             color: var(--primary-blue);
             text-shadow: 0 0 5px var(--primary-blue);
         }
+
+        .faceid-panel {
+            margin-top: 12px;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px;
+            padding: 12px;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .faceid-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .btn-faceid {
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-faceid:hover {
+            background: rgba(67, 97, 238, 0.25);
+            border-color: rgba(67, 97, 238, 0.8);
+        }
+
+        .btn-faceid:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .faceid-video {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: #0b0f20;
+        }
+
+        .faceid-video.hidden {
+            display: none;
+        }
+
+        .faceid-status {
+            margin-top: 8px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.82);
+            text-align: left;
+        }
+
+        .faceid-status.error {
+            color: #ff8a8a;
+        }
+
+        .faceid-badge {
+            margin-top: 8px;
+            display: inline-block;
+            background: rgba(67, 238, 148, 0.18);
+            border: 1px solid rgba(67, 238, 148, 0.4);
+            color: #a4ffd0;
+            font-size: 12px;
+            border-radius: 999px;
+            padding: 3px 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .faceid-badge.hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -286,9 +366,25 @@
             <div class="input-group">
                 {{ form_widget(registrationForm.avatarFile, {attr: {class: 'form-control', accept: 'image/*'}}) }}
                 <i class="fas fa-image"></i>
+
+                {{ form_widget(registrationForm.faceDescriptor) }}
+
+                <div class="faceid-panel">
+                    <div class="faceid-actions">
+                        <button type="button" id="faceid-open-camera" class="btn-faceid">Open Face Camera</button>
+                        <button type="button" id="faceid-capture" class="btn-faceid" disabled>Capture Face</button>
+                        <button type="button" id="faceid-clear" class="btn-faceid" disabled>Clear Face ID</button>
+                    </div>
+                    <video id="faceid-video" class="faceid-video hidden" autoplay playsinline muted></video>
+                    <div id="faceid-status" class="faceid-status">Face ID optional: capture once to enable login by face.</div>
+                    <span id="faceid-badge" class="faceid-badge hidden">Face ID Ready</span>
+                </div>
             </div>
             {% if registrationForm.avatarFile.vars.errors|length > 0 %}
                 <div class="field-error">{{ form_errors(registrationForm.avatarFile) }}</div>
+            {% endif %}
+            {% if registrationForm.faceDescriptor.vars.errors|length > 0 %}
+                <div class="field-error">{{ form_errors(registrationForm.faceDescriptor) }}</div>
             {% endif %}
 
             <div class="checkbox-group">
@@ -307,5 +403,136 @@
         </div>
     </div>
 
+    <script>
+        (() => {
+            const MODEL_URI = 'https://justadudewhohacks.github.io/face-api.js/models';
+            const hiddenDescriptorInput = document.getElementById('{{ registrationForm.faceDescriptor.vars.id }}');
+            const openCameraButton = document.getElementById('faceid-open-camera');
+            const captureButton = document.getElementById('faceid-capture');
+            const clearButton = document.getElementById('faceid-clear');
+            const videoElement = document.getElementById('faceid-video');
+            const statusElement = document.getElementById('faceid-status');
+            const badgeElement = document.getElementById('faceid-badge');
+
+            let stream = null;
+            let modelsReady = false;
+
+            const setStatus = (message, isError = false) => {
+                statusElement.textContent = message;
+                statusElement.classList.toggle('error', isError);
+            };
+
+            const stopCamera = () => {
+                if (!stream) {
+                    return;
+                }
+
+                stream.getTracks().forEach((track) => track.stop());
+                stream = null;
+                videoElement.srcObject = null;
+                videoElement.classList.add('hidden');
+                captureButton.disabled = true;
+            };
+
+            const setDescriptor = (descriptor) => {
+                hiddenDescriptorInput.value = JSON.stringify(Array.from(descriptor));
+                clearButton.disabled = false;
+                badgeElement.classList.remove('hidden');
+            };
+
+            const clearDescriptor = () => {
+                hiddenDescriptorInput.value = '';
+                clearButton.disabled = true;
+                badgeElement.classList.add('hidden');
+                setStatus('Face ID data removed from this registration.', false);
+            };
+
+            const ensureModels = async () => {
+                if (modelsReady) {
+                    return true;
+                }
+
+                if (!window.faceapi) {
+                    setStatus('Face API library not loaded yet. Please retry.', true);
+                    return false;
+                }
+
+                try {
+                    setStatus('Loading Face ID models...');
+                    await Promise.all([
+                        window.faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URI),
+                        window.faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URI),
+                        window.faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URI),
+                    ]);
+                    modelsReady = true;
+                    setStatus('Face ID models loaded. Open camera to continue.');
+                    return true;
+                } catch (error) {
+                    setStatus('Failed to load Face ID models.', true);
+                    return false;
+                }
+            };
+
+            const openCamera = async () => {
+                const ok = await ensureModels();
+                if (!ok) {
+                    return;
+                }
+
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    setStatus('Camera is not supported on this browser.', true);
+                    return;
+                }
+
+                stopCamera();
+
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: 'user' },
+                        audio: false,
+                    });
+                    videoElement.srcObject = stream;
+                    videoElement.classList.remove('hidden');
+                    captureButton.disabled = false;
+                    setStatus('Camera ready. Center your face and click "Capture Face".');
+                } catch (error) {
+                    setStatus('Unable to access camera. Check camera permission.', true);
+                }
+            };
+
+            const captureFace = async () => {
+                if (!window.faceapi || !stream) {
+                    setStatus('Open camera first.', true);
+                    return;
+                }
+
+                try {
+                    const result = await window.faceapi
+                        .detectSingleFace(
+                            videoElement,
+                            new window.faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 })
+                        )
+                        .withFaceLandmarks()
+                        .withFaceDescriptor();
+
+                    if (!result || !result.descriptor) {
+                        setStatus('No face detected. Try again with better lighting.', true);
+                        return;
+                    }
+
+                    setDescriptor(result.descriptor);
+                    setStatus('Face captured successfully. You can finish registration.');
+                    stopCamera();
+                } catch (error) {
+                    setStatus('Face capture failed. Please retry.', true);
+                }
+            };
+
+            openCameraButton.addEventListener('click', openCamera);
+            captureButton.addEventListener('click', captureFace);
+            clearButton.addEventListener('click', clearDescriptor);
+            window.addEventListener('beforeunload', stopCamera);
+        })();
+    </script>
 </body>
 </html>

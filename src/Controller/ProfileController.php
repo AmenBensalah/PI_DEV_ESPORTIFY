@@ -2,7 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Form\UserProfileFormType;
+use App\Repository\CandidatureRepository;
+use App\Repository\EquipeRepository;
+use App\Repository\PostRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -16,12 +20,40 @@ use Symfony\Component\Form\FormError;
 class ProfileController extends AbstractController
 {
     #[Route('/profile', name: 'app_profile', methods: ['GET'])]
-    public function profile(): Response
+    public function profile(
+        PostRepository $postRepository,
+        CandidatureRepository $candidatureRepository,
+        EquipeRepository $equipeRepository
+    ): Response
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_REMEMBERED');
 
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException('Utilisateur non authentifie.');
+        }
+
+        $posts = $postRepository->findRecentByAuthorWithMedias($user, 20);
+
+        $membership = $candidatureRepository->findAcceptedMembershipByUser($user);
+        $team = $membership?->getEquipe();
+        $teamRole = null;
+
+        if ($team) {
+            $teamRole = 'member';
+        } else {
+            $managedTeam = $equipeRepository->findOneBy(['manager' => $user]);
+            if ($managedTeam) {
+                $team = $managedTeam;
+                $teamRole = 'manager';
+            }
+        }
+
         return $this->render('home/profile.html.twig', [
-            'user' => $this->getUser(),
+            'user' => $user,
+            'team' => $team,
+            'teamRole' => $teamRole,
+            'posts' => $posts,
         ]);
     }
 

@@ -100,4 +100,61 @@ class CommandeRepository extends ServiceEntityRepository
 
         return $counts;
     }
+
+    /**
+     * @return Commande[]
+     */
+    public function searchAndSort(
+        ?string $query,
+        ?string $status = null,
+        string $sortField = 'id',
+        string $sortDirection = 'DESC'
+    ): array {
+        $qb = $this->createQueryBuilder('c');
+
+        $normalizedQuery = trim((string) $query);
+        if ($normalizedQuery !== '') {
+            $queryExpr = $qb->expr()->orX(
+                $qb->expr()->like('LOWER(c.nom)', ':query'),
+                $qb->expr()->like('LOWER(c.prenom)', ':query'),
+                $qb->expr()->like('LOWER(c.statut)', ':query')
+            );
+
+            if (ctype_digit($normalizedQuery)) {
+                $queryExpr->add($qb->expr()->eq('c.id', ':queryId'));
+                $qb->setParameter('queryId', (int) $normalizedQuery);
+            }
+
+            $qb->andWhere($queryExpr)
+                ->setParameter('query', '%' . mb_strtolower($normalizedQuery) . '%');
+        }
+
+        $normalizedStatus = mb_strtolower(trim((string) $status));
+        if ($normalizedStatus !== '') {
+            if ($normalizedStatus === 'pending') {
+                $qb->andWhere('LOWER(c.statut) IN (:pendingStatuses)')
+                    ->setParameter('pendingStatuses', ['pending', 'pending_payment']);
+            } else {
+                $qb->andWhere('LOWER(c.statut) = :status')
+                    ->setParameter('status', $normalizedStatus);
+            }
+        }
+
+        $sortMap = [
+            'id' => 'c.id',
+            'nom' => 'c.nom',
+            'prenom' => 'c.prenom',
+            'statut' => 'c.statut',
+        ];
+
+        $sortExpression = $sortMap[$sortField] ?? 'c.id';
+        $direction = strtoupper($sortDirection) === 'ASC' ? 'ASC' : 'DESC';
+
+        $qb->orderBy($sortExpression, $direction);
+        if ($sortExpression !== 'c.id') {
+            $qb->addOrderBy('c.id', 'DESC');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

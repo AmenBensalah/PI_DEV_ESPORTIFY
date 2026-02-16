@@ -6,6 +6,7 @@
     <title>Connexion - E-Sportify</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <style>
         :root {
             --primary-purple: #9d4edd;
@@ -223,6 +224,62 @@
             font-size: 14px;
             border: 1px solid rgba(255, 0, 0, 0.3);
         }
+
+        .faceid-block {
+            margin-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 16px;
+        }
+
+        .btn-faceid {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            padding: 11px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .btn-faceid:hover {
+            border-color: rgba(67, 97, 238, 0.8);
+            background: rgba(67, 97, 238, 0.25);
+        }
+
+        .btn-faceid:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .faceid-video {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: #0b0f20;
+            margin-top: 10px;
+        }
+
+        .faceid-video.hidden {
+            display: none;
+        }
+
+        .faceid-status {
+            min-height: 18px;
+            margin-top: 8px;
+            color: rgba(255,255,255,0.82);
+            font-size: 13px;
+        }
+
+        .faceid-status.error {
+            color: #ff8a8a;
+        }
     </style>
 </head>
 <body>
@@ -256,6 +313,12 @@
             <button type="submit" class="btn-login">Se Connecter</button>
         </form>
 
+        <div class="faceid-block">
+            <button type="button" id="faceid-login-btn" class="btn-faceid">Login with Face ID</button>
+            <video id="faceid-login-video" class="faceid-video hidden" autoplay playsinline muted></video>
+            <div id="faceid-login-status" class="faceid-status"></div>
+        </div>
+
         <div class="links">
             <a href="{{ path('app_register') }}">Créer un compte</a>
             <a href="{{ path('app_forgot_password') }}">Mot de passe oublié ?</a>
@@ -271,5 +334,160 @@
         </div>
     </div>
 
+    <script>
+        (() => {
+            const MODEL_URI = 'https://justadudewhohacks.github.io/face-api.js/models';
+            const FACE_LOGIN_URL = '{{ path('app_login_face_id') }}';
+            const FALLBACK_REDIRECT = '{{ path('fil_home') }}';
+
+            const button = document.getElementById('faceid-login-btn');
+            const videoElement = document.getElementById('faceid-login-video');
+            const statusElement = document.getElementById('faceid-login-status');
+
+            let stream = null;
+            let modelsReady = false;
+            let cameraReady = false;
+
+            const setStatus = (message, isError = false) => {
+                statusElement.textContent = message;
+                statusElement.classList.toggle('error', isError);
+            };
+
+            const stopCamera = () => {
+                if (!stream) {
+                    return;
+                }
+
+                stream.getTracks().forEach((track) => track.stop());
+                stream = null;
+                videoElement.srcObject = null;
+                videoElement.classList.add('hidden');
+                cameraReady = false;
+                button.textContent = 'Login with Face ID';
+            };
+
+            const ensureModels = async () => {
+                if (modelsReady) {
+                    return true;
+                }
+
+                if (!window.faceapi) {
+                    setStatus('Face API library not loaded yet. Please retry.', true);
+                    return false;
+                }
+
+                try {
+                    setStatus('Loading Face ID models...');
+                    await Promise.all([
+                        window.faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URI),
+                        window.faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URI),
+                        window.faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URI),
+                    ]);
+                    modelsReady = true;
+                    setStatus('Models loaded.');
+                    return true;
+                } catch (error) {
+                    setStatus('Failed to load Face ID models.', true);
+                    return false;
+                }
+            };
+
+            const openCamera = async () => {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    setStatus('Camera is not supported on this browser.', true);
+                    return false;
+                }
+
+                stopCamera();
+
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: 'user' },
+                        audio: false,
+                    });
+
+                    videoElement.srcObject = stream;
+                    videoElement.classList.remove('hidden');
+                    cameraReady = true;
+                    button.textContent = 'Scan & Login';
+                    setStatus('Camera ready. Click again to scan your face.');
+                    return true;
+                } catch (error) {
+                    setStatus('Unable to access camera. Check permissions.', true);
+                    return false;
+                }
+            };
+
+            const scanAndLogin = async () => {
+                if (!window.faceapi || !cameraReady) {
+                    setStatus('Open camera first.', true);
+                    return;
+                }
+
+                button.disabled = true;
+                setStatus('Scanning face...');
+
+                try {
+                    const result = await window.faceapi
+                        .detectSingleFace(
+                            videoElement,
+                            new window.faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 })
+                        )
+                        .withFaceLandmarks()
+                        .withFaceDescriptor();
+
+                    if (!result || !result.descriptor) {
+                        setStatus('Face not detected. Try better lighting and keep your face centered.', true);
+                        button.disabled = false;
+                        return;
+                    }
+
+                    const response = await fetch(FACE_LOGIN_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'same-origin',
+                        body: JSON.stringify({ descriptor: Array.from(result.descriptor) }),
+                    });
+
+                    let payload = {};
+                    try {
+                        payload = await response.json();
+                    } catch (error) {
+                        payload = {};
+                    }
+
+                    if (!response.ok || !payload.ok) {
+                        setStatus(payload.message || 'Face ID login failed.', true);
+                        button.disabled = false;
+                        return;
+                    }
+
+                    stopCamera();
+                    window.location.href = payload.redirect || FALLBACK_REDIRECT;
+                } catch (error) {
+                    setStatus('Face ID login failed. Please retry.', true);
+                    button.disabled = false;
+                }
+            };
+
+            button.addEventListener('click', async () => {
+                const ok = await ensureModels();
+                if (!ok) {
+                    return;
+                }
+
+                if (!cameraReady) {
+                    await openCamera();
+                    return;
+                }
+
+                await scanAndLogin();
+            });
+
+            window.addEventListener('beforeunload', stopCamera);
+        })();
+    </script>
 </body>
 </html>

@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Candidature;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -44,5 +45,20 @@ class CandidatureRepository extends ServiceEntityRepository
             ->setParameter('to', $to)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    public function findAcceptedMembershipByUser(User $user): ?Candidature
+    {
+        return $this->createQueryBuilder('c')
+            ->leftJoin('c.equipe', 'e')->addSelect('e')
+            ->andWhere('c.user = :user')
+            ->andWhere('c.statut LIKE :acceptedPrefix')
+            ->setParameter('user', $user)
+            ->setParameter('acceptedPrefix', 'Accept%')
+            ->orderBy('c.dateCandidature', 'DESC')
+            ->addOrderBy('c.id', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }

@@ -1,0 +1,56 @@
+{% if payments %}
+    <div class="admin-tournament-table">
+        <table data-table="payments">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Commande</th>
+                    <th>Montant</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for payment in payments %}
+                <tr class="admin-tournament-row">
+                    <td>{{ payment.id }}</td>
+                    <td>{{ payment.commande.id }}</td>
+                    <td>{{ payment.amount / 100 }} EUR</td>
+                    <td>
+                        {% if payment.status matches '/success|succeeded|paid/' %}
+                            <span class="badge badge-success">Validé</span>
+                        {% elseif payment.status matches '/pending/' %}
+                            <span class="badge badge-warn">En attente</span>
+                        {% elseif payment.status matches '/failed|cancel/' %}
+                            <span class="badge badge-danger">Échoué</span>
+                        {% else %}
+                            <span class="badge badge-info">{{ payment.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ payment.createdAt|date('d/m/Y H:i') }}</td>
+                    <td>
+                        <div class="admin-tournament-row-actions">
+                            <a href="{{ path('admin_payment_show', {'id': payment.id}) }}" class="admin-tournament-icon" title="Voir">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <span class="admin-tournament-icon cyan disabled" title="Modification indisponible">
+                                <i class="fas fa-edit"></i>
+                            </span>
+                            <span class="admin-tournament-icon danger disabled" title="Suppression indisponible">
+                                <i class="fas fa-trash"></i>
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="admin-tournament-empty">
+        <div class="empty-ring"></div>
+        <strong>Aucun paiement trouvé</strong>
+        <p>Ajustez votre recherche ou vos filtres.</p>
+    </div>
+{% endif %}

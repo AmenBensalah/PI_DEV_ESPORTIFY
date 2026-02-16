@@ -154,5 +154,59 @@ class RegistrationController extends AbstractController
         if ($pseudo !== '') {
             $user->setPseudo($pseudo);
         }
+
+        $faceDescriptorRaw = trim((string) $form->get('faceDescriptor')->getData());
+        $faceDescriptor = $this->parseFaceDescriptor($faceDescriptorRaw, $form);
+        $user->setFaceDescriptor($faceDescriptor);
+    }
+
+    /**
+     * @return list<float>|null
+     */
+    private function parseFaceDescriptor(string $rawDescriptor, FormInterface $form): ?array
+    {
+        if ($rawDescriptor === '') {
+            return null;
+        }
+
+        try {
+            $decoded = json_decode($rawDescriptor, true, flags: JSON_THROW_ON_ERROR);
+        } catch (\JsonException) {
+            $form->get('faceDescriptor')->addError(new FormError('Les donnees Face ID sont invalides.'));
+
+            return null;
+        }
+
+        if (!is_array($decoded) || $decoded === []) {
+            $form->get('faceDescriptor')->addError(new FormError('Les donnees Face ID sont invalides.'));
+
+            return null;
+        }
+
+        if (count($decoded) !== 128) {
+            $form->get('faceDescriptor')->addError(new FormError('Le vecteur Face ID doit contenir 128 valeurs.'));
+
+            return null;
+        }
+
+        $vector = [];
+        foreach ($decoded as $value) {
+            if (!is_int($value) && !is_float($value)) {
+                $form->get('faceDescriptor')->addError(new FormError('Le vecteur Face ID contient des valeurs invalides.'));
+
+                return null;
+            }
+
+            $floatValue = (float) $value;
+            if (!is_finite($floatValue) || abs($floatValue) > 10.0) {
+                $form->get('faceDescriptor')->addError(new FormError('Le vecteur Face ID contient des valeurs invalides.'));
+
+                return null;
+            }
+
+            $vector[] = $floatValue;
+        }
+
+        return $vector;
     }
 }

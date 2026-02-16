@@ -1,0 +1,63 @@
+{% if commandes %}
+    <div class="admin-tournament-table">
+        <table data-table="orders">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for commande in commandes %}
+                <tr class="admin-tournament-row">
+                    <td>{{ commande.id }}</td>
+                    <td>{{ commande.nom }}</td>
+                    <td>{{ commande.prenom }}</td>
+                    <td>
+                        {% if commande.statut == 'paid' %}
+                            <span class="badge badge-success">Validée</span>
+                        {% elseif commande.statut == 'pending' or commande.statut == 'pending_payment' %}
+                            <span class="badge badge-warn">En cours</span>
+                        {% elseif commande.statut == 'cancelled' %}
+                            <span class="badge badge-danger">Annulée</span>
+                        {% else %}
+                            <span class="badge badge-info">{{ commande.statut }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="admin-tournament-row-actions">
+                            <a href="{{ path('admin_order_show', {'id': commande.id}) }}" class="admin-tournament-icon" title="Voir">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ path('admin_order_edit', {'id': commande.id}) }}" class="admin-tournament-icon cyan" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            {% if commande.statut == 'cancelled' %}
+                                <form action="{{ path('admin_order_delete', {'id': commande.id}) }}" method="post" onsubmit="return confirm('Supprimer cette commande ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_order' ~ commande.id) }}">
+                                    <button type="submit" class="admin-tournament-icon danger" title="Supprimer">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            {% else %}
+                                <span class="admin-tournament-icon danger disabled" title="Suppression indisponible">
+                                    <i class="fas fa-trash"></i>
+                                </span>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="admin-tournament-empty">
+        <div class="empty-ring"></div>
+        <strong>Aucune commande trouvée</strong>
+        <p>Ajustez votre recherche ou vos filtres.</p>
+    </div>
+{% endif %}

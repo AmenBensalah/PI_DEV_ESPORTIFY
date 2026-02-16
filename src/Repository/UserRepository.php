@@ -77,4 +77,15 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @return User[]
+     */
+    public function findUsersWithFaceDescriptor(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.faceDescriptor IS NOT NULL')
+            ->getQuery()
+            ->getResult();
+    }
 }

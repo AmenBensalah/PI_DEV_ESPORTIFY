@@ -40,4 +40,86 @@ class PaymentRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+
+    /**
+     * @return Payment[]
+     */
+    public function searchAndSort(
+        ?string $query,
+        ?string $status = null,
+        string $sortField = 'id',
+        string $sortDirection = 'DESC'
+    ): array {
+        $qb = $this->createQueryBuilder('p')
+            ->leftJoin('p.commande', 'c')
+            ->addSelect('c');
+
+        $normalizedQuery = trim((string) $query);
+        if ($normalizedQuery !== '') {
+            $queryExpr = $qb->expr()->orX(
+                $qb->expr()->like('LOWER(p.status)', ':query')
+            );
+
+            if (ctype_digit($normalizedQuery)) {
+                $queryExpr->add($qb->expr()->eq('p.id', ':queryInt'));
+                $queryExpr->add($qb->expr()->eq('c.id', ':queryCommandeId'));
+
+                $qb->setParameter('queryInt', (int) $normalizedQuery);
+                $qb->setParameter('queryCommandeId', (int) $normalizedQuery);
+            }
+
+            if (is_numeric($normalizedQuery)) {
+                $queryExpr->add($qb->expr()->eq('p.amount', ':queryAmount'));
+                $qb->setParameter('queryAmount', (float) $normalizedQuery);
+            }
+
+            $qb->andWhere($queryExpr)
+                ->setParameter('query', '%' . mb_strtolower($normalizedQuery) . '%');
+        }
+
+        $normalizedStatus = mb_strtolower(trim((string) $status));
+        if ($normalizedStatus !== '') {
+            if ($normalizedStatus === 'succeeded') {
+                $qb->andWhere($qb->expr()->orX(
+                    $qb->expr()->like('LOWER(p.status)', ':statusSuccess'),
+                    $qb->expr()->like('LOWER(p.status)', ':statusSucceeded'),
+                    $qb->expr()->like('LOWER(p.status)', ':statusPaid')
+                ));
+                $qb->setParameter('statusSuccess', '%success%');
+                $qb->setParameter('statusSucceeded', '%succeeded%');
+                $qb->setParameter('statusPaid', '%paid%');
+            } elseif ($normalizedStatus === 'failed') {
+                $qb->andWhere($qb->expr()->orX(
+                    $qb->expr()->like('LOWER(p.status)', ':statusFailed'),
+                    $qb->expr()->like('LOWER(p.status)', ':statusCancelled')
+                ));
+                $qb->setParameter('statusFailed', '%failed%');
+                $qb->setParameter('statusCancelled', '%cancel%');
+            } elseif ($normalizedStatus === 'pending') {
+                $qb->andWhere('LOWER(p.status) LIKE :statusPending')
+                    ->setParameter('statusPending', '%pending%');
+            } else {
+                $qb->andWhere('LOWER(p.status) = :status')
+                    ->setParameter('status', $normalizedStatus);
+            }
+        }
+
+        $sortMap = [
+            'id' => 'p.id',
+            'montant' => 'p.amount',
+            'date' => 'p.createdAt',
+            'status' => 'p.status',
+            'commande' => 'c.id',
+        ];
+
+        $sortExpression = $sortMap[$sortField] ?? 'p.id';
+        $direction = strtoupper($sortDirection) === 'ASC' ? 'ASC' : 'DESC';
+
+        $qb->orderBy($sortExpression, $direction);
+        if ($sortExpression !== 'p.id') {
+            $qb->addOrderBy('p.id', 'DESC');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

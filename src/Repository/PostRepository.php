@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Post;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -80,6 +81,22 @@ class PostRepository extends ServiceEntityRepository
         $qb->orderBy($sortMap[$sort] ?? 'p.createdAt', $direction)->addOrderBy('p.id', 'DESC');
 
         return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * @return Post[]
+     */
+    public function findRecentByAuthorWithMedias(User $author, int $limit = 20): array
+    {
+        return $this->createQueryBuilder('p')
+            ->leftJoin('p.medias', 'm')->addSelect('m')
+            ->andWhere('p.author = :author')
+            ->setParameter('author', $author)
+            ->orderBy('p.createdAt', 'DESC')
+            ->addOrderBy('p.id', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
     }
 
     //    /**

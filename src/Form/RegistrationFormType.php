@@ -6,6 +6,7 @@ use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -36,6 +37,11 @@ class RegistrationFormType extends AbstractType
                         'mimeTypesMessage' => 'Le fichier doit être une image valide (jpg, png, webp, gif).',
                     ]),
                 ],
+            ])
+            ->add('faceDescriptor', HiddenType::class, [
+                'mapped' => false,
+                'required' => false,
+                'empty_data' => '',
             ])
             ->add('agreeTerms', CheckboxType::class, [
                 'mapped' => false,

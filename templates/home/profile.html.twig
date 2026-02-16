@@ -67,6 +67,142 @@
             <a href="{{ path('fil_home') }}"><i class="fas fa-arrow-left"></i> Retour a l'accueil</a>
         </div>
     </div>
+
+    <div class="profile-social-grid">
+        <aside class="profile-side-stack">
+            <article class="profile-card profile-team-card">
+                <div class="profile-team-headline">
+                    <h3 class="profile-section-title"><i class="fas fa-users"></i> Mon equipe</h3>
+                </div>
+
+                {% if team %}
+                    <div class="profile-team-head">
+                        <div class="profile-team-logo">
+                            {% if team.logo %}
+                                <img src="{{ asset('uploads/equipes/' ~ team.logo) }}" alt="Logo {{ team.nomEquipe }}">
+                            {% else %}
+                                <i class="fas fa-shield-halved"></i>
+                            {% endif %}
+                        </div>
+                        <div class="profile-team-meta">
+                            <strong>{{ team.nomEquipe }}</strong>
+                            <span>{{ team.tag ? '#' ~ team.tag : 'Sans tag' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-team-badges">
+                        <span class="profile-chip">{{ teamRole == 'manager' ? 'Manager' : 'Membre' }}</span>
+                        {% if team.region %}
+                            <span class="profile-chip">{{ team.region }}</span>
+                        {% endif %}
+                        {% if team.classement %}
+                            <span class="profile-chip">{{ team.classement }}</span>
+                        {% endif %}
+                    </div>
+
+                    {% if team.description %}
+                        <p class="profile-team-description">
+                            {{ team.description|length > 180 ? team.description|slice(0, 180) ~ '...' : team.description }}
+                        </p>
+                    {% endif %}
+
+                    <a href="{{ path('app_equipes_show', {id: team.id}) }}" class="profile-btn">
+                        <i class="fas fa-arrow-up-right-from-square"></i> Voir mon equipe
+                    </a>
+                {% else %}
+                    <div class="profile-team-empty">
+                        <i class="fas fa-user-plus"></i>
+                        <p>Tu n'appartiens a aucune equipe pour le moment.</p>
+                        <a href="{{ path('app_equipes_index') }}" class="profile-btn ghost">
+                            <i class="fas fa-magnifying-glass"></i> Trouver une equipe
+                        </a>
+                    </div>
+                {% endif %}
+            </article>
+        </aside>
+
+        <section class="profile-card profile-posts-card">
+            <div class="profile-posts-head">
+                <h3 class="profile-section-title"><i class="fas fa-newspaper"></i> Mes publications</h3>
+                <span class="profile-post-count">{{ posts|length }} publication{{ posts|length > 1 ? 's' : '' }}</span>
+            </div>
+
+            {% if posts is empty %}
+                <div class="profile-post-empty">
+                    <i class="fas fa-pen-to-square"></i>
+                    <p>Tu n'as pas encore publie. Cree ton premier post depuis le fil d'actualite.</p>
+                    <a href="{{ path('fil_home') }}" class="profile-btn ghost">Aller au fil</a>
+                </div>
+            {% else %}
+                <div class="profile-post-list">
+                    {% for post in posts %}
+                        <article class="glass-card post-card profile-post-item {{ post.isEvent ? 'event-card' : '' }}" id="profile-post-{{ post.id }}">
+                            <div class="post-header">
+                                <div class="avatar">
+                                    {% if user.avatar %}
+                                        <img src="{{ asset('uploads/avatars/' ~ user.avatar) }}" alt="Avatar">
+                                    {% else %}
+                                        {{ user.pseudo|default(user.nom)|default(user.email)|first|upper }}
+                                    {% endif %}
+                                </div>
+                                <div class="post-meta">
+                                    <div class="post-author">{{ user.pseudo|default(user.nom) }}</div>
+                                    <div class="post-time">
+                                        {{ post.createdAt ? post.createdAt|date('d/m/Y H:i') : 'Maintenant' }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if post.isEvent %}
+                                <div class="event-header">
+                                    <div class="event-date">
+                                        {{ post.eventDate ? post.eventDate|date('d/m/Y H:i') : 'A confirmer' }}
+                                    </div>
+                                    <div class="event-title">{{ post.eventTitle ? post.eventTitle|upper : 'EVENEMENT' }}</div>
+                                    {% if post.eventLocation %}
+                                        <div class="event-location"><i class="fas fa-location-dot"></i> {{ post.eventLocation }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+
+                            {% if post.content %}
+                                <div class="post-content">{{ post.content }}</div>
+                            {% endif %}
+
+                            {% if post.medias|length > 0 %}
+                                {% set media = post.medias|first %}
+                                {% set mediaUrl = media.path starts with 'http' ? media.path : asset('uploads/' ~ media.path) %}
+                                <div class="post-media">
+                                    {% if media.type == 'video' %}
+                                        <video controls playsinline preload="metadata">
+                                            <source src="{{ mediaUrl }}">
+                                        </video>
+                                    {% else %}
+                                        <img src="{{ mediaUrl }}" alt="media">
+                                    {% endif %}
+                                </div>
+                            {% elseif post.imagePath %}
+                                <div class="post-media">
+                                    <img src="{{ asset(post.imagePath starts with 'http' ? post.imagePath : 'uploads/' ~ post.imagePath) }}" alt="media">
+                                </div>
+                            {% elseif post.videoUrl %}
+                                <div class="post-media">
+                                    <a class="media-placeholder" href="{{ post.videoUrl }}" target="_blank" rel="noopener">Voir la video</a>
+                                </div>
+                            {% endif %}
+
+                            <div class="profile-post-footer">
+                                <span class="profile-chip">{{ post.isEvent ? 'Evenement' : 'Publication' }}</span>
+                                <a href="{{ path('fil_home') }}#post-{{ post.id }}" class="profile-btn ghost profile-btn-sm">
+                                    <i class="fas fa-link"></i> Voir dans le fil
+                                </a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </section>
+    </div>
 </section>
 
 <div id="deleteModal" class="profile-modal" style="display: none;">

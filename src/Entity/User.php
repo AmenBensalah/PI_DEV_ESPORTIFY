@@ -51,6 +51,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $avatar = null;
 
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $faceDescriptor = null;
+
     /**
      * @var Collection<int, Candidature>
      */
@@ -230,6 +233,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setAvatar(?string $avatar): static
     {
         $this->avatar = $avatar;
+
+        return $this;
+    }
+
+    /**
+     * @return list<float>|null
+     */
+    public function getFaceDescriptor(): ?array
+    {
+        return $this->faceDescriptor;
+    }
+
+    /**
+     * @param list<float>|null $faceDescriptor
+     */
+    public function setFaceDescriptor(?array $faceDescriptor): static
+    {
+        $this->faceDescriptor = $faceDescriptor;
 
         return $this;
     }

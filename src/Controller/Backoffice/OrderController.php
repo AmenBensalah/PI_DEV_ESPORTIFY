@@ -17,20 +17,25 @@ class OrderController extends AbstractController
     #[Route('/', name: 'admin_order_index', methods: ['GET'])]
     public function index(CommandeRepository $commandeRepository, Request $request): Response
     {
-        $searchProduit = trim((string) $request->query->get('produit', ''));
-        $commandesRecherchees = [];
-        if ($searchProduit !== '') {
-            $commandesRecherchees = $commandeRepository->findByProduitNomLike($searchProduit);
-            if (!$commandesRecherchees) {
-                $this->addFlash('error', 'Aucune commande pour ce produit.');
-            }
+        $query = trim((string) $request->query->get('q', ''));
+        $status = trim((string) $request->query->get('status', ''));
+        $sort = trim((string) $request->query->get('sort', 'id'));
+        $direction = strtoupper(trim((string) $request->query->get('direction', 'DESC'))) === 'ASC' ? 'ASC' : 'DESC';
+
+        $commandes = $commandeRepository->searchAndSort($query, $status, $sort, $direction);
+
+        if ($request->isXmlHttpRequest() || $request->query->getBoolean('ajax')) {
+            return $this->render('backoffice/order/_table.html.twig', [
+                'commandes' => $commandes,
+            ]);
         }
 
         return $this->render('backoffice/order/index.html.twig', [
-            'commandes' => $commandeRepository->findAll(),
-            'commandes_recherchees' => $commandesRecherchees,
-            'search_produit' => $searchProduit,
-            'commande_counts' => $commandeRepository->countByStatut(),
+            'commandes' => $commandes,
+            'currentQuery' => $query,
+            'currentStatus' => $status,
+            'currentSort' => $sort,
+            'currentDirection' => $direction,
         ]);
     }
 

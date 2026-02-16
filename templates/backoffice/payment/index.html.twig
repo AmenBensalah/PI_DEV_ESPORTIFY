@@ -20,10 +20,10 @@
 
 <section class="admin-tournament-shell">
     <div class="admin-tournament-tabs">
-        <a href="#" class="tab active" data-status="">Tous</a>
-        <a href="#" class="tab" data-status="succeeded">Validés</a>
-        <a href="#" class="tab" data-status="pending">En attente</a>
-        <a href="#" class="tab" data-status="failed">Échoués</a>
+        <a href="#" class="tab {{ currentStatus is empty ? 'active' : '' }}" data-status="">Tous</a>
+        <a href="#" class="tab {{ currentStatus == 'succeeded' ? 'active' : '' }}" data-status="succeeded">Validés</a>
+        <a href="#" class="tab {{ currentStatus == 'pending' ? 'active' : '' }}" data-status="pending">En attente</a>
+        <a href="#" class="tab {{ currentStatus == 'failed' ? 'active' : '' }}" data-status="failed">Échoués</a>
     </div>
 
     <div class="admin-tournament-panel">
@@ -31,18 +31,18 @@
             <i class="fas fa-search"></i>
             Recherche avancée
         </div>
-        <form class="admin-tournament-form" data-filter-form>
+        <form method="GET" action="{{ path('admin_payment_index') }}" class="admin-tournament-form" data-payments-form>
             <div class="field">
                 <label>Recherche</label>
-                <input type="text" name="q" placeholder="ID, commande, statut...">
+                <input type="text" name="q" placeholder="ID, commande, statut..." value="{{ currentQuery|default('') }}">
             </div>
             <div class="field">
                 <label>Statut</label>
                 <select name="status">
                     <option value="">-- Tous --</option>
-                    <option value="succeeded">Validé</option>
-                    <option value="pending">En attente</option>
-                    <option value="failed">Échoué</option>
+                    <option value="succeeded" {% if currentStatus == 'succeeded' %}selected{% endif %}>Validé</option>
+                    <option value="pending" {% if currentStatus == 'pending' %}selected{% endif %}>En attente</option>
+                    <option value="failed" {% if currentStatus == 'failed' %}selected{% endif %}>Échoué</option>
                 </select>
             </div>
             <div class="admin-tournament-actions">
@@ -57,12 +57,12 @@
 
         <div class="admin-tournament-sort">
             <span>Trier :</span>
-            <a href="#" data-sort="id:desc">ID ↓</a>
-            <a href="#" data-sort="id:asc">ID ↑</a>
-            <a href="#" data-sort="montant:desc">Montant ↓</a>
-            <a href="#" data-sort="montant:asc">Montant ↑</a>
-            <a href="#" data-sort="date:desc">Date ↓</a>
-            <a href="#" data-sort="date:asc">Date ↑</a>
+            <a href="#" data-sort="id:DESC" class="{{ currentSort == 'id' and currentDirection == 'DESC' ? 'active' : '' }}">ID ↓</a>
+            <a href="#" data-sort="id:ASC" class="{{ currentSort == 'id' and currentDirection == 'ASC' ? 'active' : '' }}">ID ↑</a>
+            <a href="#" data-sort="montant:DESC" class="{{ currentSort == 'montant' and currentDirection == 'DESC' ? 'active' : '' }}">Montant ↓</a>
+            <a href="#" data-sort="montant:ASC" class="{{ currentSort == 'montant' and currentDirection == 'ASC' ? 'active' : '' }}">Montant ↑</a>
+            <a href="#" data-sort="date:DESC" class="{{ currentSort == 'date' and currentDirection == 'DESC' ? 'active' : '' }}">Date ↓</a>
+            <a href="#" data-sort="date:ASC" class="{{ currentSort == 'date' and currentDirection == 'ASC' ? 'active' : '' }}">Date ↑</a>
         </div>
     </div>
 
@@ -72,149 +72,153 @@
         </div>
     {% endfor %}
 
-    <div class="admin-tournament-table">
-        <table data-table="payments">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Commande</th>
-                    <th>Montant</th>
-                    <th>Statut</th>
-                    <th>Date</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for payment in payments %}
-                <tr class="admin-tournament-row"
-                    data-search="{{ payment.id }} {{ payment.commande.id }} {{ payment.amount }} {{ payment.status }} {{ payment.createdAt|date('Y-m-d H:i') }}"
-                    data-id="{{ payment.id }}"
-                    data-montant="{{ payment.amount }}"
-                    data-statut="{{ payment.status }}"
-                    data-date="{{ payment.createdAt ? payment.createdAt|date('YmdHis') : '' }}">
-                    <td>{{ payment.id }}</td>
-                    <td>{{ payment.commande.id }}</td>
-                    <td>{{ payment.amount / 100 }} EUR</td>
-                    <td>
-                        {% if payment.status matches '/success|succeeded|paid/' %}
-                            <span class="badge badge-success">Validé</span>
-                        {% elseif payment.status matches '/pending/' %}
-                            <span class="badge badge-warn">En attente</span>
-                        {% elseif payment.status matches '/failed|cancel/' %}
-                            <span class="badge badge-danger">Échoué</span>
-                        {% else %}
-                            <span class="badge badge-info">{{ payment.status }}</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ payment.createdAt|date('d/m/Y H:i') }}</td>
-                    <td>
-                        <div class="admin-tournament-row-actions">
-                            <a href="{{ path('admin_payment_show', {'id': payment.id}) }}" class="admin-tournament-icon" title="Voir">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <span class="admin-tournament-icon cyan disabled" title="Modification indisponible">
-                                <i class="fas fa-edit"></i>
-                            </span>
-                            <span class="admin-tournament-icon danger disabled" title="Suppression indisponible">
-                                <i class="fas fa-trash"></i>
-                            </span>
-                        </div>
-                    </td>
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="6">Aucun paiement</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+    <div id="admin-payments-results" data-sort="{{ currentSort|default('id') }}" data-direction="{{ currentDirection|default('DESC') }}">
+        {% include 'backoffice/payment/_table.html.twig' with { payments: payments } %}
     </div>
 </section>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const form = document.querySelector('[data-filter-form]');
-        const tabs = document.querySelectorAll('.admin-tournament-tabs .tab');
-        const rows = Array.from(document.querySelectorAll('[data-table=\"payments\"] tbody tr'));
-        const sortLinks = document.querySelectorAll('.admin-tournament-sort a[data-sort]');
+(() => {
+    const form = document.querySelector('[data-payments-form]');
+    const queryInput = form?.querySelector('input[name="q"]');
+    const statusSelect = form?.querySelector('select[name="status"]');
+    const tabs = document.querySelectorAll('.admin-tournament-tabs .tab');
+    const sortLinks = document.querySelectorAll('.admin-tournament-sort a[data-sort]');
+    const results = document.getElementById('admin-payments-results');
+    if (!form || !queryInput || !statusSelect || !results) {
+        return;
+    }
 
-        const applyFilters = () => {
-            const formData = new FormData(form);
-            const query = (formData.get('q') || '').toLowerCase();
-            const status = (formData.get('status') || '').toLowerCase();
+    let debounceTimer = null;
+    let currentRequest = null;
 
-            rows.forEach(row => {
-                const search = (row.dataset.search || '').toLowerCase();
-                const rowStatus = (row.dataset.statut || '').toLowerCase();
-                const matchesQuery = !query || search.includes(query);
-                const matchesStatus = !status || rowStatus.includes(status);
-                row.style.display = matchesQuery && matchesStatus ? '' : 'none';
-            });
-        };
+    const updateSortActive = () => {
+        const current = `${results.dataset.sort || 'id'}:${(results.dataset.direction || 'DESC').toUpperCase()}`;
+        sortLinks.forEach((link) => {
+            link.classList.toggle('active', (link.dataset.sort || '').toUpperCase() === current);
+        });
+    };
 
-        const applySort = (field, direction) => {
-            const tbody = rows[0] ? rows[0].closest('tbody') : null;
-            if (!tbody) {
-                return;
-            }
-            const sorted = rows.slice().sort((a, b) => {
-                let aVal = '';
-                let bVal = '';
-                if (field === 'id') {
-                    aVal = parseInt(a.dataset.id || '0', 10);
-                    bVal = parseInt(b.dataset.id || '0', 10);
-                    return direction === 'asc' ? aVal - bVal : bVal - aVal;
-                }
-                if (field === 'montant') {
-                    aVal = parseInt(a.dataset.montant || '0', 10);
-                    bVal = parseInt(b.dataset.montant || '0', 10);
-                    return direction === 'asc' ? aVal - bVal : bVal - aVal;
-                }
-                if (field === 'date') {
-                    aVal = a.dataset.date || '';
-                    bVal = b.dataset.date || '';
-                    return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-                }
-                return 0;
-            });
-            sorted.forEach(row => tbody.appendChild(row));
-        };
+    const updateTabsActive = () => {
+        const currentStatus = (statusSelect.value || '').toLowerCase();
+        tabs.forEach((tab) => {
+            tab.classList.toggle('active', (tab.dataset.status || '').toLowerCase() === currentStatus);
+        });
+    };
 
-        if (form) {
-            form.addEventListener('submit', (event) => {
-                event.preventDefault();
-                applyFilters();
-            });
-            form.addEventListener('reset', () => {
-                setTimeout(() => {
-                    tabs.forEach(tab => tab.classList.remove('active'));
-                    if (tabs[0]) {
-                        tabs[0].classList.add('active');
-                    }
-                    applyFilters();
-                }, 0);
-            });
+    const buildUrl = (includeAjax = true) => {
+        const params = new URLSearchParams();
+        const query = queryInput.value.trim();
+        const status = statusSelect.value;
+        const sort = results.dataset.sort || 'id';
+        const direction = (results.dataset.direction || 'DESC').toUpperCase();
+
+        if (query !== '') {
+            params.set('q', query);
+        }
+        if (status !== '') {
+            params.set('status', status);
+        }
+        params.set('sort', sort);
+        params.set('direction', direction);
+        if (includeAjax) {
+            params.set('ajax', '1');
         }
 
-        tabs.forEach(tab => {
-            tab.addEventListener('click', (event) => {
-                event.preventDefault();
-                tabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                if (form) {
-                    form.querySelector('select[name=\"status\"]').value = tab.dataset.status || '';
-                    applyFilters();
+        return `${form.action || window.location.pathname}?${params.toString()}`;
+    };
+
+    const updateBrowserUrl = () => {
+        const cleanUrl = buildUrl(false);
+        const cleanParams = cleanUrl.split('?')[1] || '';
+        if (cleanParams === '') {
+            window.history.replaceState({}, '', window.location.pathname);
+            return;
+        }
+        window.history.replaceState({}, '', cleanUrl);
+    };
+
+    const fetchResults = () => {
+        if (currentRequest) {
+            currentRequest.abort();
+        }
+
+        const controller = new AbortController();
+        currentRequest = controller;
+        results.classList.add('is-loading');
+
+        fetch(buildUrl(true), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            signal: controller.signal,
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Request failed');
+                }
+                return response.text();
+            })
+            .then((html) => {
+                results.innerHTML = html;
+                results.classList.remove('is-loading');
+                updateSortActive();
+                updateTabsActive();
+                updateBrowserUrl();
+            })
+            .catch((error) => {
+                if (error.name !== 'AbortError') {
+                    results.classList.remove('is-loading');
                 }
             });
-        });
+    };
 
-        sortLinks.forEach(link => {
-            link.addEventListener('click', (event) => {
-                event.preventDefault();
-                const [field, direction] = (link.dataset.sort || '').split(':');
-                applySort(field, direction);
-            });
+    const scheduleFetch = () => {
+        window.clearTimeout(debounceTimer);
+        debounceTimer = window.setTimeout(fetchResults, 250);
+    };
+
+    queryInput.addEventListener('input', scheduleFetch);
+    statusSelect.addEventListener('change', fetchResults);
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        fetchResults();
+    });
+    form.addEventListener('reset', () => {
+        window.setTimeout(() => {
+            results.dataset.sort = 'id';
+            results.dataset.direction = 'DESC';
+            statusSelect.value = '';
+            updateSortActive();
+            updateTabsActive();
+            fetchResults();
+        }, 0);
+    });
+
+    tabs.forEach((tab) => {
+        tab.addEventListener('click', (event) => {
+            event.preventDefault();
+            statusSelect.value = tab.dataset.status || '';
+            updateTabsActive();
+            fetchResults();
         });
     });
+
+    sortLinks.forEach((link) => {
+        link.addEventListener('click', (event) => {
+            event.preventDefault();
+            const [field, direction] = (link.dataset.sort || '').split(':');
+            if (!field || !direction) {
+                return;
+            }
+
+            results.dataset.sort = field;
+            results.dataset.direction = direction.toUpperCase();
+            updateSortActive();
+            fetchResults();
+        });
+    });
+
+    updateSortActive();
+    updateTabsActive();
+})();
 </script>
 {% endblock %}
