@@ -13,8 +13,21 @@
             <span class="meta-chip"><i class="fas fa-clock"></i> {{ generatedAt|date('d/m/Y H:i') }}</span>
             <a href="{{ path('admin_users') }}" class="meta-chip action"><i class="fas fa-user-gear"></i> Comptes</a>
             <a href="{{ path('fil_admin_post_index') }}" class="meta-chip action"><i class="fas fa-newspaper"></i> Fil</a>
+            <form method="post" action="{{ path('admin_user_ai_retrain') }}" class="meta-inline-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_user_ai_retrain') }}">
+                <button type="submit" class="meta-chip action meta-chip-btn">
+                    <i class="fas fa-robot"></i> Retrain User AI
+                </button>
+            </form>
         </div>
     </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="holo-flash holo-flash-success"><i class="fas fa-check-circle"></i> {{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="holo-flash holo-flash-error"><i class="fas fa-triangle-exclamation"></i> {{ message }}</div>
+    {% endfor %}
 
     <div class="kpi-grid">
         <article class="kpi-card">
@@ -239,6 +252,32 @@
 .meta-chip.action:hover {
     border-color: rgba(46, 247, 177, 0.6);
     color: #b9ffe8;
+}
+.meta-inline-form {
+    margin: 0;
+}
+.meta-chip-btn {
+    cursor: pointer;
+    font: inherit;
+}
+.holo-flash {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    font-size: 13px;
+}
+.holo-flash-success {
+    border: 1px solid rgba(46, 247, 177, 0.45);
+    background: rgba(46, 247, 177, 0.14);
+    color: #d5ffef;
+}
+.holo-flash-error {
+    border: 1px solid rgba(255, 107, 107, 0.45);
+    background: rgba(255, 107, 107, 0.14);
+    color: #ffe2e2;
 }
 .kpi-grid {
     display: grid;
