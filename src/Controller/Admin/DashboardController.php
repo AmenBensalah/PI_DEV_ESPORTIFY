@@ -22,6 +22,7 @@ use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Process\Process;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -215,6 +216,42 @@ class DashboardController extends AbstractController
             ],
             'generatedAt' => $now,
         ]);
+    }
+
+    #[Route('/admin/user-ai/retrain', name: 'admin_user_ai_retrain', methods: ['POST'])]
+    public function retrainUserAi(Request $request): Response
+    {
+        $token = (string) $request->request->get('_token', '');
+        if (!$this->isCsrfTokenValid('admin_user_ai_retrain', $token)) {
+            $this->addFlash('error', 'Jeton CSRF invalide. Reessayez.');
+            return $this->redirectToRoute('admin_dashboard');
+        }
+
+        $projectDir = (string) $this->getParameter('kernel.project_dir');
+        $php = (defined('PHP_BINARY') && is_string(PHP_BINARY) && PHP_BINARY !== '') ? PHP_BINARY : 'php';
+
+        $process = new Process([
+            $php,
+            $projectDir . '/bin/console',
+            'app:user-ai:train',
+            '--no-interaction',
+        ]);
+        $process->setTimeout(300);
+        $process->run();
+
+        $combinedOutput = trim($process->getOutput() . "\n" . $process->getErrorOutput());
+        $combinedOutput = preg_replace('/\s+/', ' ', $combinedOutput ?? '') ?? '';
+        if (strlen($combinedOutput) > 220) {
+            $combinedOutput = substr($combinedOutput, 0, 220) . '...';
+        }
+
+        if ($process->isSuccessful()) {
+            $this->addFlash('success', 'User AI retrain termine. ' . ($combinedOutput !== '' ? $combinedOutput : 'OK.'));
+        } else {
+            $this->addFlash('error', 'Echec du retrain User AI. ' . ($combinedOutput !== '' ? $combinedOutput : 'Consultez les logs.'));
+        }
+
+        return $this->redirectToRoute('admin_dashboard');
     }
 
     /**

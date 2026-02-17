@@ -2,6 +2,11 @@
 
 {% block title %}Mon Profil - E-Sportify{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/user-performance-ai.css') }}">
+{% endblock %}
+
 {% block body %}
 <section class="profile-hero">
     <div class="profile-hero-inner">
@@ -67,6 +72,12 @@
             <a href="{{ path('fil_home') }}"><i class="fas fa-arrow-left"></i> Retour a l'accueil</a>
         </div>
     </div>
+
+    <section class="profile-card user-ai-card" data-user-performance-ai data-endpoint="{{ path('app_api_profile_performance_ai') }}">
+        <div class="user-ai-loading">
+            <i class="fas fa-spinner fa-spin"></i> Chargement de la performance IA...
+        </div>
+    </section>
 
     <div class="profile-social-grid">
         <aside class="profile-side-stack">
@@ -236,4 +247,9 @@
         if (e.target === this) closeDeleteModal();
     });
 </script>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/user-performance-ai.js') }}"></script>
 {% endblock %}
