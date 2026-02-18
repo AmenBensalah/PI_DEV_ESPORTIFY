@@ -16,6 +16,38 @@
     <div class="product-detail-grid">
         <div class="product-media-card">
             <img src="{{ produit.image starts with 'http' ? produit.image : asset(produit.image) }}" alt="{{ produit.nom }}" onerror="this.src='https://placehold.co/600x400?text=Produit'">
+            
+            {# SCAN & INSTALL WIDGET #}
+            <div class="scan-install-widget">
+                <div class="scan-header">
+                    <div class="scan-icon-wrap">
+                        <i class="fas fa-qrcode"></i>
+                        <div class="scan-line"></div>
+                    </div>
+                    <div class="scan-text">
+                        <h4>Scanner pour Installation</h4>
+                        <p>Tutoriel vidéo pas à pas</p>
+                    </div>
+                </div>
+                
+                {% set video_url = produit.videoUrl|default('https://www.youtube.com/results?search_query=how+to+install+' ~ produit.nom|url_encode) %}
+                <a href="{{ video_url }}" target="_blank" class="scan-action-btn">
+                     <i class="fab fa-youtube"></i> Voir le Guide Video
+                </a>
+
+                {% if produit.installDifficulty %}
+                    <div class="difficulty-indicator">
+                        <span>Difficulté:</span>
+                        <div class="diff-dots">
+                            {% set diff_count = (produit.installDifficulty == 'Hard' ? 3 : (produit.installDifficulty == 'Medium' ? 2 : 1)) %}
+                            {% for i in 1..3 %}
+                                <div class="dot {{ i <= diff_count ? 'active ' ~ produit.installDifficulty|lower : '' }}"></div>
+                            {% endfor %}
+                        </div>
+                        <span class="diff-label">{{ produit.installDifficulty }}</span>
+                    </div>
+                {% endif %}
+            </div>
         </div>
 
         <div class="product-info-card">
@@ -26,10 +58,29 @@
                 {% elseif produit.stock < 5 %}
                     <span class="badge badge-warning">Derniers</span>
                 {% endif %}
+                <span class="badge badge-success"><i class="fas fa-microchip"></i> Hardware Certifié</span>
             </div>
 
             <h2 class="product-title">{{ produit.nom }}</h2>
             <div class="product-price">{{ produit.prix|number_format(2, '.', ' ') }} €</div>
+            
+            {# TECHNICAL SPECS TABLE #}
+            {% if produit.technicalSpecs %}
+                <div class="technical-specs-wrap">
+                    <h5><i class="fas fa-list-check"></i> Fiche Technique</h5>
+                    <div class="specs-grid">
+                        {% for line in produit.technicalSpecs|split('\n') %}
+                            {% if ':' in line %}
+                                {% set part = line|split(':') %}
+                                <div class="spec-row">
+                                    <span class="spec-label">{{ part[0]|trim }}</span>
+                                    <span class="spec-value">{{ part[1]|trim }}</span>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
 
             <div class="product-status {{ produit.stock == 0 ? 'out' : 'in' }}">
                 <i class="fa-solid fa-circle"></i>
@@ -56,41 +107,95 @@
         </div>
     </div>
 
-    {# PRODUITS RELIÉS (Item-to-Item AI) #}
+    {# BUNDLE IA : Frequently Bought Together #}
     {% if related_products is defined and related_products|length > 0 %}
     <div class="recommendations-section related-section">
         <div class="recommendations-header">
             <div class="recommendations-title">
-                <i class="fas fa-link"></i>
-                <h2>Produits souvent achetés avec</h2>
+                <i class="fas fa-layer-group"></i>
+                <h2>Acheté fréquemment ensemble</h2>
             </div>
             <p class="recommendations-subtitle">
-                <i class="fas fa-microchip"></i> Analyse IA des relations produits
+                <i class="fas fa-robot"></i> Pack suggéré par l'IA d'E-Sportify
             </p>
         </div>
-        <div class="recommendations-grid">
-            {% for p in related_products %}
-                {% if p.id != produit.id %}
-                <a href="{{ path('app_front_produit_show', {id: p.id}) }}" class="rec-card related-card">
-                    <div class="rec-badge related-badge">
-                        <i class="fas fa-project-diagram"></i> Relié
+
+        <div class="bundle-ia-container">
+            <div class="bundle-ia-flow">
+                {# Current Product #}
+                <div class="bundle-ia-item main">
+                    <img src="{{ produit.image starts with 'http' ? produit.image : asset(produit.image) }}" alt="{{ produit.nom }}">
+                    <div class="item-info">
+                        <span class="p-name">{{ produit.nom }}</span>
+                        <span class="p-price">{{ produit.prix }} €</span>
                     </div>
-                    {% if p.image %}
-                        <img src="{{ p.image starts with 'http' ? p.image : asset(p.image) }}" alt="{{ p.nom }}" class="rec-img">
-                    {% else %}
-                        <div class="rec-img-placeholder">
-                            <i class="fas fa-box"></i>
+                </div>
+
+                <div class="bundle-ia-plus"><i class="fas fa-plus"></i></div>
+
+                {# Related products list #}
+                <div class="bundle-ia-related">
+                    {% set bundle_total = produit.prix %}
+                    {% for p in related_products %}
+                        {% set bundle_total = bundle_total + p.prix %}
+                        <div class="bundle-ia-item">
+                            <img src="{{ p.image starts with 'http' ? p.image : asset(p.image) }}" alt="{{ p.nom }}">
+                            <div class="item-info">
+                                <span class="p-name">{{ p.nom }}</span>
+                                <span class="p-price">{{ p.prix }} €</span>
+                            </div>
                         </div>
-                    {% endif %}
-                    <div class="rec-content">
-                        <h3>{{ p.nom }}</h3>
-                        <div class="rec-price">{{ p.prix|number_format(2, '.', ' ') }} €</div>
+                        {% if not loop.last %}<div class="bundle-ia-plus mini"><i class="fas fa-plus"></i></div>{% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="bundle-ia-equal"><i class="fas fa-equals"></i></div>
+
+                {# Final Bundle Price and Action #}
+                <div class="bundle-ia-action">
+                    <div class="bundle-price-card">
+                        <div class="pricing">
+                            <span class="old-price">{{ bundle_total|number_format(2) }} €</span>
+                            <span class="new-price">{{ (bundle_total * 0.9)|number_format(2) }} €</span>
+                        </div>
+                        <span class="bundle-eco">Économisez 10% !</span>
+                        
+                        <form action="{{ path('front_bundle_add_to_cart') }}" method="POST">
+                            <input type="hidden" name="products[]" value="{{ produit.id }}">
+                            {% for p in related_products %}
+                                <input type="hidden" name="products[]" value="{{ p.id }}">
+                            {% endfor %}
+                            <button type="submit" class="btn-bundle-ia">
+                                <i class="fas fa-box-open"></i> Ajouter le Pack
+                            </button>
+                        </form>
                     </div>
-                </a>
-                {% endif %}
-            {% endfor %}
+                </div>
+            </div>
         </div>
     </div>
+
+    <style>
+        .bundle-ia-container { background: rgba(255,255,255,0.02); border: 2px solid rgba(76,201,240,0.2); border-radius: 20px; padding: 40px; margin-top: 20px; }
+        .bundle-ia-flow { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+        .bundle-ia-item { text-align: center; width: 140px; }
+        .bundle-ia-item img { width: 100px; height: 100px; object-fit: contain; background: white; border-radius: 12px; padding: 10px; margin-bottom: 10px; }
+        .bundle-ia-item.main img { border: 2px solid #4cc9f0; box-shadow: 0 0 15px rgba(76,201,240,0.3); }
+        .item-info { display: flex; flex-direction: column; gap: 4px; }
+        .p-name { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .p-price { font-size: 14px; font-weight: 800; color: white; }
+        .bundle-ia-plus, .bundle-ia-equal { font-size: 24px; color: rgba(255,255,255,0.2); }
+        .bundle-ia-plus.mini { font-size: 14px; }
+        .bundle-ia-related { display: flex; align-items: center; gap: 15px; }
+        
+        .bundle-price-card { background: rgba(0,0,0,0.3); padding: 25px; border-radius: 15px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .pricing { display: flex; flex-direction: column; margin-bottom: 10px; }
+        .old-price { text-decoration: line-through; color: rgba(255,255,255,0.3); font-size: 16px; }
+        .new-price { color: #f72585; font-size: 28px; font-weight: 900; }
+        .bundle-eco { display: block; background: #06ffa5; color: #0f172a; font-size: 10px; font-weight: 800; padding: 3px 10px; border-radius: 10px; margin-bottom: 15px; text-transform: uppercase; }
+        .btn-bundle-ia { background: linear-gradient(135deg, #4cc9f0, #4361ee); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px; width: 100%; justify-content: center; }
+        .btn-bundle-ia:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4); }
+    </style>
     {% endif %}
 
     {# AI RECOMMENDATIONS (User-based) #}
@@ -397,5 +502,75 @@
     .rec-score i {
         color: #ffd60a;
     }
+
+    /* SCAN & INSTALL STYLES */
+    .scan-install-widget {
+        margin-top: 25px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(76, 201, 240, 0.2);
+        border-radius: 12px;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+    .scan-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+    .scan-icon-wrap { 
+        font-size: 32px; 
+        color: #4cc9f0; 
+        position: relative; 
+        width: 40px; 
+        height: 40px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center;
+    }
+    .scan-line { 
+        position: absolute; 
+        top: 0; left: 0; right: 0; 
+        height: 2px; 
+        background: #4cc9f0; 
+        box-shadow: 0 0 10px #4cc9f0; 
+        animation: scanAnim 2s infinite ease-in-out; 
+    }
+    @keyframes scanAnim {
+        0% { top: 0; }
+        50% { top: 100%; }
+        100% { top: 0; }
+    }
+    .scan-text h4 { color: white; margin: 0; font-size: 16px; font-weight: 700; }
+    .scan-text p { color: rgba(255,255,255,0.5); margin: 0; font-size: 12px; }
+    
+    .scan-action-btn { 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 10px; 
+        background: #ff0000; 
+        color: white; 
+        text-decoration: none; 
+        padding: 12px; 
+        border-radius: 8px; 
+        font-weight: 800; 
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+    .scan-action-btn:hover { background: #cc0000; transform: scale(1.02); }
+
+    .difficulty-indicator { margin-top: 15px; display: flex; align-items: center; gap: 10px; font-size: 12px; color: rgba(255,255,255,0.6); }
+    .diff-dots { display: flex; gap: 4px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.1); }
+    .dot.active.easy { background: #00ff88; box-shadow: 0 0 5px #00ff88; }
+    .dot.active.medium { background: #ffd60a; box-shadow: 0 0 5px #ffd60a; }
+    .dot.active.hard { background: #ff006e; box-shadow: 0 0 5px #ff006e; }
+    .diff-label { font-weight: 800; color: white; text-transform: uppercase; font-size: 10px; }
+
+    /* TECH SPECS STYLES */
+    .technical-specs-wrap { margin: 25px 0; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 20px; }
+    .technical-specs-wrap h5 { color: #4cc9f0; margin: 0 0 15px 0; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .specs-grid { display: flex; flex-direction: column; gap: 8px; }
+    .spec-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .spec-label { color: rgba(255,255,255,0.4); font-size: 13px; font-weight: 600; }
+    .spec-value { color: white; font-size: 13px; font-weight: 700; }
+    .badge-success { background: rgba(0, 255, 136, 0.2); color: #00ff88; }
 </style>
 {% endblock %}

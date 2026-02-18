@@ -84,6 +84,47 @@ class PostRepository extends ServiceEntityRepository
     }
 
     /**
+     * Returns all posts ordered by createdAt DESC, with authors and comment authors eagerly loaded.
+     * Uses two separate queries to avoid cartesian product duplicates from multiple collection joins.
+     * This prevents EntityNotFoundException when a post's author or a comment's author has been deleted.
+     *
+     * @return Post[]
+     */
+    public function findAllWithAuthor(): array
+    {
+        // Query 1: load posts + post authors (ManyToOne — safe to join)
+        $posts = $this->createQueryBuilder('p')
+            ->leftJoin('p.author', 'a')
+            ->addSelect('a')
+            ->orderBy('p.createdAt', 'DESC')
+            ->addOrderBy('p.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        if (empty($posts)) {
+            return [];
+        }
+
+        // Query 2: load all comments + their authors for the fetched posts in one go.
+        // This hydrates the already-tracked Post entities' commentaires collections
+        // and eagerly loads each comment's author, preventing lazy-load on deleted users.
+        $postIds = array_map(static fn(Post $p) => $p->getId(), $posts);
+
+        $this->getEntityManager()
+            ->createQueryBuilder()
+            ->select('c', 'ca')
+            ->from(\App\Entity\Commentaire::class, 'c')
+            ->leftJoin('c.author', 'ca')
+            ->where('IDENTITY(c.post) IN (:ids)')
+            ->setParameter('ids', $postIds)
+            ->orderBy('c.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return $posts;
+    }
+
+    /**
      * @return Post[]
      */
     public function findRecentByAuthorWithMedias(User $author, int $limit = 20): array

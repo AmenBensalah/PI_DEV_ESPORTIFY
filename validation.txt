@@ -1,0 +1,41 @@
+php : 
+Au caract?re Ligne:1 : 1
++ php bin/console 
+doctrine:schema:validate 
+2>&1 | Out-File -Encoding as 
+...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (:String  
+  ) [], RemoteException
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+Mapping
+-------
+
+ [FAIL] The entity-class 
+App\Entity\Tournoi mapping 
+is invalid:
+ * The association 
+App\Entity\Tournoi#creator 
+refers to the inverse side 
+field 
+App\Entity\User#tournois 
+which does not exist.
+ * The association App\Entity
+\Tournoi#participants refers 
+to the inverse side field App
+\Entity\User#participatedTour
+nois which does not exist.
+
+
+Database
+--------
+
+ [ERROR] The database schema 
+         is not in sync with 
+         the current mapping 
+         file.               
+

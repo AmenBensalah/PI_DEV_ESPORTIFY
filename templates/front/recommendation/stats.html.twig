@@ -73,9 +73,20 @@
                             <td>{{ stat.total_quantity }}</td>
                             <td>{{ stat.unique_buyers|length }}</td>
                             <td>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: {{ (stat.unique_buyers|length / totalUsers * 100)|round }}%"></div>
-                                    <span class="progress-text">{{ (stat.unique_buyers|length / totalUsers * 100)|round }}%</span>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: {{ stat.popularity_score }}%"></div>
+                                        <span class="progress-text">{{ stat.popularity_score }}%</span>
+                                    </div>
+                                    <div class="stars-mini" style="margin-top: 5px;">
+                                        {% for i in 1..5 %}
+                                            {% if i <= stat.star_rating %}
+                                                <i class="fas fa-star" style="color: #ffd60a; font-size: 10px;"></i>
+                                            {% else %}
+                                                <i class="far fa-star" style="color: rgba(255,255,255,0.1); font-size: 10px;"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -117,7 +128,14 @@
                             <td>{{ interaction.order_count }}</td>
                             <td>
                                 <div class="score-badge">
-                                    <i class="fas fa-star"></i> {{ interaction.quantity }}
+                                    {% for i in 1..5 %}
+                                        {% if i <= interaction.star_rating %}
+                                            <i class="fas fa-star" style="color: #ffd60a;"></i>
+                                        {% else %}
+                                            <i class="far fa-star" style="color: rgba(255,255,255,0.2);"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span style="font-size: 10px; margin-left: 5px;">({{ interaction.star_rating }}/5)</span>
                                 </div>
                             </td>
                         </tr>

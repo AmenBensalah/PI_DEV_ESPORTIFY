@@ -41,7 +41,7 @@ class HomeController extends AbstractController
         }
 
         return $this->render('home/index.html.twig', [
-            'posts' => $postRepository->findBy([], ['createdAt' => 'DESC']),
+            'posts' => $postRepository->findAllWithAuthor(),
             'announcements' => $announcementRepository->findBy([], ['createdAt' => 'DESC'], 6),
             'savedIds' => $savedIds,
             'likedIds' => $likedIds,

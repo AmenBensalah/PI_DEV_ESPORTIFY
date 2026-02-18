@@ -51,7 +51,7 @@ services:
             $apiKey: '%openai_api_key%'
             $model: '%openai_model%'
 
-    App\Command\RecommendationsCommand:
+    App\Service\RecommendationService:
         arguments:
             $projectDir: '%kernel.project_dir%'
 

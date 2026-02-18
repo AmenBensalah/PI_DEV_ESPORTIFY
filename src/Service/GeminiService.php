@@ -22,78 +22,72 @@ class GeminiService
 
     public function chat(string $userMessage, array $history = [], string $context = '', string $userName = 'Visiteur'): string
     {
-        // On essaye la dernière génération (2.0) puis les versions flash stables
-        $models = [
-            'gemini-2.0-flash-exp', // Le "nouveau" très puissant
-            'gemini-1.5-flash',
-            'gemini-1.5-flash-8b'
-        ];
+        // On force le modèle le plus stable et universel
+        $modelName = 'gemini-1.5-flash';
+        
+        try {
+            // Utilisation de l'endpoint stable V1
+            $url = "https://generativelanguage.googleapis.com/v1/models/" . $modelName . ":generateContent?key=" . $this->apiKey;
 
-        $lastError = "";
+            $systemPrompt = "Ton nom est Nexus_AI, l'assistant intelligent d'E-Sportify. Style moderne et cyberpunk.\n" .
+                            "Réponds à " . $userName . " de manière fluide.\n" .
+                            "Contexte actuel :\n" . $context;
 
-        foreach ($models as $modelName) {
-            try {
-                $url = "https://generativelanguage.googleapis.com/v1beta/models/" . $modelName . ":generateContent?key=" . $this->apiKey;
+            $contents = [];
+            
+            // Injection du système
+            $contents[] = [
+                'role' => 'user',
+                'parts' => [['text' => "INSTRUCTION SYSTÈME: " . $systemPrompt]]
+            ];
+            $contents[] = [
+                'role' => 'model',
+                'parts' => [['text' => "SYSTÈME_ACTIF. Bonjour " . $userName . ". Je suis prêt à vous aider."]]
+            ];
 
-                $systemInstruction = "Tu es Nexus_AI, l'assistant intelligent d'E-Sportify. Ton ton est moderne, tech et cyberpunk.\n" .
-                                    "Réponds à " . $userName . " de manière réelle, fluide et conversationnelle.\n" .
-                                    "Voici le catalogue actuel et le contexte du site pour t'aider :\n" . $context;
-
-                $contents = [];
-                
-                // Historique
-                foreach ($history as $msg) {
-                    $role = ($msg['role'] === 'bot' || $msg['role'] === 'assistant' || $msg['role'] === 'model') ? 'model' : 'user';
-                    $contents[] = [
-                        'role' => $role,
-                        'parts' => [['text' => $msg['content']]]
-                    ];
-                }
-
-                // Message actuel
+            // Historique
+            foreach ($history as $msg) {
+                if (!isset($msg['content']) || empty($msg['content'])) continue;
+                $role = ($msg['role'] === 'bot' || $msg['role'] === 'assistant' || $msg['role'] === 'model') ? 'model' : 'user';
                 $contents[] = [
-                    'role' => 'user',
-                    'parts' => [['text' => $userMessage]]
+                    'role' => $role,
+                    'parts' => [['text' => $msg['content']]]
                 ];
-
-                $response = $this->httpClient->request('POST', $url, [
-                    'headers' => ['Content-Type' => 'application/json'],
-                    'json' => [
-                        'contents' => $contents,
-                        'systemInstruction' => [
-                            'parts' => [['text' => $systemInstruction]]
-                        ],
-                        'generationConfig' => [
-                            'temperature' => 0.9,
-                            'maxOutputTokens' => 1000
-                        ]
-                    ],
-                    'timeout' => 30
-                ]);
-
-                $statusCode = $response->getStatusCode();
-                
-                if ($statusCode === 200) {
-                    $result = $response->toArray();
-                    if (isset($result['candidates'][0]['content']['parts'][0]['text'])) {
-                        return $result['candidates'][0]['content']['parts'][0]['text'];
-                    }
-                }
-
-                if ($statusCode === 429 || $statusCode === 503) {
-                    $lastError = "Quota atteint pour " . $modelName;
-                    continue; 
-                }
-
-                $errorData = $response->toArray(false);
-                $lastError = $errorData['error']['message'] ?? "Erreur " . $statusCode;
-
-            } catch (\Exception $e) {
-                $lastError = $e->getMessage();
-                continue;
             }
-        }
 
-        return "ERREUR_GEMINI : Désolé, Nexus_AI est temporairement hors ligne. (" . $lastError . ")";
+            // Message actuel
+            $contents[] = [
+                'role' => 'user',
+                'parts' => [['text' => $userMessage]]
+            ];
+
+            $response = $this->httpClient->request('POST', $url, [
+                'headers' => ['Content-Type' => 'application/json'],
+                'json' => [
+                    'contents' => $contents,
+                    'generationConfig' => [
+                        'temperature' => 0.7,
+                        'maxOutputTokens' => 1000
+                    ]
+                ],
+                'timeout' => 30
+            ]);
+
+            $statusCode = $response->getStatusCode();
+            
+            if ($statusCode === 200) {
+                $result = $response->toArray();
+                if (isset($result['candidates'][0]['content']['parts'][0]['text'])) {
+                    return $result['candidates'][0]['content']['parts'][0]['text'];
+                }
+            }
+
+            $errorData = $response->toArray(false);
+            $err = $errorData['error']['message'] ?? "Code " . $statusCode;
+            return "ERREUR_GEMINI : Désolé, Nexus_AI est temporairement hors ligne. (" . $err . ")";
+
+        } catch (\Exception $e) {
+            return "ERREUR_GEMINI : Désolé, Nexus_AI est temporairement hors ligne. (" . $e->getMessage() . ")";
+        }
     }
 }

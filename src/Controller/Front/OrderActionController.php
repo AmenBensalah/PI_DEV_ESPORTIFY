@@ -33,18 +33,10 @@ class OrderActionController extends AbstractController
     }
 
     #[Route('/add-product/{id}', name: 'front_order_add_product', methods: ['GET', 'POST'], defaults: ['id' => null])]
-    public function addProduct(?Produit $produit, Request $request, OrderService $orderService, EntityManagerInterface $entityManager): Response
+    public function addProduct(?Produit $produit, Request $request, OrderService $orderService, EntityManagerInterface $entityManager, \App\Service\RecommendationService $recommendationService): Response
     {
         $session = $request->getSession();
-        $debugLog = __DIR__ . '/../../../../debug_cart.log';
-        $logData = sprintf(
-            "[%s] addProduct: SessionID=%s, ProductID=%s, ExistingOrderID=%s\n",
-            date('Y-m-d H:i:s'),
-            $session->getId(),
-            $produit ? $produit->getId() : 'NULL',
-            $session->get('current_order_id', 'NULL')
-        );
-        file_put_contents($debugLog, $logData, FILE_APPEND);
+        // ... (logging removed for brevity)
 
         if (!$produit) {
              $this->addFlash('error', 'Produit non trouvé.');
@@ -59,15 +51,12 @@ class OrderActionController extends AbstractController
 
         if ($orderId) {
              $commande = $entityManager->getRepository(Commande::class)->find($orderId);
-             file_put_contents($debugLog, sprintf("  -> Found existing order in DB: %s\n", $commande ? 'YES' : 'NO'), FILE_APPEND);
         }
 
         if (!$commande) {
             $commande = $orderService->createOrder();
-            // Force flush and check ID immediately
             $entityManager->flush();
             $session->set('current_order_id', $commande->getId());
-            file_put_contents($debugLog, sprintf("  -> Created NEW order: %d (ID from Entity: %s)\n", $commande->getId(), $commande->getId()), FILE_APPEND);
         }
         
         $quantite = (int) $request->request->get('quantite', 1);
@@ -78,17 +67,18 @@ class OrderActionController extends AbstractController
         
         try {
             $orderService->addProductToOrder($commande, $produit, $quantite);
-            // Redundant flush just to be safe and catch errors here
             $entityManager->flush();
             
+            // AUTOMATIC ML UPDATE:
+            // When a client adds to basket, we re-run the ML engine to update scores.
+            $recommendationService->generateRecommendations();
+            
             $this->addFlash('success', 'Produit ajouté.');
-            file_put_contents($debugLog, sprintf("  -> Product added. Line items count: %d\n", $commande->getLignesCommande()->count()), FILE_APPEND);
         } catch (\Exception $e) {
             $this->addFlash('error', $e->getMessage());
-            file_put_contents($debugLog, sprintf("  -> ERROR adding product: %s\n", $e->getMessage()), FILE_APPEND);
         }
 
-        return $this->redirectToRoute('front_order_cart'); // Redirect to Cart by default to show it works
+        return $this->redirectToRoute('front_order_cart');
     }
 
     #[Route('/cart', name: 'front_order_cart', methods: ['GET'])]
