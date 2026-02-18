@@ -13,10 +13,10 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 
-#[Route('/produits')]
 class ProductController extends AbstractController
 {
-    #[Route('/', name: 'app_front_produit_index', methods: ['GET'])]
+    #[Route('/produits', name: 'app_front_produit_index', methods: ['GET'])]
+    #[Route('/front/produit', name: 'app_front_produit_index_alias', methods: ['GET'])]
     public function index(Request $request, ProduitRepository $produitRepository, CategorieRepository $categorieRepository, RecommendationRepository $recommendationRepository): Response
     {
         $search = $request->query->get('q');
@@ -43,43 +43,35 @@ class ProductController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_front_produit_show', requirements: ['id' => '\d+'], methods: ['GET'])]
-    public function show(Produit $produit, ProduitRepository $produitRepository, RecommendationRepository $recommendationRepository): Response
+    #[Route('/produits/{id}', name: 'app_front_produit_show', requirements: ['id' => '\d+'], methods: ['GET'])]
+    #[Route('/front/produit/{id}', name: 'app_front_produit_show_alias', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function show(Produit $produit, ProduitRepository $produitRepository, RecommendationRepository $recommendationRepository, \App\Service\RecommendationService $recommendationService): Response
     {
-        // On récupère les recommandations basées sur l'utilisateur (IA existante)
+        // Mock data logic for hardware demo
+        if (!$produit->getTechnicalSpecs()) {
+            $cat = $produit->getCategorie() ? strtolower($produit->getCategorie()->getNom()) : '';
+            if (str_contains(strtolower($produit->getNom()), 'carte mere')) {
+                $produit->setTechnicalSpecs("Socket : AM4 / LGA1200\nFormat : ATX / Micro-ATX\nSlots RAM : 4x DDR4\nPort PCIe : 3.0 x16\nGarantie : 2 ans");
+                $produit->setInstallDifficulty("Medium");
+            } elseif (str_contains(strtolower($produit->getNom()), 'pc gamer')) {
+                $produit->setTechnicalSpecs("Processeur : RTX-Ready Intel i9\nGraphismes : NVIDIA GeForce RTX 4070\nStockage : 1To SSD NVMe\nRefroidissement : Watercooling ARGB");
+                $produit->setInstallDifficulty("Hard");
+            } else {
+                $produit->setTechnicalSpecs("Interface : USB 3.0 Gold Plated\nType : Plug & Play\nCompatibilité : Windows / MacOS / Linux\nCâble : 1.8m Tressé");
+                $produit->setInstallDifficulty("Easy");
+            }
+        }
+
+        // 1. Recommandations personnalisées (User-to-Item)
         $userRecs = $this->getUser() ? $recommendationRepository->findBy(['user' => $this->getUser()], ['score' => 'DESC'], 4) : [];
 
-        // NOUVEAU : On récupère les produits reliés (IA Item-to-Item)
-        // Pour la démo, on simule l'ID compatible avec le CSV (Prod_X)
-        $relatedProducts = [];
-        $pythonPath = 'python'; // À adapter selon l'environnement
-        $scriptPath = $this->getParameter('kernel.project_dir') . '/ml/item_relations.py';
-        
-        // Simuler un ID compatible pour le CSV généré (Prod_1, Prod_2...)
-        // Dans un vrai projet, on utiliserait les IDs réels du produit
-        $fakeId = "Prod_" . ($produit->getId() % 50 + 1);
-
-        $process = new Process([$pythonPath, $scriptPath, $fakeId]);
-        try {
-            $process->run();
-            if ($process->isSuccessful()) {
-                $output = $process->getOutput();
-                $relatedIds = json_decode($output, true);
-                
-                if (is_array($relatedIds)) {
-                    // On cherche des produits au hasard pour l'affichage si les IDs Prod_X ne sont pas en base
-                    // Sinon on chercherait par ID réel
-                    $relatedProducts = $produitRepository->findBy([], null, 4);
-                }
-            }
-        } catch (\Exception $e) {
-            // Silence log error
-        }
+        // 2. Produits achetés ensemble (Item-to-Item IA)
+        $relatedProducts = $recommendationService->getFrequentlyBoughtTogether($produit, 3);
 
         return $this->render('front/produit/show.html.twig', [
             'produit' => $produit,
             'recommendations' => $userRecs,
-            'related_products' => $relatedProducts // Passer les produits reliés au template
+            'related_products' => $relatedProducts
         ]);
     }
 }

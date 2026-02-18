@@ -135,8 +135,177 @@
     {% endif %}
 </section>
 
+{# FUTURISTIC SCANNER OVERLAY #}
+<div id="product-scanner-overlay" class="scanner-overlay">
+    <div class="scanner-container">
+        <div class="scanner-frame">
+            <div class="scan-laser"></div>
+            <div class="scan-corners">
+                <span></span><span></span><span></span><span></span>
+            </div>
+            <div class="scan-binary-stream"></div>
+        </div>
+        
+        <div class="scanner-result-panel">
+            <div class="panel-header">
+                <i class="fas fa-microchip"></i> DATA_FOUND : <span id="scan-id">#000</span>
+            </div>
+            <div class="panel-content">
+                <div class="scanner-image-wrap">
+                    <img id="scan-img" src="" alt="Scan result">
+                    <div class="glitch-overlay"></div>
+                </div>
+                <div class="scanner-details">
+                    <h2 id="scan-name">PROJECT_REDACTED</h2>
+                    <div class="scanner-stats">
+                        <div class="stat-row">
+                            <span class="label">STATUS :</span>
+                            <span class="value success">STABLE</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="label">PRICE :</span>
+                            <span class="value highlight" id="scan-price">0.00 €</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-actions">
+                <a href="#" id="scan-view-btn" class="panel-btn">DÉTAILS COMPLETS</a>
+                <button type="button" class="panel-btn ghost" id="close-scanner">FERMER</button>
+            </div>
+        </div>
+    </div>
+    <div class="scanner-bg-noise"></div>
+</div>
+
+<style>
+    /* SCAN TRIGGER BTN */
+    .scan-trigger-btn {
+        background: rgba(76, 201, 240, 0.1);
+        border: 1px solid #4cc9f0;
+        color: #4cc9f0;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .scan-trigger-btn:hover {
+        background: #4cc9f0;
+        color: #000;
+        box-shadow: 0 0 15px rgba(76, 201, 240, 0.5);
+    }
+
+    /* SCANNER OVERLAY */
+    .scanner-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(10, 11, 20, 0.95);
+        z-index: 99999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(8px);
+    }
+    .scanner-overlay.active { display: flex; animation: fadeIn 0.3s forwards; }
+
+    .scanner-container { width: 90%; max-width: 600px; display: flex; flex-direction: column; gap: 30px; }
+
+    .scanner-frame {
+        height: 300px;
+        border: 1px solid rgba(76, 201, 240, 0.3);
+        position: relative;
+        overflow: hidden;
+        background: rgba(0,0,0,0.4);
+    }
+    .scan-laser {
+        position: absolute;
+        width: 100%; height: 2px;
+        background: #4cc9f0;
+        box-shadow: 0 0 20px #4cc9f0;
+        animation: scanAnimVertical 2s infinite ease-in-out;
+        z-index: 10;
+    }
+    @keyframes scanAnimVertical {
+        0% { top: 0%; opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { top: 100%; opacity: 0; }
+    }
+
+    .scan-corners span { position: absolute; width: 20px; height: 20px; border: 2px solid #4cc9f0; border-radius: 2px; }
+    .scan-corners span:nth-child(1) { top: 10px; left: 10px; border-right: 0; border-bottom: 0; }
+    .scan-corners span:nth-child(2) { top: 10px; right: 10px; border-left: 0; border-bottom: 0; }
+    .scan-corners span:nth-child(3) { bottom: 10px; left: 10px; border-right: 0; border-top: 0; }
+    .scan-corners span:nth-child(4) { bottom: 10px; right: 10px; border-left: 0; border-top: 0; }
+
+    .scanner-result-panel {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 20px;
+        transform: translateY(20px);
+        opacity: 0;
+        transition: all 0.5s 1.5s ease;
+    }
+    .scanner-overlay.ready .scanner-result-panel { transform: translateY(0); opacity: 1; }
+
+    .panel-header { font-family: 'Orbitron', sans-serif; font-size: 14px; color: #4cc9f0; margin-bottom: 20px; border-bottom: 1px solid rgba(76, 201, 240, 0.2); padding-bottom: 10px; }
+    .panel-content { display: flex; gap: 20px; }
+    .scanner-image-wrap { width: 150px; height: 150px; position: relative; border-radius: 8px; overflow: hidden; }
+    .scanner-image-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .scanner-details h2 { font-family: 'Orbitron', sans-serif; font-size: 20px; color: white; margin: 0 0 15px 0; }
+    .scanner-stats { display: flex; flex-direction: column; gap: 10px; }
+    .stat-row { display: flex; gap: 10px; font-size: 13px; }
+    .stat-row .label { color: rgba(255,255,255,0.4); font-weight: 700; }
+    .stat-row .value { color: white; font-weight: 800; }
+    .stat-row .value.success { color: #00ff88; }
+    .stat-row .value.highlight { color: #f72585; font-size: 16px; }
+
+    .panel-actions { margin-top: 25px; display: flex; gap: 12px; }
+    .panel-btn {
+        flex: 1; padding: 12px; border: none; border-radius: 6px;
+        font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer;
+        background: #4361ee; color: white; text-align: center; text-decoration: none;
+    }
+    .panel-btn.ghost { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); }
+</style>
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        const scanner = document.getElementById('product-scanner-overlay');
+        const closeScan = document.getElementById('close-scanner');
+        
+        // Scan Trigger
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.scan-trigger-btn');
+            if (btn) {
+                const data = btn.dataset;
+                document.getElementById('scan-id').textContent = '#' + data.productId.padStart(3, '0');
+                document.getElementById('scan-name').textContent = data.productName.toUpperCase();
+                document.getElementById('scan-price').textContent = data.productPrice;
+                document.getElementById('scan-img').src = data.productImage;
+                document.getElementById('scan-view-btn').href = `/produits/${data.productId}`;
+
+                scanner.classList.add('active');
+                scanner.classList.remove('ready');
+                
+                // Simulate processing
+                setTimeout(() => {
+                    scanner.classList.add('ready');
+                }, 1800);
+            }
+        });
+
+        closeScan.addEventListener('click', () => {
+            scanner.classList.remove('active');
+            scanner.classList.remove('ready');
+        });
         const grid = document.getElementById('product-grid');
         const form = document.getElementById('shop-filter-form');
         

@@ -104,6 +104,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Recommendation::class, mappedBy: 'user', orphanRemoval: true)]
     private Collection $recommendations;
 
+    /**
+     * @var Collection<int, Tournoi>
+     */
+    #[ORM\OneToMany(targetEntity: Tournoi::class, mappedBy: 'creator')]
+    private Collection $tournois;
+
+    /**
+     * @var Collection<int, Tournoi>
+     */
+    #[ORM\ManyToMany(targetEntity: Tournoi::class, mappedBy: 'participants')]
+    private Collection $participatedTournois;
+
     // TEMPORAIRE : Relation Commandes désactivée
     // /**
     //  * @var Collection<int, Commande>
@@ -121,6 +133,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->eventParticipations = new ArrayCollection();
         $this->savedPosts = new ArrayCollection();
         $this->recommendations = new ArrayCollection();
+        $this->tournois = new ArrayCollection();
+        $this->participatedTournois = new ArrayCollection();
         // $this->commandes = new ArrayCollection();
     }
 
@@ -476,6 +490,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Tournoi>
+     */
+    public function getTournois(): Collection
+    {
+        return $this->tournois;
+    }
+
+    /**
+     * @return Collection<int, Tournoi>
+     */
+    public function getParticipatedTournois(): Collection
+    {
+        return $this->participatedTournois;
     }
 
     public function removeRecommendation(Recommendation $recommendation): static

@@ -1,105 +1,77 @@
+import json
 import pandas as pd
 import numpy as np
-import random
+import sys
 import os
 from sklearn.metrics.pairwise import cosine_similarity
 
-def generate_synthetic_data(filename='ml/data.csv', num_rows=2500):
-    """
-    Génère un dataset de test avec des relations entre utilisateurs et produits.
-    Structure: user_id, product_id, rating
-    """
-    print(f"--- Génération de {num_rows} lignes de données ---")
-    
-    # On simule 100 utilisateurs et 50 produits
-    users = [f"User_{i}" for i in range(1, 101)]
-    products = [f"Prod_{i}" for i in range(1, 51)]
-    
-    data = []
-    for _ in range(num_rows):
-        user = random.choice(users)
-        # On crée des "clusters" de goûts pour avoir de vraies relations
-        # Si user est dans les 20 premiers, il aime les produits 1-10
-        user_idx = int(user.split('_')[1])
-        if user_idx <= 20:
-            prod = random.choice(products[0:15])
-        elif user_idx <= 50:
-            prod = random.choice(products[15:35])
-        else:
-            prod = random.choice(products[30:50])
+def calculate_item_relations(input_file, target_product_id, output_file):
+    try:
+        # 1. Load data
+        if not os.path.exists(input_file):
+            print(f"Error: {input_file} not found")
+            return
+
+        with open(input_file, 'r') as f:
+            data = json.load(f)
+        
+        if not data:
+            print("No data found.")
+            return
+
+        df = pd.DataFrame(data)
+        
+        # Ensure we have the necessary columns
+        if 'product_id' not in df.columns or 'user_id' not in df.columns:
+            print("Invalid input format.")
+            return
+
+        # 2. Create Item-User Matrix
+        # We want to see which products are bought together by the same users
+        # rating is used to weight the interaction
+        if 'rating' not in df.columns:
+            df['rating'] = 1
             
-        rating = random.randint(1, 5)
-        data.append([user, prod, rating])
-    
-    df = pd.DataFrame(data, columns=['user_id', 'product_id', 'rating'])
-    
-    # On s'assure que le dossier existe
-    os.makedirs(os.path.dirname(filename), exist_ok=True)
-    df.to_csv(filename, index=False)
-    print(f"✅ Fichier '{filename}' créé avec succès !")
-    return df
+        matrix = df.pivot_table(index='product_id', columns='user_id', values='rating').fillna(0)
+        
+        # 3. Calculate Cosine Similarity
+        if target_product_id not in matrix.index:
+            # If product has no interactions yet, we return empty or global popular items
+            # But let's return [] to indicate no specific relations
+            with open(output_file, 'w') as f:
+                json.dump([], f)
+            return
 
-def train_item_similarity_model(csv_file):
-    """
-    Crée un modèle de similarité entre produits basé sur le comportement d'achat.
-    """
-    print("--- Entraînement du modèle de relation produits ---")
-    df = pd.read_csv(csv_file)
-    
-    # Créer une matrice Produit-Utilisateur
-    # On veut voir quels utilisateurs ont acheté quels produits
-    item_user_matrix = df.pivot_table(index='product_id', columns='user_id', values='rating').fillna(0)
-    
-    # Calculer la similarité cosinus entre les produits
-    # (Si deux produits sont achetés par les mêmes personnes, ils sont "reliés")
-    similarity_matrix = cosine_similarity(item_user_matrix)
-    
-    # Transformer en DataFrame pour faciliter la recherche
-    item_sim_df = pd.DataFrame(similarity_matrix, index=item_user_matrix.index, columns=item_user_matrix.index)
-    
-    return item_sim_df
+        # Calculate similarity for the target product against all others
+        target_vec = matrix.loc[target_product_id].values.reshape(1, -1)
+        sim_scores = cosine_similarity(target_vec, matrix.values).flatten()
+        
+        # Create a series of results
+        item_sim = pd.Series(sim_scores, index=matrix.index)
+        
+        # Remove the target product itself and sort
+        related = item_sim.drop(target_product_id).sort_values(ascending=False)
+        
+        # Filter out products with 0 similarity
+        related = related[related > 0]
+        
+        # Get top 5 IDs
+        top_related_ids = [int(p_id) for p_id in related.head(5).index.tolist()]
+        
+        # 4. Save results
+        with open(output_file, 'w') as f:
+            json.dump(top_related_ids, f)
+        
+        print(f"Computed {len(top_related_ids)} related products for {target_product_id}")
 
-def get_recommendations(product_id, similarity_df, n=5):
-    """
-    Retourne les N produits les plus reliés au produit choisi.
-    """
-    if product_id not in similarity_df.index:
-        return f"❌ Produit '{product_id}' inconnu."
-    
-    # Récupérer les scores de similarité pour ce produit
-    sim_scores = similarity_df[product_id].sort_values(ascending=False)
-    
-    # Retirer le produit lui-même (la similarité avec soi-même est toujours 1.0)
-    sim_scores = sim_scores.drop(product_id)
-    
-    return sim_scores.head(n)
-
-# --- EXECUTION ---
-import sys
-import json
+    except Exception as e:
+        print(f"Error in Python script: {e}")
+        with open(output_file, 'w') as f:
+            json.dump([], f)
 
 if __name__ == "__main__":
-    # 1. On s'assure que les données existent (ou on les génère si besoin de démo)
-    csv_path = 'ml/data.csv'
-    if not os.path.exists(csv_path):
-        generate_synthetic_data(csv_path, num_rows=2500)
-    
-    # 2. Entraîner le modèle
-    model = train_item_similarity_model(csv_path)
-    
-    # 3. Récupérer l'ID produit depuis les arguments (appel par Symfony)
-    if len(sys.argv) > 1:
-        target_prod = sys.argv[1]
-        results = get_recommendations(target_prod, model)
+    if len(sys.argv) < 4:
+        print("Usage: python item_relations.py <input_json> <target_product_id> <output_json>")
+        sys.exit(1)
         
-        if isinstance(results, str):
-            print(json.dumps({"error": results}))
-        else:
-            # On retourne juste les IDs des produits reliés
-            print(json.dumps(results.index.tolist()))
-    else:
-        # Mode démo si lancé à la main
-        test_prod = "Prod_5"
-        print(f"\n💡 Produits reliés à '{test_prod}' :")
-        recs = get_recommendations(test_prod, model)
-        print(recs)
+    calculate_item_relations(sys.argv[1], int(sys.argv[2]), sys.argv[3])

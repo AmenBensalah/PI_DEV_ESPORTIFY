@@ -53,6 +53,48 @@ class Produit
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Equipe $ownerEquipe = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $videoUrl = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $technicalSpecs = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $installDifficulty = null;
+
+    public function getVideoUrl(): ?string
+    {
+        return $this->videoUrl;
+    }
+
+    public function setVideoUrl(?string $videoUrl): static
+    {
+        $this->videoUrl = $videoUrl;
+        return $this;
+    }
+
+    public function getTechnicalSpecs(): ?string
+    {
+        return $this->technicalSpecs;
+    }
+
+    public function setTechnicalSpecs(?string $technicalSpecs): static
+    {
+        $this->technicalSpecs = $technicalSpecs;
+        return $this;
+    }
+
+    public function getInstallDifficulty(): ?string
+    {
+        return $this->installDifficulty;
+    }
+
+    public function setInstallDifficulty(?string $installDifficulty): static
+    {
+        $this->installDifficulty = $installDifficulty;
+        return $this;
+    }
+
     public function getId(): ?int
     {
         return $this->id;

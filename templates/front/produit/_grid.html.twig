@@ -31,10 +31,13 @@
             </div>
             <div class="shop-card-actions">
                 <a href="{{ path('app_front_produit_show', { id: produit.id }) }}" class="shop-link">Voir détails</a>
+                <button type="button" class="scan-trigger-btn" data-product-id="{{ produit.id }}" data-product-name="{{ produit.nom }}" data-product-image="{{ produit.image starts with 'http' ? produit.image : asset(produit.image) }}" data-product-price="{{ produit.prix|number_format(2, '.', ' ') }} €" title="Scanner pour détails">
+                    <i class="fas fa-expand"></i> SCAN CODE
+                </button>
                 <form action="{{ path('front_order_add_product', { id: produit.id }) }}" method="post" style="margin: 0;">
                     <input type="hidden" name="quantite" value="1">
                     <button type="submit" class="shop-add-btn" title="Ajouter au panier">
-                        <i class="fas fa-shopping-cart"></i> Ajouter au panier
+                        <i class="fas fa-shopping-cart"></i>
                     </button>
                 </form>
             </div>

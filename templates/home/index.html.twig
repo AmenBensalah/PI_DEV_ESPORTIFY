@@ -116,12 +116,14 @@
                             <div class="avatar">
                                 {% if post.author and post.author.avatar %}
                                     <img src="{{ asset('uploads/avatars/' ~ post.author.avatar) }}" alt="Avatar">
+                                {% elseif post.author %}
+                                    {{ (post.author.pseudo|default(post.author.nom|default(post.author.email|default('U'))))|upper|slice(0,1) }}
                                 {% else %}
-                                    {{ post.author ? (post.author.pseudo|default(post.author.nom)|default(post.author.email)|first|upper) : 'U' }}
+                                    U
                                 {% endif %}
                             </div>
                             <div class="post-meta">
-                                <div class="post-author">{{ post.author ? (post.author.pseudo ?: post.author.nom) : 'Utilisateur' }}</div>
+                                <div class="post-author">{{ post.author ? (post.author.pseudo|default(post.author.nom|default('Utilisateur'))) : 'Utilisateur' }}</div>
                                 <div class="post-time">
                                     {{ post.createdAt ? post.createdAt|date('d/m/Y H:i') : 'Maintenant' }}
                                 </div>
