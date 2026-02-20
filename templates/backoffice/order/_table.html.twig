@@ -5,8 +5,10 @@
                 <tr>
                     <th>ID</th>
                     <th>Nom</th>
-                    <th>Prénom</th>
+                    <th>Prenom</th>
+                    <th>Coordonnees</th>
                     <th>Statut</th>
+                    <th>Alerte IA</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -14,17 +16,44 @@
             {% for commande in commandes %}
                 <tr class="admin-tournament-row">
                     <td>{{ commande.id }}</td>
-                    <td>{{ commande.nom }}</td>
+                    <td>
+                        <div>{{ commande.nom }}</div>
+                        {% if commande.aiBlocked %}
+                            <div style="margin-top:6px;">
+                                <span class="badge badge-danger">Utilisateur bloque IA</span>
+                            </div>
+                        {% endif %}
+                    </td>
                     <td>{{ commande.prenom }}</td>
                     <td>
+                        <div style="font-size: 12px; line-height: 1.35;">
+                            <div><strong>Tel:</strong> {{ commande.numtel ?? '-' }}</div>
+                            <div><strong>Adresse:</strong> {{ commande.adresse ?? '-' }}</div>
+                            <div><strong>User:</strong> {{ commande.user ? commande.user.id : '-' }}</div>
+                        </div>
+                    </td>
+                    <td>
                         {% if commande.statut == 'paid' %}
-                            <span class="badge badge-success">Validée</span>
+                            <span class="badge badge-success">Validee</span>
                         {% elseif commande.statut == 'pending' or commande.statut == 'pending_payment' %}
                             <span class="badge badge-warn">En cours</span>
                         {% elseif commande.statut == 'cancelled' %}
-                            <span class="badge badge-danger">Annulée</span>
+                            <span class="badge badge-danger">Annulee</span>
                         {% else %}
                             <span class="badge badge-info">{{ commande.statut }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if commande.aiBlocked %}
+                            <span class="badge badge-danger">Utilisateur bloque IA</span>
+                            {% if commande.aiRiskScore is not null %}
+                                <div style="font-size:12px; margin-top:4px;">Score: {{ commande.aiRiskScore|number_format(1, '.', ' ') }}/100</div>
+                            {% endif %}
+                            {% if commande.aiBlockUntil %}
+                                <div style="font-size:12px;">Jusqu'a: {{ commande.aiBlockUntil|date('d/m/Y H:i') }}</div>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge badge-success">OK</span>
                         {% endif %}
                     </td>
                     <td>
@@ -57,7 +86,7 @@
 {% else %}
     <div class="admin-tournament-empty">
         <div class="empty-ring"></div>
-        <strong>Aucune commande trouvée</strong>
+        <strong>Aucune commande trouvee</strong>
         <p>Ajustez votre recherche ou vos filtres.</p>
     </div>
 {% endif %}

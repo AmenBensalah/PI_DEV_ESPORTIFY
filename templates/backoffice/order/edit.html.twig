@@ -4,37 +4,43 @@
 {% block page_title %}Modifier Commande{% endblock %}
 
 {% block body %}
-    <div class="stat-card">
-        <form method="post">
-            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;">
-                <div>
-                    <label>Nom</label>
-                    <input type="text" name="nom" value="{{ commande.nom ?? '' }}" required class="form-control">
+<section class="order-edit-wrap">
+    <div class="order-edit-panel">
+        <div class="order-edit-head">
+            <h2>Modifier la commande #{{ commande.id }}</h2>
+            <p>Mettez a jour les informations client et le statut de la commande.</p>
+        </div>
+
+        <form method="post" class="order-edit-form">
+            <div class="order-edit-grid">
+                <div class="field">
+                    <label for="order_nom">Nom</label>
+                    <input id="order_nom" type="text" name="nom" value="{{ commande.nom ?? '' }}" required>
                 </div>
 
-                <div>
-                    <label>Prenom</label>
-                    <input type="text" name="prenom" value="{{ commande.prenom ?? '' }}" required class="form-control">
+                <div class="field">
+                    <label for="order_prenom">Prenom</label>
+                    <input id="order_prenom" type="text" name="prenom" value="{{ commande.prenom ?? '' }}" required>
                 </div>
 
-                <div>
-                    <label>Adresse</label>
-                    <input type="text" name="adresse" value="{{ commande.adresse ?? '' }}" required class="form-control">
+                <div class="field">
+                    <label for="order_adresse">Adresse</label>
+                    <input id="order_adresse" type="text" name="adresse" value="{{ commande.adresse ?? '' }}" required>
                 </div>
 
-                <div>
-                    <label>Quantite</label>
-                    <input type="number" name="quantite" value="{{ commande.quantite ?? 1 }}" min="1" required class="form-control">
+                <div class="field">
+                    <label for="order_quantite">Quantite</label>
+                    <input id="order_quantite" type="number" name="quantite" value="{{ commande.quantite ?? 1 }}" min="1" required>
                 </div>
 
-                <div>
-                    <label>Num tel</label>
-                    <input type="number" name="numtel" value="{{ commande.numtel ?? '' }}" required class="form-control">
+                <div class="field">
+                    <label for="order_numtel">Numero de telephone</label>
+                    <input id="order_numtel" type="number" name="numtel" value="{{ commande.numtel ?? '' }}" required>
                 </div>
 
-                <div>
-                    <label>Statut</label>
-                    <select name="statut" class="form-control">
+                <div class="field">
+                    <label for="order_statut">Statut</label>
+                    <select id="order_statut" name="statut">
                         {% for s in statuts %}
                             <option value="{{ s }}" {% if commande.statut == s %}selected{% endif %}>{{ s }}</option>
                         {% endfor %}
@@ -42,10 +48,90 @@
                 </div>
             </div>
 
-            <div class="admin-actions" style="margin-top: 16px;">
-                <button type="submit" class="btn btn-success">Enregistrer</button>
-                <a href="{{ path('admin_order_index') }}" class="btn btn-secondary">Retour</a>
+            <div class="order-edit-actions">
+                <button type="submit" class="admin-tournament-btn">
+                    Enregistrer
+                </button>
+                <a href="{{ path('admin_order_index') }}" class="admin-tournament-btn ghost">
+                    Retour
+                </a>
             </div>
         </form>
     </div>
+</section>
+
+<style>
+.order-edit-wrap {
+    width: min(980px, 100%);
+}
+.order-edit-panel {
+    background: rgba(9, 14, 30, 0.88);
+    border: 1px solid rgba(112, 135, 255, 0.32);
+    border-radius: 18px;
+    padding: 24px;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 20px 40px rgba(0, 8, 30, 0.35);
+}
+.order-edit-head h2 {
+    margin: 0;
+    font-size: 26px;
+    color: #eaf1ff;
+}
+.order-edit-head p {
+    margin: 8px 0 0;
+    color: #aab8e2;
+    font-size: 14px;
+}
+.order-edit-form {
+    margin-top: 18px;
+}
+.order-edit-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 16px;
+}
+.order-edit-form .field {
+    display: grid;
+    gap: 6px;
+}
+.order-edit-form label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #a5b4e4;
+}
+.order-edit-form input,
+.order-edit-form select {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid rgba(137, 157, 255, 0.38);
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: #eff4ff;
+    background: rgba(7, 13, 29, 0.85);
+    outline: none;
+}
+.order-edit-form input:focus,
+.order-edit-form select:focus {
+    border-color: #74d7ff;
+    box-shadow: 0 0 0 3px rgba(116, 215, 255, 0.2);
+}
+.order-edit-actions {
+    margin-top: 18px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+@media (max-width: 900px) {
+    .order-edit-grid {
+        grid-template-columns: 1fr;
+    }
+    .order-edit-actions {
+        justify-content: stretch;
+    }
+    .order-edit-actions .admin-tournament-btn {
+        flex: 1;
+        text-align: center;
+    }
+}
+</style>
 {% endblock %}

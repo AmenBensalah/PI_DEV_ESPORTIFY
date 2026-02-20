@@ -58,10 +58,15 @@ class MessengerController extends AbstractController
             return new JsonResponse(['unread' => 0], Response::HTTP_UNAUTHORIZED);
         }
 
-        $unread = (int) $connection->fetchOne(
-            'SELECT COUNT(*) FROM chat_messages WHERE recipient_id = :me AND is_read = 0',
-            ['me' => $me->getId()]
-        );
+        try {
+            $unread = (int) $connection->fetchOne(
+                'SELECT COUNT(*) FROM chat_messages WHERE recipient_id = :me AND is_read = 0',
+                ['me' => $me->getId()]
+            );
+        } catch (\Throwable) {
+            // Keep the rest of the app functional when chat tables are missing in imported DB snapshots.
+            $unread = 0;
+        }
 
         return new JsonResponse(['unread' => $unread]);
     }

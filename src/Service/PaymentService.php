@@ -79,16 +79,11 @@ class PaymentService
             throw new \Exception('Paiement non confirme.');
         }
 
-        $total = $this->orderService->recalculateTotal($commande);
-
-        $payment = new Payment();
-        $payment->setCommande($commande);
-        $payment->setAmount($total / 100);
-        $payment->setStatus('paid');
-
         $commande->setStatut('paid');
-
-        $this->entityManager->persist($payment);
+        $payment = $this->orderService->ensurePaymentRecordForPaidOrder($commande);
+        if (!$payment instanceof Payment) {
+            throw new \RuntimeException('Impossible de creer la trace de paiement.');
+        }
         $this->entityManager->flush();
 
         return $payment;

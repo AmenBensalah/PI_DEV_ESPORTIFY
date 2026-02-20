@@ -16,7 +16,7 @@
                 <tr class="admin-tournament-row">
                     <td>{{ payment.id }}</td>
                     <td>{{ payment.commande.id }}</td>
-                    <td>{{ payment.amount / 100 }} EUR</td>
+                    <td>{{ payment.amount|number_format(2, '.', ' ') }} EUR</td>
                     <td>
                         {% if payment.status matches '/success|succeeded|paid/' %}
                             <span class="badge badge-success">Validé</span>

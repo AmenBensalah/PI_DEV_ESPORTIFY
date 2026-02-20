@@ -48,7 +48,12 @@ class OrderController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'admin_order_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Commande $commande, EntityManagerInterface $entityManager): Response
+    public function edit(
+        Request $request,
+        Commande $commande,
+        EntityManagerInterface $entityManager,
+        OrderService $orderService
+    ): Response
     {
         $statuts = ['draft', 'pending_payment', 'paid', 'cancelled'];
 
@@ -96,6 +101,10 @@ class OrderController extends AbstractController
             $statut = (string) $request->request->get('statut');
             if (in_array($statut, $statuts, true)) {
                 $commande->setStatut($statut);
+            }
+
+            if ($commande->getStatut() === 'paid') {
+                $orderService->ensurePaymentRecordForPaidOrder($commande);
             }
 
             $entityManager->flush();
