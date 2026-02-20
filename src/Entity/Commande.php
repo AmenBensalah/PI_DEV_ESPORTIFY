@@ -4,11 +4,11 @@ namespace App\Entity;
 
 use App\Repository\CommandeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
-use App\Entity\User;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CommandeRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class Commande
 {
     #[ORM\Id]
@@ -22,9 +22,9 @@ class Commande
     #[ORM\OneToMany(mappedBy: 'commande', targetEntity: LigneCommande::class, orphanRemoval: true)]
     private Collection $lignesCommande;
 
-    // TEMPORAIRE : Relation User désactivée pour éviter l'erreur SQL
-    // #[ORM\ManyToOne(inversedBy: 'commandes')]
-    // private ?User $user = null;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $user = null;
 
     #[ORM\Column(length: 255)]
     private ?string $statut = 'draft';
@@ -55,6 +55,30 @@ class Commande
 
     #[ORM\Column(nullable: true)]
     private ?int $numtel = null;
+
+    #[ORM\Column(length: 190, nullable: true)]
+    private ?string $identityKey = null;
+
+    #[ORM\Column(options: ['default' => false])]
+    private bool $aiBlocked = false;
+
+    #[ORM\Column(nullable: true)]
+    private ?float $aiRiskScore = null;
+
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $aiBlockReason = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $aiBlockedAt = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $aiBlockUntil = null;
+
+    public function __construct()
+    {
+        $this->payments = new ArrayCollection();
+        $this->lignesCommande = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -169,6 +193,90 @@ class Commande
         return $this;
     }
 
+    public function getIdentityKey(): ?string
+    {
+        return $this->identityKey;
+    }
+
+    public function setIdentityKey(?string $identityKey): static
+    {
+        $this->identityKey = $identityKey;
+
+        return $this;
+    }
+
+    public function isAiBlocked(): bool
+    {
+        return $this->aiBlocked;
+    }
+
+    public function setAiBlocked(bool $aiBlocked): static
+    {
+        $this->aiBlocked = $aiBlocked;
+
+        return $this;
+    }
+
+    public function getAiRiskScore(): ?float
+    {
+        return $this->aiRiskScore;
+    }
+
+    public function setAiRiskScore(?float $aiRiskScore): static
+    {
+        $this->aiRiskScore = $aiRiskScore;
+
+        return $this;
+    }
+
+    public function getAiBlockReason(): ?string
+    {
+        return $this->aiBlockReason;
+    }
+
+    public function setAiBlockReason(?string $aiBlockReason): static
+    {
+        $this->aiBlockReason = $aiBlockReason;
+
+        return $this;
+    }
+
+    public function getAiBlockedAt(): ?\DateTimeImmutable
+    {
+        return $this->aiBlockedAt;
+    }
+
+    public function setAiBlockedAt(?\DateTimeImmutable $aiBlockedAt): static
+    {
+        $this->aiBlockedAt = $aiBlockedAt;
+
+        return $this;
+    }
+
+    public function getAiBlockUntil(): ?\DateTimeImmutable
+    {
+        return $this->aiBlockUntil;
+    }
+
+    public function setAiBlockUntil(?\DateTimeImmutable $aiBlockUntil): static
+    {
+        $this->aiBlockUntil = $aiBlockUntil;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, Payment>
      */
@@ -187,10 +295,15 @@ class Commande
         return $this;
     }
 
-    public function __construct()
+    public function removePayment(Payment $payment): static
     {
-        $this->payments = new ArrayCollection();
-        $this->lignesCommande = new ArrayCollection();
+        if ($this->payments->removeElement($payment)) {
+            if ($payment->getCommande() === $this) {
+                $payment->setCommande(null);
+            }
+        }
+
+        return $this;
     }
 
     public function getStatut(): ?string
@@ -226,7 +339,6 @@ class Commande
     public function removeLigneCommande(LigneCommande $ligneCommande): static
     {
         if ($this->lignesCommande->removeElement($ligneCommande)) {
-            // set the owning side to null (unless already changed)
             if ($ligneCommande->getCommande() === $this) {
                 $ligneCommande->setCommande(null);
             }
@@ -235,28 +347,21 @@ class Commande
         return $this;
     }
 
-    public function removePayment(Payment $payment): static
+    #[ORM\PrePersist]
+    #[ORM\PreUpdate]
+    public function syncDerivedFields(): void
     {
-        if ($this->payments->removeElement($payment)) {
-            // set the owning side to null (unless already changed)
-            if ($payment->getCommande() === $this) {
-                $payment->setCommande(null);
-            }
+        $nom = mb_strtolower(trim((string) ($this->nom ?? '')));
+        $prenom = mb_strtolower(trim((string) ($this->prenom ?? '')));
+        $numtel = (int) ($this->numtel ?? 0);
+        $this->identityKey = $nom . '|' . $prenom . '|' . $numtel;
+
+        if ((string) $this->statut === 'paid') {
+            $this->aiBlocked = false;
+            $this->aiRiskScore = null;
+            $this->aiBlockReason = null;
+            $this->aiBlockedAt = null;
+            $this->aiBlockUntil = null;
         }
-
-        return $this;
     }
-
-    // TEMPORAIRE : Méthodes User désactivées
-    // public function getUser(): ?User
-    // {
-    //     return $this->user;
-    // }
-
-    // public function setUser(?User $user): static
-    // {
-    //     $this->user = $user;
-
-    //     return $this;
-    // }
 }

@@ -1,49 +1,218 @@
-﻿{% extends 'admin/layout.html.twig' %}
+{% extends 'admin/layout.html.twig' %}
 
 {% block title %}Commande #{{ commande.id }} - Admin{% endblock %}
 {% block page_title %}Commande #{{ commande.id }}{% endblock %}
 
 {% block body %}
-    <div class="stat-card" style="margin-bottom: 24px;">
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-            <div>
-                <div style="color: var(--text-muted); font-size: 13px;">Statut</div>
-                <div style="font-size: 20px; font-weight: 600;">
-                    <span class="badge">{{ commande.statut }}</span>
-                </div>
+<section class="order-admin-show">
+    <div class="order-admin-head order-panel">
+        <div>
+            <div class="order-muted">Statut</div>
+            <div class="order-status-line">
+                <span class="badge">{{ commande.statut }}</span>
             </div>
-            <div class="admin-actions">
-                <a href="{{ path('admin_order_edit', {'id': commande.id}) }}" class="btn btn-primary">Modifier</a>
-                <a href="{{ path('admin_order_index') }}" class="btn btn-secondary">Retour</a>
+        </div>
+        <div class="order-admin-actions">
+            <a href="{{ path('admin_order_edit', {'id': commande.id}) }}" class="admin-tournament-btn">Modifier</a>
+            <a href="{{ path('admin_order_index') }}" class="admin-tournament-btn ghost">Retour</a>
+        </div>
+    </div>
+
+    <div class="order-panel order-ai-panel">
+        <div class="order-ai-head">
+            <div class="order-ai-title">Surveillance IA anti-abus</div>
+            {% if commande.aiBlocked %}
+                <span class="badge badge-danger">Bloquee IA</span>
+            {% else %}
+                <span class="badge badge-success">Aucune alerte</span>
+            {% endif %}
+        </div>
+        <div class="order-ai-grid">
+            <div class="order-info-col">
+                <div class="order-info-row"><span class="order-label">Nom</span><span class="order-value">{{ commande.nom ?? '-' }}</span></div>
+                <div class="order-info-row"><span class="order-label">Telephone</span><span class="order-value">{{ commande.numtel ?? '-' }}</span></div>
+                <div class="order-info-row"><span class="order-label">User ID</span><span class="order-value">{{ commande.user ? commande.user.id : '-' }}</span></div>
+                <div class="order-info-row">
+                    <span class="order-label">Score IA</span>
+                    {% set scoreClass = commande.aiRiskScore is not null and commande.aiRiskScore >= 70 ? 'order-score danger' : 'order-score' %}
+                    <span class="{{ scoreClass }}">
+                        {{ commande.aiRiskScore is not null ? (commande.aiRiskScore|number_format(1, '.', ' ') ~ '/100') : '-' }}
+                    </span>
+                </div>
+                <div class="order-info-row"><span class="order-label">Blocage jusqu'a</span><span class="order-value">{{ commande.aiBlockUntil ? commande.aiBlockUntil|date('d/m/Y H:i') : '-' }}</span></div>
+            </div>
+            <div class="order-info-col">
+                <div class="order-info-row"><span class="order-label">Prenom</span><span class="order-value">{{ commande.prenom ?? '-' }}</span></div>
+                <div class="order-info-row"><span class="order-label">Adresse</span><span class="order-value">{{ commande.adresse ?? '-' }}</span></div>
+                <div class="order-info-row"><span class="order-label">Identity Key</span><span class="order-value wrap">{{ commande.identityKey ?? '-' }}</span></div>
+                <div class="order-info-row"><span class="order-label">Bloquee le</span><span class="order-value">{{ commande.aiBlockedAt ? commande.aiBlockedAt|date('d/m/Y H:i') : '-' }}</span></div>
+            </div>
+            <div class="order-reason">
+                <div class="order-label">Raison</div>
+                <div class="order-value">{{ commande.aiBlockReason ?? '-' }}</div>
             </div>
         </div>
     </div>
 
-    <div class="admin-table-container" style="margin-bottom: 24px;">
-        <div style="font-weight: 600; margin-bottom: 12px;">Produits</div>
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Produit</th>
-                    <th>Quantite</th>
-                    <th>Prix</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for ligne in commande.lignesCommande %}
-                <tr>
-                    <td>{{ ligne.produit.nom }}</td>
-                    <td>{{ ligne.quantite }}</td>
-                    <td>{{ ligne.prix / 100 }} EUR</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+    <div class="order-panel">
+        <div class="order-table-title">Produits</div>
+        <div class="admin-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Produit</th>
+                        <th>Quantite</th>
+                        <th>Prix</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for ligne in commande.lignesCommande %}
+                    <tr>
+                        <td>{{ ligne.produit.nom }}</td>
+                        <td>{{ ligne.quantite }}</td>
+                        <td>{{ ligne.prix / 100 }} EUR</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
     {% if commande.statut != 'cancelled' %}
         <form action="{{ path('admin_order_cancel', {'id': commande.id}) }}" method="post">
-            <button type="submit" class="btn btn-danger">Annuler la commande</button>
+            <button type="submit" class="admin-tournament-btn danger">Annuler la commande</button>
         </form>
     {% endif %}
+</section>
+
+<style>
+.order-admin-show {
+    display: grid;
+    gap: 18px;
+}
+.order-panel {
+    background: rgba(9, 14, 28, 0.82);
+    border: 1px solid rgba(115, 138, 255, 0.28);
+    border-radius: 16px;
+    padding: 18px;
+    backdrop-filter: blur(4px);
+}
+.order-admin-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.order-admin-actions {
+    display: flex;
+    gap: 10px;
+}
+.order-muted {
+    color: #b4c1e7;
+    font-size: 12px;
+}
+.order-status-line {
+    margin-top: 6px;
+}
+.order-ai-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.order-ai-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #e8efff;
+}
+.order-ai-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 24px;
+    color: #f2f5ff;
+}
+.order-info-col {
+    display: grid;
+    gap: 10px;
+}
+.order-info-row {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 8px;
+    align-items: baseline;
+}
+.order-label {
+    color: #9eacd8;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+.order-value {
+    color: #f4f7ff;
+    font-size: 16px;
+    font-weight: 600;
+}
+.order-value.wrap {
+    word-break: break-all;
+}
+.order-score {
+    display: inline-flex;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(76, 199, 255, 0.2);
+    border: 1px solid rgba(88, 211, 255, 0.35);
+    font-size: 14px;
+    font-weight: 700;
+}
+.order-score.danger {
+    background: rgba(255, 85, 125, 0.2);
+    border-color: rgba(255, 115, 143, 0.45);
+    color: #ffd9e2;
+}
+.order-reason {
+    grid-column: 1 / -1;
+    margin-top: 4px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(8, 16, 37, 0.7);
+    border: 1px solid rgba(115, 138, 255, 0.2);
+}
+.order-reason .order-value {
+    font-size: 15px;
+    line-height: 1.45;
+    margin-top: 6px;
+}
+.order-table-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #e8efff;
+    margin-bottom: 12px;
+}
+.order-panel .admin-table-container {
+    background: rgba(6, 9, 20, 0.62);
+    border-radius: 12px;
+    overflow: hidden;
+}
+@media (max-width: 900px) {
+    .order-admin-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .order-admin-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    .order-ai-grid {
+        grid-template-columns: 1fr;
+    }
+    .order-info-row {
+        grid-template-columns: 1fr;
+        gap: 2px;
+    }
+    .order-value {
+        font-size: 17px;
+    }
+}
+</style>
 {% endblock %}

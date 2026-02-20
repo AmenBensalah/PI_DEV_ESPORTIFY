@@ -4,6 +4,7 @@ namespace App\Controller\Backoffice;
 
 use App\Entity\Payment;
 use App\Repository\PaymentRepository;
+use App\Service\RevenueForecastService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,7 +14,11 @@ use Symfony\Component\Routing\Annotation\Route;
 class PaymentController extends AbstractController
 {
     #[Route('/', name: 'admin_payment_index', methods: ['GET'])]
-    public function index(PaymentRepository $paymentRepository, Request $request): Response
+    public function index(
+        PaymentRepository $paymentRepository,
+        RevenueForecastService $revenueForecastService,
+        Request $request
+    ): Response
     {
         $query = trim((string) $request->query->get('q', ''));
         $status = trim((string) $request->query->get('status', ''));
@@ -28,8 +33,11 @@ class PaymentController extends AbstractController
             ]);
         }
 
+        $analytics = $revenueForecastService->buildPaymentForecastDashboard();
+
         return $this->render('backoffice/payment/index.html.twig', [
             'payments' => $payments,
+            'analytics' => $analytics,
             'currentQuery' => $query,
             'currentStatus' => $status,
             'currentSort' => $sort,

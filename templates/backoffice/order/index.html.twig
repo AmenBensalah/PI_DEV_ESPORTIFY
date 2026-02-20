@@ -24,6 +24,7 @@
         <a href="#" class="tab {{ currentStatus in ['pending', 'pending_payment'] ? 'active' : '' }}" data-status="pending">En cours</a>
         <a href="#" class="tab {{ currentStatus == 'paid' ? 'active' : '' }}" data-status="paid">Validées</a>
         <a href="#" class="tab {{ currentStatus == 'cancelled' ? 'active' : '' }}" data-status="cancelled">Annulées</a>
+        <a href="#" class="tab {{ currentStatus == 'blocked_ai' ? 'active' : '' }}" data-status="blocked_ai">Bloquées IA</a>
     </div>
 
     <div class="admin-tournament-panel">
@@ -43,6 +44,7 @@
                     <option value="pending" {% if currentStatus == 'pending' %}selected{% endif %}>En cours</option>
                     <option value="paid" {% if currentStatus == 'paid' %}selected{% endif %}>Validée</option>
                     <option value="cancelled" {% if currentStatus == 'cancelled' %}selected{% endif %}>Annulée</option>
+                    <option value="blocked_ai" {% if currentStatus == 'blocked_ai' %}selected{% endif %}>Bloquée IA</option>
                 </select>
             </div>
             <div class="admin-tournament-actions">

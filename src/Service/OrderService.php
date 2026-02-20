@@ -4,7 +4,9 @@ namespace App\Service;
 
 use App\Entity\Commande;
 use App\Entity\LigneCommande;
+use App\Entity\Payment;
 use App\Entity\Produit;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 
 class OrderService
@@ -14,10 +16,13 @@ class OrderService
     ) {
     }
 
-    public function createOrder(): Commande
+    public function createOrder(?User $user = null): Commande
     {
         $commande = new Commande();
         $commande->setStatut('draft');
+        if ($user !== null) {
+            $commande->setUser($user);
+        }
         
         $this->entityManager->persist($commande);
         $this->entityManager->flush();
@@ -106,6 +111,39 @@ class OrderService
     {
         $commande->setStatut('cancelled');
         $this->entityManager->flush();
+    }
+
+    public function ensurePaymentRecordForPaidOrder(Commande $commande): ?Payment
+    {
+        if ($commande->getStatut() !== 'paid') {
+            return null;
+        }
+
+        $existingPaidPayment = null;
+        foreach ($commande->getPayments() as $payment) {
+            $status = mb_strtolower(trim((string) $payment->getStatus()));
+            if (str_contains($status, 'paid') || str_contains($status, 'success') || str_contains($status, 'succeeded')) {
+                $existingPaidPayment = $payment;
+                break;
+            }
+        }
+
+        $total = $this->recalculateTotal($commande);
+        $amount = $total / 100;
+
+        if ($existingPaidPayment instanceof Payment) {
+            $existingPaidPayment->setAmount($amount);
+            $existingPaidPayment->setStatus('paid');
+            return $existingPaidPayment;
+        }
+
+        $payment = new Payment();
+        $payment->setCommande($commande);
+        $payment->setAmount($amount);
+        $payment->setStatus('paid');
+        $this->entityManager->persist($payment);
+
+        return $payment;
     }
 
     public function recalculateTotal(Commande $commande): int

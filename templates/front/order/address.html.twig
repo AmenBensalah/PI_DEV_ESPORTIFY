@@ -13,6 +13,17 @@
 </section>
 
 <section class="order-shell">
+    {% for message in app.flashes('error') %}
+        <div class="flash-error" role="alert" style="margin:12px 0; background: rgba(255,0,110,0.06); border:1px solid #ff006e; padding:10px 12px; border-radius:8px;">
+            {{ message }}
+        </div>
+    {% endfor %}
+    {% for message in app.flashes('success') %}
+        <div class="flash-success" role="status" aria-live="polite" style="margin:12px 0; background: rgba(80,200,120,0.08); border:1px solid #3ddc97; padding:10px 12px; border-radius:8px;">
+            {{ message }}
+        </div>
+    {% endfor %}
+
     <div class="order-flow">
         <div class="order-steps">
             <div class="order-step completed">

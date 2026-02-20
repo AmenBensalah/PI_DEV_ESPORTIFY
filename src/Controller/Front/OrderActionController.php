@@ -8,6 +8,7 @@ use App\Entity\Produit;
 use App\Repository\CommandeRepository;
 use App\Repository\ProduitRepository;
 use App\Service\OrderService;
+use App\Service\UnpaidOrderAbuseDetectionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,18 +25,62 @@ class OrderActionController extends AbstractController
         return $this->redirectToRoute('front_order_cart');
     }
     #[Route('/create', name: 'front_order_create', methods: ['POST'])]
-    public function create(OrderService $orderService, SessionInterface $session): Response
+    public function create(
+        OrderService $orderService,
+        SessionInterface $session,
+        UnpaidOrderAbuseDetectionService $abuseDetectionService
+    ): Response
     {
-        $commande = $orderService->createOrder();
+        $sessionBlockMessage = $this->getSessionBlockMessage($session);
+        if ($sessionBlockMessage !== null) {
+            $this->addFlash('error', $sessionBlockMessage);
+            return $this->redirectToRoute('front_order_cart');
+        }
+
+        if (($globalBlock = $this->getGlobalUserBlockDecision($abuseDetectionService)) !== null) {
+            $this->applySessionBlock(
+                $session,
+                (string) ($globalBlock['block_until'] ?? ''),
+                (float) ($globalBlock['score'] ?? 0.0)
+            );
+            $this->addFlash('error', (string) ($globalBlock['message'] ?? 'Commande bloquee temporairement.'));
+            return $this->redirectToRoute('front_order_cart');
+        }
+
+        $user = $this->getUser();
+        $commande = $orderService->createOrder($user instanceof \App\Entity\User ? $user : null);
         $session->set('current_order_id', $commande->getId());
         
         return $this->redirectToRoute('front_order_cart');
     }
 
     #[Route('/add-product/{id}', name: 'front_order_add_product', methods: ['GET', 'POST'], defaults: ['id' => null])]
-    public function addProduct(?Produit $produit, Request $request, OrderService $orderService, EntityManagerInterface $entityManager, \App\Service\RecommendationService $recommendationService): Response
+    public function addProduct(
+        ?Produit $produit,
+        Request $request,
+        OrderService $orderService,
+        EntityManagerInterface $entityManager,
+        \App\Service\RecommendationService $recommendationService,
+        UnpaidOrderAbuseDetectionService $abuseDetectionService
+    ): Response
     {
         $session = $request->getSession();
+        $sessionBlockMessage = $this->getSessionBlockMessage($session);
+        if ($sessionBlockMessage !== null) {
+            $this->addFlash('error', $sessionBlockMessage);
+            return $this->redirectToRoute('front_order_cart');
+        }
+
+        if (($globalBlock = $this->getGlobalUserBlockDecision($abuseDetectionService)) !== null) {
+            $this->applySessionBlock(
+                $session,
+                (string) ($globalBlock['block_until'] ?? ''),
+                (float) ($globalBlock['score'] ?? 0.0)
+            );
+            $this->addFlash('error', (string) ($globalBlock['message'] ?? 'Commande bloquee temporairement.'));
+            return $this->redirectToRoute('front_order_cart');
+        }
+
         // ... (logging removed for brevity)
 
         if (!$produit) {
@@ -54,9 +99,15 @@ class OrderActionController extends AbstractController
         }
 
         if (!$commande) {
-            $commande = $orderService->createOrder();
+            $user = $this->getUser();
+            $commande = $orderService->createOrder($user instanceof \App\Entity\User ? $user : null);
             $entityManager->flush();
             $session->set('current_order_id', $commande->getId());
+        } elseif ($commande->getUser() === null) {
+            $user = $this->getUser();
+            if ($user instanceof \App\Entity\User) {
+                $commande->setUser($user);
+            }
         }
         
         $quantite = (int) $request->request->get('quantite', 1);
@@ -192,7 +243,13 @@ class OrderActionController extends AbstractController
     }
 
     #[Route('/step-1', name: 'front_order_step1', methods: ['GET', 'POST'])]
-    public function step1(SessionInterface $session, Request $request, CommandeRepository $commandeRepository, EntityManagerInterface $entityManager): Response
+    public function step1(
+        SessionInterface $session,
+        Request $request,
+        CommandeRepository $commandeRepository,
+        EntityManagerInterface $entityManager,
+        UnpaidOrderAbuseDetectionService $abuseDetectionService
+    ): Response
     {
         $orderId = $session->get('current_order_id');
         if (!$orderId) {
@@ -248,13 +305,43 @@ class OrderActionController extends AbstractController
             return $this->redirectToRoute('front_order_cart');
         }
 
+        $currentUser = $this->getUser();
+        $userId = $currentUser instanceof \App\Entity\User ? $currentUser->getId() : null;
+        $riskDecision = $abuseDetectionService->assessAndMaybeBlock($nom, $prenom, $numtel, $userId);
+        if ($riskDecision['blocked'] === true) {
+            $commande->setNom($nom);
+            $commande->setPrenom($prenom);
+            $commande->setQuantite($quantite);
+            $commande->setNumtel($numtel);
+            $commande->setIdentityKey($abuseDetectionService->buildIdentityKey($nom, $prenom, $numtel));
+            if ($currentUser instanceof \App\Entity\User && $commande->getUser() === null) {
+                $commande->setUser($currentUser);
+            }
+            $this->markOrderAiBlocked($commande, $riskDecision);
+            $entityManager->flush();
+
+            $this->applySessionBlock(
+                $session,
+                (string) ($riskDecision['block_until'] ?? ''),
+                (float) ($riskDecision['score'] ?? 0.0)
+            );
+            $this->addFlash('error', (string) $riskDecision['message']);
+            return $this->redirectToRoute('front_order_cart');
+        }
+
         try {
             $commande->setNom($nom);
             $commande->setPrenom($prenom);
             $commande->setQuantite($quantite);
             $commande->setNumtel($numtel);
+            $commande->setIdentityKey($abuseDetectionService->buildIdentityKey($nom, $prenom, $numtel));
+            if ($currentUser instanceof \App\Entity\User && $commande->getUser() === null) {
+                $commande->setUser($currentUser);
+            }
+            $this->clearOrderAiBlocked($commande);
 
             $entityManager->flush();
+            $this->clearSessionBlock($session);
             return $this->redirectToRoute('front_order_step2');
         } catch (\Exception $e) {
             $this->addFlash('error', $e->getMessage());
@@ -263,7 +350,14 @@ class OrderActionController extends AbstractController
     }
 
     #[Route('/step-2', name: 'front_order_step2', methods: ['GET', 'POST'])]
-    public function step2(OrderService $orderService, SessionInterface $session, Request $request, CommandeRepository $commandeRepository, EntityManagerInterface $entityManager): Response
+    public function step2(
+        OrderService $orderService,
+        SessionInterface $session,
+        Request $request,
+        CommandeRepository $commandeRepository,
+        EntityManagerInterface $entityManager,
+        UnpaidOrderAbuseDetectionService $abuseDetectionService
+    ): Response
     {
         $orderId = $session->get('current_order_id');
         if (!$orderId) {
@@ -284,6 +378,28 @@ class OrderActionController extends AbstractController
             }
             $this->addFlash('error', 'Cette commande ne peut plus etre modifiee.');
             return $this->redirectToRoute('front_order_cart');
+        }
+
+        $numtel = $commande->getNumtel();
+        if ($numtel !== null) {
+            $activeBlock = $abuseDetectionService->getActiveBlock(
+                (int) $numtel,
+                $commande->getUser()?->getId(),
+                $commande->getIdentityKey(),
+                $commande->getNom(),
+                $commande->getPrenom()
+            );
+            if ($activeBlock !== null && $activeBlock['blocked'] === true) {
+                $this->markOrderAiBlocked($commande, $activeBlock);
+                $entityManager->flush();
+                $this->applySessionBlock(
+                    $session,
+                    (string) ($activeBlock['block_until'] ?? ''),
+                    (float) ($activeBlock['score'] ?? 0.0)
+                );
+                $this->addFlash('error', (string) $activeBlock['message']);
+                return $this->redirectToRoute('front_order_cart');
+            }
         }
 
         if ($request->isMethod('GET')) {
@@ -328,6 +444,7 @@ class OrderActionController extends AbstractController
             $commande->setCodePostal($codePostal);
             $commande->setAdresse($adresse);
             $commande->setAdresseDetail($adresseDetail);
+            $this->clearOrderAiBlocked($commande);
 
             $entityManager->flush();
 
@@ -395,5 +512,93 @@ class OrderActionController extends AbstractController
         }
 
         return $this->redirectToRoute('app_front_produit_index');
+    }
+
+    private function getSessionBlockMessage(SessionInterface $session): ?string
+    {
+        $blockUntilIso = (string) $session->get('order_block_until', '');
+        if ($blockUntilIso === '') {
+            return null;
+        }
+
+        try {
+            $blockUntil = new \DateTimeImmutable($blockUntilIso);
+        } catch (\Throwable) {
+            $this->clearSessionBlock($session);
+            return null;
+        }
+
+        if ($blockUntil <= new \DateTimeImmutable()) {
+            $this->clearSessionBlock($session);
+            return null;
+        }
+
+        $score = (float) $session->get('order_block_score', 0.0);
+
+        return sprintf(
+            'Creation de commande bloquee temporairement (score %.0f/100). Reessayez apres %s.',
+            $score,
+            $blockUntil->format('d/m/Y H:i')
+        );
+    }
+
+    private function applySessionBlock(SessionInterface $session, string $blockUntilIso, float $score): void
+    {
+        if ($blockUntilIso === '') {
+            return;
+        }
+
+        $session->set('order_block_until', $blockUntilIso);
+        $session->set('order_block_score', $score);
+    }
+
+    private function clearSessionBlock(SessionInterface $session): void
+    {
+        $session->remove('order_block_until');
+        $session->remove('order_block_score');
+    }
+
+    /**
+     * @param array{score?: float, message?: string, block_until?: string|null} $decision
+     */
+    private function markOrderAiBlocked(Commande $commande, array $decision): void
+    {
+        $commande->setAiBlocked(true);
+        $commande->setAiRiskScore(isset($decision['score']) ? (float) $decision['score'] : null);
+        $commande->setAiBlockReason(isset($decision['message']) ? (string) $decision['message'] : null);
+        $commande->setAiBlockedAt(new \DateTimeImmutable());
+
+        $blockUntilRaw = isset($decision['block_until']) ? (string) $decision['block_until'] : '';
+        if ($blockUntilRaw !== '') {
+            try {
+                $commande->setAiBlockUntil(new \DateTimeImmutable($blockUntilRaw));
+            } catch (\Throwable) {
+                $commande->setAiBlockUntil(null);
+            }
+        } else {
+            $commande->setAiBlockUntil(null);
+        }
+    }
+
+    private function clearOrderAiBlocked(Commande $commande): void
+    {
+        $commande->setAiBlocked(false);
+        $commande->setAiRiskScore(null);
+        $commande->setAiBlockReason(null);
+        $commande->setAiBlockedAt(null);
+        $commande->setAiBlockUntil(null);
+    }
+
+    /**
+     * @return array{blocked: bool, score: float, block_until: ?string, message: string}|null
+     */
+    private function getGlobalUserBlockDecision(UnpaidOrderAbuseDetectionService $abuseDetectionService): ?array
+    {
+        $currentUser = $this->getUser();
+        if (!$currentUser instanceof \App\Entity\User) {
+            return null;
+        }
+
+        return $abuseDetectionService->getActiveBlockForUser($currentUser->getId());
     }
 }

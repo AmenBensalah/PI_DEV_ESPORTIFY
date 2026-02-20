@@ -62,9 +62,15 @@ class BundleController extends AbstractController
         }
 
         if (!$commande) {
-            $commande = $orderService->createOrder();
+            $user = $this->getUser();
+            $commande = $orderService->createOrder($user instanceof \App\Entity\User ? $user : null);
             $entityManager->flush();
             $session->set('current_order_id', $commande->getId());
+        } elseif ($commande->getUser() === null) {
+            $user = $this->getUser();
+            if ($user instanceof \App\Entity\User) {
+                $commande->setUser($user);
+            }
         }
 
         foreach ($productIds as $pId) {

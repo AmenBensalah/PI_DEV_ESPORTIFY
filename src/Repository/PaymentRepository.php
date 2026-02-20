@@ -122,4 +122,44 @@ class PaymentRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    /**
+     * @return list<array{amount: float, status: string, createdAt: \DateTimeImmutable}>
+     */
+    public function getEventsSince(\DateTimeImmutable $from): array
+    {
+        $rows = $this->createQueryBuilder('p')
+            ->select('p.amount AS amount, p.status AS status, p.createdAt AS createdAt')
+            ->andWhere('p.createdAt >= :from')
+            ->setParameter('from', $from)
+            ->orderBy('p.createdAt', 'ASC')
+            ->getQuery()
+            ->getArrayResult();
+
+        $result = [];
+        foreach ($rows as $row) {
+            $createdAtRaw = $row['createdAt'] ?? null;
+            if ($createdAtRaw instanceof \DateTimeImmutable) {
+                $createdAt = $createdAtRaw;
+            } elseif ($createdAtRaw instanceof \DateTimeInterface) {
+                $createdAt = \DateTimeImmutable::createFromInterface($createdAtRaw);
+            } elseif (is_string($createdAtRaw) && $createdAtRaw !== '') {
+                try {
+                    $createdAt = new \DateTimeImmutable($createdAtRaw);
+                } catch (\Throwable) {
+                    continue;
+                }
+            } else {
+                continue;
+            }
+
+            $result[] = [
+                'amount' => (float) ($row['amount'] ?? 0.0),
+                'status' => mb_strtolower(trim((string) ($row['status'] ?? ''))),
+                'createdAt' => $createdAt,
+            ];
+        }
+
+        return $result;
+    }
 }
