@@ -8,10 +8,12 @@ use App\Entity\Tournoi;
 use App\Entity\User;
 use App\Repository\CandidatureRepository;
 use App\Repository\EquipeRepository;
+use App\Repository\ParticipationRequestRepository;
 use App\Repository\TournoiMatchParticipantResultRepository;
 use App\Repository\TournoiMatchRepository;
 use App\Repository\TournoiRepository;
 use App\Repository\UserRepository;
+use App\Service\SoloTournamentPredictionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -365,6 +367,7 @@ class TournoiAdminController extends AbstractController
     public function show(
         Tournoi $tournoi,
         TournoiMatchRepository $tournoiMatchRepository,
+        SoloTournamentPredictionService $soloTournamentPredictionService,
         EquipeRepository $equipeRepository,
         CandidatureRepository $candidatureRepository
     ): Response
@@ -375,11 +378,13 @@ class TournoiAdminController extends AbstractController
             $tournoiMatchRepository->findByTournoiOrdered($tournoi),
             $participantTeams
         );
+        $soloPrediction = $soloTournamentPredictionService->predictWinner($tournoi);
 
         return $this->render('admin/tournoi/show.html.twig', [
             'tournoi' => $tournoi,
             'participantScores' => $participantScores,
             'participantTeams' => $participantTeams,
+            'soloPrediction' => $soloPrediction,
             'readonly' => false,
             'backRoute' => 'admin_tournoi_index',
         ]);
@@ -389,6 +394,7 @@ class TournoiAdminController extends AbstractController
     public function preview(
         Tournoi $tournoi,
         TournoiMatchRepository $tournoiMatchRepository,
+        SoloTournamentPredictionService $soloTournamentPredictionService,
         EquipeRepository $equipeRepository,
         CandidatureRepository $candidatureRepository
     ): Response
@@ -399,11 +405,13 @@ class TournoiAdminController extends AbstractController
             $tournoiMatchRepository->findByTournoiOrdered($tournoi),
             $participantTeams
         );
+        $soloPrediction = $soloTournamentPredictionService->predictWinner($tournoi);
 
         return $this->render('admin/tournoi/show.html.twig', [
             'tournoi' => $tournoi,
             'participantScores' => $participantScores,
             'participantTeams' => $participantTeams,
+            'soloPrediction' => $soloPrediction,
             'readonly' => true,
             'backRoute' => 'admin_participation_index',
         ]);
@@ -413,6 +421,7 @@ class TournoiAdminController extends AbstractController
     public function planning(
         Tournoi $tournoi,
         TournoiMatchRepository $tournoiMatchRepository,
+        SoloTournamentPredictionService $soloTournamentPredictionService,
         EquipeRepository $equipeRepository,
         CandidatureRepository $candidatureRepository
     ): Response
@@ -420,12 +429,14 @@ class TournoiAdminController extends AbstractController
         $participants = $this->getSortedParticipants($tournoi);
         $participantTeams = $this->buildParticipantTeams($tournoi, $equipeRepository, $candidatureRepository);
         $matches = $tournoiMatchRepository->findByTournoiOrdered($tournoi);
+        $soloPrediction = $soloTournamentPredictionService->predictWinner($tournoi);
 
         return $this->render('admin/tournoi/planning.html.twig', [
             'tournoi' => $tournoi,
             'participants' => $participants,
             'participantTeams' => $participantTeams,
             'matches' => $matches,
+            'soloPrediction' => $soloPrediction,
         ]);
     }
 
@@ -672,12 +683,31 @@ class TournoiAdminController extends AbstractController
     }
 
     #[Route('/tournoi/{id}/delete', name: 'tournoi_delete', methods: ['POST'])]
-    public function delete(Tournoi $tournoi, EntityManagerInterface $em): Response
+    public function delete(
+        Tournoi $tournoi,
+        EntityManagerInterface $em,
+        ParticipationRequestRepository $participationRequestRepository
+    ): Response
     {
-        $em->remove($tournoi);
-        $em->flush();
+        try {
+            $em->wrapInTransaction(function () use ($em, $tournoi, $participationRequestRepository): void {
+                $requests = $participationRequestRepository->findBy(['tournoi' => $tournoi]);
+                foreach ($requests as $request) {
+                    $em->remove($request);
+                }
 
-        $this->addFlash('success', 'Tournoi supprimé avec succès!');
+                if ($tournoi->getResultat() !== null) {
+                    $em->remove($tournoi->getResultat());
+                }
+
+                $em->remove($tournoi);
+            });
+        } catch (\Throwable) {
+            $this->addFlash('error', 'Impossible de supprimer ce tournoi car des donnees liees existent encore.');
+            return $this->redirectToRoute('admin_tournoi_index');
+        }
+
+        $this->addFlash('success', 'Tournoi supprime avec succes!');
         return $this->redirectToRoute('admin_tournoi_index');
     }
 
@@ -944,3 +974,4 @@ class TournoiAdminController extends AbstractController
         return $teamsByParticipantId;
     }
 }
+

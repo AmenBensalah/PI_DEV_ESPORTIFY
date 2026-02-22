@@ -16,6 +16,9 @@
             <a href="{{ path('admin_tournoi_index') }}" class="admin-tournament-btn ghost">
                 <i class="fas fa-rotate"></i> Rafraîchir
             </a>
+            <a href="https://rawg.io/" target="_blank" rel="noopener noreferrer" class="admin-tournament-btn ghost">
+                <i class="fas fa-gamepad"></i> Consulter jeux
+            </a>
         </div>
     </div>
     <div class="admin-tournament-hero-glow"></div>
@@ -23,11 +26,11 @@
 
 <section class="admin-tournament-shell">
     <div class="admin-tournament-tabs">
-        <a href="{{ path('admin_tournoi_index') }}" class="tab {{ app.request.attributes.get('_route') == 'admin_tournoi_index' ? 'active' : '' }}">Tous</a>
-        <a href="{{ path('admin_tournoi_by_category', {typeGame: 'FPS'}) }}" class="tab {{ app.request.attributes.get('_route') == 'admin_tournoi_by_category' and app.request.get('typeGame') == 'FPS' ? 'active' : '' }}">FPS</a>
-        <a href="{{ path('admin_tournoi_by_category', {typeGame: 'Sports'}) }}" class="tab {{ app.request.attributes.get('_route') == 'admin_tournoi_by_category' and app.request.get('typeGame') == 'Sports' ? 'active' : '' }}">Sports</a>
-        <a href="{{ path('admin_tournoi_by_category', {typeGame: 'Battle_royale'}) }}" class="tab {{ app.request.attributes.get('_route') == 'admin_tournoi_by_category' and app.request.get('typeGame') == 'Battle_royale' ? 'active' : '' }}">Battle Royale</a>
-        <a href="{{ path('admin_tournoi_by_category', {typeGame: 'Mind'}) }}" class="tab {{ app.request.attributes.get('_route') == 'admin_tournoi_by_category' and app.request.get('typeGame') == 'Mind' ? 'active' : '' }}">Mind</a>
+        <a href="{{ path('admin_tournoi_index', app.request.query.all|merge({'type_game': ''})) }}" class="tab {{ filterTypeGame|default('') == '' ? 'active' : '' }}" data-type-game="">Tous</a>
+        <a href="{{ path('admin_tournoi_index', app.request.query.all|merge({'type_game': 'FPS'})) }}" class="tab {{ filterTypeGame|default('') == 'FPS' ? 'active' : '' }}" data-type-game="FPS">FPS</a>
+        <a href="{{ path('admin_tournoi_index', app.request.query.all|merge({'type_game': 'Sports'})) }}" class="tab {{ filterTypeGame|default('') == 'Sports' ? 'active' : '' }}" data-type-game="Sports">Sports</a>
+        <a href="{{ path('admin_tournoi_index', app.request.query.all|merge({'type_game': 'Battle_royale'})) }}" class="tab {{ filterTypeGame|default('') == 'Battle_royale' ? 'active' : '' }}" data-type-game="Battle_royale">Battle Royale</a>
+        <a href="{{ path('admin_tournoi_index', app.request.query.all|merge({'type_game': 'Mind'})) }}" class="tab {{ filterTypeGame|default('') == 'Mind' ? 'active' : '' }}" data-type-game="Mind">Mind</a>
     </div>
 
     <div class="admin-tournament-panel">
@@ -67,11 +70,13 @@
                     <option value="finished" {% if filterStatus == 'finished' %}selected{% endif %}>Terminé</option>
                 </select>
             </div>
+            <input type="hidden" name="sort" value="{{ currentSort|default('') }}" data-sort-field>
+            <input type="hidden" name="order" value="{{ currentOrder|default('ASC') }}" data-order-field>
             <div class="admin-tournament-actions">
                 <button type="submit" class="admin-tournament-btn">
                     <i class="fas fa-search"></i> Rechercher
                 </button>
-                <a href="{{ path('admin_tournoi_index') }}" class="admin-tournament-btn ghost">
+                <a href="{{ path('admin_tournoi_index') }}" class="admin-tournament-btn ghost" data-reset-link>
                     <i class="fas fa-rotate"></i> Réinitialiser
                 </a>
             </div>
@@ -79,10 +84,10 @@
 
         <div class="admin-tournament-sort">
             <span>Trier :</span>
-            <a href="{{ path('admin_tournoi_index', app.request.query.all | merge({'sort':'name','order':'asc'})) }}">Nom A→Z</a>
-            <a href="{{ path('admin_tournoi_index', app.request.query.all | merge({'sort':'name','order':'desc'})) }}">Nom Z→A</a>
-            <a href="{{ path('admin_tournoi_index', app.request.query.all | merge({'sort':'startDate','order':'asc'})) }}">Date ↑</a>
-            <a href="{{ path('admin_tournoi_index', app.request.query.all | merge({'sort':'startDate','order':'desc'})) }}">Date ↓</a>
+            <a href="{{ path('admin_tournoi_index', app.request.query.all | merge({'sort':'name','order':'asc'})) }}" data-sort="name:ASC">Nom A→Z</a>
+            <a href="{{ path('admin_tournoi_index', app.request.query.all | merge({'sort':'name','order':'desc'})) }}" data-sort="name:DESC">Nom Z→A</a>
+            <a href="{{ path('admin_tournoi_index', app.request.query.all | merge({'sort':'startDate','order':'asc'})) }}" data-sort="startDate:ASC">Date ↑</a>
+            <a href="{{ path('admin_tournoi_index', app.request.query.all | merge({'sort':'startDate','order':'desc'})) }}" data-sort="startDate:DESC">Date ↓</a>
         </div>
     </div>
 
@@ -137,15 +142,26 @@
     const rowsContainer = document.querySelector('[data-ajax-search-rows]');
     const tableContainer = document.querySelector('[data-ajax-search-table]');
     const emptyState = document.querySelector('[data-ajax-search-empty]');
-    if (!searchInput || !rowsContainer || !tableContainer || !emptyState) {
+    const tabs = document.querySelectorAll('.admin-tournament-tabs .tab[data-type-game]');
+    const sortLinks = document.querySelectorAll('.admin-tournament-sort a[data-sort]');
+    const sortField = form.querySelector('[data-sort-field]');
+    const orderField = form.querySelector('[data-order-field]');
+    const resetLink = form.querySelector('[data-reset-link]');
+    const typeGameSelect = form.querySelector('select[name="type_game"]');
+
+    if (!searchInput || !rowsContainer || !tableContainer || !emptyState || !sortField || !orderField || !typeGameSelect) {
         return;
     }
 
     const endpoint = '{{ path('admin_tournoi_search') }}';
-    const currentSort = '{{ currentSort|default('') }}';
-    const currentOrder = '{{ currentOrder|default('ASC') }}';
     let debounceTimer = null;
     let currentController = null;
+
+    const setActiveTypeGameTab = (typeGameValue) => {
+        tabs.forEach((tab) => {
+            tab.classList.toggle('active', (tab.dataset.typeGame || '') === typeGameValue);
+        });
+    };
 
     const updateVisibility = (count) => {
         if (count > 0) {
@@ -159,13 +175,6 @@
 
     const runSearch = () => {
         const params = new URLSearchParams(new FormData(form));
-        if (currentSort) {
-            params.set('sort', currentSort);
-        }
-        if (currentOrder) {
-            params.set('order', currentOrder);
-        }
-
         if (currentController) {
             currentController.abort();
         }
@@ -200,8 +209,50 @@
     });
 
     form.querySelectorAll('select').forEach((field) => {
-        field.addEventListener('change', runSearch);
+        field.addEventListener('change', () => {
+            if (field.name === 'type_game') {
+                setActiveTypeGameTab(field.value || '');
+            }
+            runSearch();
+        });
     });
+
+    tabs.forEach((tab) => {
+        tab.addEventListener('click', (event) => {
+            event.preventDefault();
+            const typeGame = tab.dataset.typeGame || '';
+            typeGameSelect.value = typeGame;
+            setActiveTypeGameTab(typeGame);
+            runSearch();
+        });
+    });
+
+    sortLinks.forEach((link) => {
+        link.addEventListener('click', (event) => {
+            event.preventDefault();
+            const [sort, order] = (link.dataset.sort || '').split(':');
+            if (!sort || !order) {
+                return;
+            }
+            sortField.value = sort;
+            orderField.value = order;
+            runSearch();
+        });
+    });
+
+    if (resetLink) {
+        resetLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            form.querySelector('input[name="game"]').value = '';
+            form.querySelector('select[name="type_game"]').value = '';
+            form.querySelector('select[name="type_tournoi"]').value = '';
+            form.querySelector('select[name="status"]').value = '';
+            sortField.value = '';
+            orderField.value = 'ASC';
+            setActiveTypeGameTab('');
+            runSearch();
+        });
+    }
 })();
 </script>
 {% endblock %}

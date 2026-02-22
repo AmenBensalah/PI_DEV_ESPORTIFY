@@ -11,6 +11,7 @@ use App\Repository\EquipeRepository;
 use App\Repository\ParticipationRequestRepository;
 use App\Repository\TournoiMatchRepository;
 use App\Repository\TournoiRepository;
+use App\Service\SoloTournamentPredictionService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -207,6 +208,7 @@ class TournoiController extends AbstractController
     public function show(
         Tournoi $tournoi,
         TournoiMatchRepository $tournoiMatchRepository,
+        SoloTournamentPredictionService $soloTournamentPredictionService,
         EquipeRepository $equipeRepository,
         CandidatureRepository $candidatureRepository
     ): Response
@@ -217,6 +219,7 @@ class TournoiController extends AbstractController
         $participantScores = $this->buildParticipantScores($tournoi, $matches, $participantTeams);
         $user = $this->getUser();
         $isParticipant = $user instanceof User && $tournoi->getParticipants()->contains($user);
+        $soloPrediction = $soloTournamentPredictionService->predictWinner($tournoi);
 
         return $this->render('tournoi/user/show.html.twig', [
             'tournoi' => $tournoi,
@@ -225,6 +228,7 @@ class TournoiController extends AbstractController
             'participantScores' => $participantScores,
             'participantTeams' => $participantTeams,
             'isParticipant' => $isParticipant,
+            'soloPrediction' => $soloPrediction,
         ]);
     }
 

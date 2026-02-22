@@ -31,6 +31,17 @@
                 -
             {% endif %}
         </td>
+        <td>
+            {% if r.playerLevel == 'debutant' %}
+                Debutant
+            {% elseif r.playerLevel == 'amateur' %}
+                Amateur
+            {% elseif r.playerLevel == 'pro' %}
+                Pro
+            {% else %}
+                -
+            {% endif %}
+        </td>
         <td>{{ r.message }}</td>
         <td>
             {% if r.status == 'en_attente' or r.status == 'pending' %}

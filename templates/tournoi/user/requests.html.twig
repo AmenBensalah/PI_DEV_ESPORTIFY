@@ -53,6 +53,20 @@
                             <strong>{{ r.createdAt|date('Y-m-d H:i') }}</strong>
                         </div>
                         <div>
+                            <span>Niveau</span>
+                            <strong>
+                                {% if r.playerLevel == 'debutant' %}
+                                    Debutant
+                                {% elseif r.playerLevel == 'amateur' %}
+                                    Amateur
+                                {% elseif r.playerLevel == 'pro' %}
+                                    Pro
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </strong>
+                        </div>
+                        <div>
                             <span>ID</span>
                             <strong>#{{ r.id }}</strong>
                         </div>
