@@ -34,6 +34,8 @@ class CandidatureAiService
             ],
             'candidate' => [
                 'niveau' => $candidature->getNiveau(),
+                'region' => $candidature->getRegion(),
+                'disponibilite' => $candidature->getDisponibilite(),
                 'motivation' => $candidature->getMotivation(),
                 'reason' => $candidature->getReason(),
                 'play_style' => $candidature->getPlayStyle(),

@@ -1,0 +1,32 @@
+{% if pageCount > 1 %}
+    <nav class="admin-pagination" aria-label="Pagination">
+        {% if previous is defined %}
+            <a class="admin-pagination-btn" rel="prev" href="{{ path(route, query|merge({(pageParameterName): previous})) }}">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+        {% else %}
+            <span class="admin-pagination-btn is-disabled">
+                <i class="fas fa-chevron-left"></i>
+            </span>
+        {% endif %}
+
+        {% for page in pagesInRange %}
+            {% if page == current %}
+                <span class="admin-pagination-page is-active">{{ page }}</span>
+            {% else %}
+                <a class="admin-pagination-page" href="{{ path(route, query|merge({(pageParameterName): page})) }}">{{ page }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if next is defined %}
+            <a class="admin-pagination-btn" rel="next" href="{{ path(route, query|merge({(pageParameterName): next})) }}">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        {% else %}
+            <span class="admin-pagination-btn is-disabled">
+                <i class="fas fa-chevron-right"></i>
+            </span>
+        {% endif %}
+    </nav>
+{% endif %}
+

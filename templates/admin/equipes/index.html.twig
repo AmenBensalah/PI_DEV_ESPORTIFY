@@ -2,6 +2,51 @@
 
 {% block title %}Gestion des Équipes - Admin{% endblock %}
 {% block page_title %}Gestion des Équipes{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .admin-pagination-wrap {
+            margin-top: 18px;
+            display: flex;
+            justify-content: center;
+        }
+        .admin-pagination {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            padding: 10px 12px !important;
+            border-radius: 14px !important;
+            border: 1px solid rgba(79, 209, 255, 0.24) !important;
+            background: rgba(8, 14, 30, 0.72) !important;
+            backdrop-filter: blur(10px);
+        }
+        .admin-pagination-btn,
+        .admin-pagination-page {
+            min-width: 36px !important;
+            height: 36px !important;
+            padding: 0 12px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 10px !important;
+            border: 1px solid rgba(255, 255, 255, 0.13) !important;
+            background: rgba(255, 255, 255, 0.06) !important;
+            color: #dbe7ff !important;
+            text-decoration: none !important;
+            font-weight: 700 !important;
+            line-height: 1 !important;
+        }
+        .admin-pagination-page.is-active {
+            border-color: rgba(56, 189, 248, 0.65) !important;
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.32), rgba(59, 130, 246, 0.34)) !important;
+            color: #fff !important;
+        }
+        .admin-pagination-btn.is-disabled {
+            opacity: .35 !important;
+            pointer-events: none !important;
+        }
+    </style>
+{% endblock %}
 
 {% block body %}
 <section class="admin-tournament-hero">
@@ -83,7 +128,7 @@
         </div>
     {% endfor %}
 
-    {% if equipes %}
+    {% if equipes|length > 0 %}
         <div class="admin-tournament-table">
             <table>
                 <thead>
@@ -133,6 +178,11 @@
                                     <span class="badge badge-success">Active</span>
                                 {% else %}
                                     <span class="badge badge-danger">Suspendue</span>
+                                    {% if equipe.suspendedUntil %}
+                                        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 6px;">
+                                            Active le {{ equipe.suspendedUntil|date('d/m/Y H:i') }}
+                                        </div>
+                                    {% endif %}
                                 {% endif %}
                             </td>
                             <td>{{ equipe.dateCreation ? equipe.dateCreation|date('d/m/Y') : 'N/A' }}</td>
@@ -144,14 +194,18 @@
                                     <a href="{{ path('app_equipes_edit', {'id': equipe.id}) }}" class="admin-tournament-icon cyan" title="Modifier">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <form method="post" action="{{ path('admin_equipes_toggle', {'id': equipe.id}) }}" 
-                                          {% if equipe.isActive %}onsubmit="return handleSuspension(this, '{{ equipe.nomEquipe }}');"{% endif %}>
-                                        <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ equipe.id) }}">
-                                        <input type="hidden" name="reason" value="">
-                                        <button type="submit" class="admin-tournament-icon" title="{{ equipe.isActive ? 'Suspendre' : 'Réactiver' }}">
-                                            <i class="fas {{ equipe.isActive ? 'fa-ban' : 'fa-rotate' }}"></i>
-                                        </button>
-                                    </form>
+                                    {% if equipe.isActive %}
+                                        <a href="{{ path('admin_equipes_suspend', {'id': equipe.id}) }}" class="admin-tournament-icon" title="Suspendre">
+                                            <i class="fas fa-ban"></i>
+                                        </a>
+                                    {% else %}
+                                        <form method="post" action="{{ path('admin_equipes_toggle', {'id': equipe.id}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ equipe.id) }}">
+                                            <button type="submit" class="admin-tournament-icon" title="Réactiver">
+                                                <i class="fas fa-rotate"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
                                     <form method="post" action="{{ path('admin_equipes_delete', {'id': equipe.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette équipe ?');">
                                         <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ equipe.id) }}">
                                         <button type="submit" class="admin-tournament-icon danger" title="Supprimer">
@@ -165,6 +219,9 @@
                 </tbody>
             </table>
         </div>
+        <div class="admin-pagination-wrap">
+            {{ knp_pagination_render(equipes, 'admin/_pagination.html.twig') }}
+        </div>
     {% else %}
         <div class="admin-tournament-empty">
             <div class="empty-ring"></div>
@@ -174,19 +231,4 @@
     {% endif %}
 </section>
 
-{% block javascripts %}
-    {{ parent() }}
-    <script>
-        function handleSuspension(form, teamName) {
-            const reason = prompt(`Pourquoi suspendez-vous l'équipe "${teamName}" ?\n(Laissez vide pour le message par défaut : "equipe suspendue par l'admin")`);
-            
-            if (reason === null) {
-                return false; // User cancelled
-            }
-            
-            form.querySelector('input[name="reason"]').value = reason;
-            return true;
-        }
-    </script>
-{% endblock %}
 {% endblock %}

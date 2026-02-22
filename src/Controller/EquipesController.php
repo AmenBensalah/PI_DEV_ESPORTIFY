@@ -145,6 +145,8 @@ final class EquipesController extends AbstractController
             $region = $request->request->get('region');
             $maxMembers = (int)$request->request->get('maxMembers');
             $isPrivate = $request->request->get('isPrivate') === 'on' || $request->request->get('isPrivate') === '1';
+            $discordInviteUrlRaw = $request->request->get('discordInviteUrl');
+            $discordInviteUrl = $this->normalizeDiscordInvite($discordInviteUrlRaw);
             
             $logo = $request->request->get('logo');
             $logoFile = $request->files->get('logo');
@@ -172,6 +174,9 @@ final class EquipesController extends AbstractController
             if ($maxMembers < 2 || $maxMembers > 50) {
                 $errors[] = "Le nombre maximum de membres doit être compris entre 2 et 50.";
             }
+            if (!empty($discordInviteUrlRaw) && $discordInviteUrl === null) {
+                $errors[] = "Lien Discord invalide. Utilisez un lien discord.gg ou discord.com/invite/...";
+            }
 
             // Description par défaut si vide
             if (empty($description)) {
@@ -195,6 +200,7 @@ final class EquipesController extends AbstractController
             $equipe->setRegion($region ?: null);
             $equipe->setIsPrivate($isPrivate);
             $equipe->setMaxMembers($maxMembers);
+            $equipe->setDiscordInviteUrl($discordInviteUrl);
 
             // Handle logo upload (file) or base64 data URL
             $targetDir = $this->getParameter('kernel.project_dir').'/public/uploads/equipes';
@@ -281,6 +287,8 @@ final class EquipesController extends AbstractController
             $region = $request->request->get('region');
             $maxMembers = (int) $request->request->get('maxMembers');
             $isPrivate = $request->request->get('isPrivate') === 'on' || $request->request->get('isPrivate') === '1';
+            $discordInviteUrlRaw = $request->request->get('discordInviteUrl');
+            $discordInviteUrl = $this->normalizeDiscordInvite($discordInviteUrlRaw);
 
             $logoFile = $request->files->get('logo');
 
@@ -296,6 +304,9 @@ final class EquipesController extends AbstractController
             }
             if ($maxMembers < 2 || $maxMembers > 50) {
                 $errors[] = "Le nombre maximum de membres doit être compris entre 2 et 50.";
+            }
+            if (!empty($discordInviteUrlRaw) && $discordInviteUrl === null) {
+                $errors[] = "Lien Discord invalide. Utilisez un lien discord.gg ou discord.com/invite/...";
             }
 
             if ($description === '') {
@@ -319,6 +330,7 @@ final class EquipesController extends AbstractController
             $equipe->setRegion($region ?: null);
             $equipe->setIsPrivate($isPrivate);
             $equipe->setMaxMembers($maxMembers);
+            $equipe->setDiscordInviteUrl($discordInviteUrl);
 
             $targetDir = $this->getParameter('kernel.project_dir').'/public/uploads/equipes';
             if (!is_dir($targetDir)) {
@@ -369,7 +381,8 @@ final class EquipesController extends AbstractController
         \App\Repository\UserRepository $userRepository,
         \App\Service\TeamBalanceService $teamBalanceService,
         \App\Service\TeamPerformanceService $teamPerformanceService,
-        \App\Service\TeamLevelStatsService $teamLevelStatsService
+        \App\Service\TeamLevelStatsService $teamLevelStatsService,
+        \App\Service\TeamRankAiService $teamRankAiService
     ): Response
     {
         if (!$equipe->isActive() && !$this->isGranted('ROLE_ADMIN')) {
@@ -432,6 +445,8 @@ final class EquipesController extends AbstractController
         $teamBalance = $teamBalanceService->analyze($equipe, $allCandidatures);
         $teamPerformance = $teamPerformanceService->analyze($equipe);
         $teamLevelStats = $teamLevelStatsService->analyze($equipe, $allCandidatures);
+        $membersCount = count($members) + ($equipe->getManager() ? 1 : 0);
+        $teamAiRank = $teamRankAiService->predict($equipe, $teamBalance, $teamPerformance, $teamLevelStats, $membersCount);
 
         return $this->render('equipes/show.html.twig', [
             'equipe' => $equipe,
@@ -442,11 +457,18 @@ final class EquipesController extends AbstractController
             'teamBalance' => $teamBalance,
             'teamPerformance' => $teamPerformance,
             'teamLevelStats' => $teamLevelStats,
+            'teamAiRank' => $teamAiRank,
         ]);
     }
 
     #[Route('/{id}/postuler', name: 'app_equipes_apply', methods: ['GET', 'POST'], requirements: ['id' => '\d+'])]
-    public function postuler(Request $request, Equipe $equipe, EntityManagerInterface $entityManager, \App\Repository\CandidatureRepository $candidatureRepository): Response
+    public function postuler(
+        Request $request,
+        Equipe $equipe,
+        EntityManagerInterface $entityManager,
+        \App\Repository\CandidatureRepository $candidatureRepository,
+        \App\Service\ReasonQualityAiService $reasonQualityAiService
+    ): Response
     {
         if (!$equipe->isActive() && !$this->isGranted('ROLE_ADMIN')) {
             $this->addFlash('error', 'Cette équipe est suspendue.');
@@ -494,6 +516,8 @@ final class EquipesController extends AbstractController
             $niveau = $request->request->get('niveau');
             $reason = $request->request->get('reason');
             $playStyle = $request->request->get('playStyle');
+            $region = $request->request->get('region');
+            $disponibilite = $request->request->get('disponibilite');
             $motivation = $request->request->get('motivation', 'Candidature spontanée');
 
             $errors = [];
@@ -509,6 +533,14 @@ final class EquipesController extends AbstractController
 
             if (empty($playStyle) || strlen($playStyle) < 5) {
                 $errors[] = "Veuillez décrire votre style de jeu (min. 5 caractères).";
+            }
+
+            if (empty($region)) {
+                $errors[] = "Veuillez sélectionner votre région.";
+            }
+
+            if (empty($disponibilite)) {
+                $errors[] = "Veuillez sélectionner votre disponibilité.";
             }
 
             if (!empty($errors)) {
@@ -528,6 +560,11 @@ final class EquipesController extends AbstractController
             $candidature->setMotivation($motivation);
             $candidature->setReason($reason);
             $candidature->setPlayStyle($playStyle);
+            $candidature->setRegion($region);
+            $candidature->setDisponibilite($disponibilite);
+            $reasonAi = $reasonQualityAiService->analyze((string) $reason);
+            $candidature->setReasonAiScore((int) $reasonAi['score']);
+            $candidature->setReasonAiLabel((string) $reasonAi['label']);
             
             $entityManager->persist($candidature);
             $entityManager->flush();
@@ -538,6 +575,28 @@ final class EquipesController extends AbstractController
 
         return $this->render('equipes/apply.html.twig', [
             'equipe' => $equipe,
+        ]);
+    }
+
+    #[Route('/candidature/analyze-reason', name: 'app_equipes_reason_analyze', methods: ['POST'])]
+    public function analyzeReason(
+        Request $request,
+        \App\Service\ReasonQualityAiService $reasonQualityAiService
+    ): \Symfony\Component\HttpFoundation\JsonResponse {
+        $reason = trim((string) $request->request->get('reason', ''));
+        if ($reason === '') {
+            return $this->json([
+                'success' => false,
+                'message' => 'Texte vide',
+            ], 400);
+        }
+
+        $result = $reasonQualityAiService->analyze($reason);
+        return $this->json([
+            'success' => true,
+            'score' => (int) $result['score'],
+            'label' => (string) $result['label'],
+            'analysis' => (string) $result['analysis'],
         ]);
     }
 
@@ -631,6 +690,7 @@ final class EquipesController extends AbstractController
                     'tag' => $request->request->get('tag'),
                     'dateCreation' => $request->request->get('dateCreation'),
                     'region' => $request->request->get('region'),
+                    'discordInviteUrl' => $request->request->get('discordInviteUrl'),
                 ];
             }
 
@@ -639,6 +699,8 @@ final class EquipesController extends AbstractController
             $description = trim((string) ($data['description'] ?? ''));
             $tag = strtoupper(trim((string) ($data['tag'] ?? '')));
             $classement = $data['classement'] ?? null;
+            $discordInviteUrlRaw = $data['discordInviteUrl'] ?? null;
+            $discordInviteUrl = $this->normalizeDiscordInvite($discordInviteUrlRaw);
 
             if ($nomEquipe === '' || mb_strlen($nomEquipe) < 3) {
                 $errors[] = "Le nom de l'équipe doit comporter au moins 3 caractères.";
@@ -650,6 +712,9 @@ final class EquipesController extends AbstractController
 
             if ($description !== '' && mb_strlen($description) < 5) {
                 $errors[] = "La description doit comporter au moins 5 caractères.";
+            }
+            if (!empty($discordInviteUrlRaw) && $discordInviteUrl === null) {
+                $errors[] = "Lien Discord invalide. Utilisez un lien discord.gg ou discord.com/invite/...";
             }
 
             if (!empty($errors)) {
@@ -677,6 +742,7 @@ final class EquipesController extends AbstractController
             if (array_key_exists('region', $data) && $data['region'] !== null) {
                 $equipe->setRegion($data['region']);
             }
+            $equipe->setDiscordInviteUrl($discordInviteUrl);
             if (!empty($data['dateCreation'])) {
                 $equipe->setDateCreation(new \DateTime($data['dateCreation']));
             }
@@ -836,6 +902,8 @@ final class EquipesController extends AbstractController
             $candidature->setNiveau('Non spécifié'); // or default
             $candidature->setReason('Ajout manuel');
             $candidature->setPlayStyle('Non spécifié');
+            $candidature->setRegion('Non spécifiée');
+            $candidature->setDisponibilite('Non spécifiée');
         }
         
         $candidature->setStatut('Accepté');
@@ -885,6 +953,38 @@ final class EquipesController extends AbstractController
         }
 
         return $this->redirectToRoute('app_equipes_manage', ['id' => $equipe->getId()]);
+    }
+
+    private function normalizeDiscordInvite(mixed $raw): ?string
+    {
+        $value = trim((string) ($raw ?? ''));
+        if ($value == '') {
+            return null;
+        }
+
+        if (!preg_match('#^https?://#i', $value)) {
+            $value = 'https://' . $value;
+        }
+
+        if (!filter_var($value, FILTER_VALIDATE_URL)) {
+            return null;
+        }
+
+        $host = (string) parse_url($value, PHP_URL_HOST);
+        $path = (string) parse_url($value, PHP_URL_PATH);
+        $isDiscordHost = str_contains($host, 'discord.gg')
+            || str_contains($host, 'discord.com')
+            || str_contains($host, 'discordapp.com');
+
+        if (!$isDiscordHost) {
+            return null;
+        }
+
+        if (str_contains($host, 'discord.com') && !str_starts_with($path, '/invite/')) {
+            return null;
+        }
+
+        return $value;
     }
 }
 

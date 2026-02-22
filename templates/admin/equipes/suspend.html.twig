@@ -1,0 +1,200 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Suspendre Équipe - Admin{% endblock %}
+{% block page_title %}Suspension Équipe{% endblock %}
+
+{% block body %}
+<section class="admin-tournament-shell">
+    <div class="admin-tournament-panel suspend-panel">
+        <div class="suspend-head">
+            <div>
+                <div class="admin-tournament-panel-title">
+                    <i class="fas fa-ban"></i>
+                    Suspension de l'équipe {{ equipe.nomEquipe }}
+                </div>
+                <p class="suspend-subtitle">
+                    Renseignez la raison, la durée et choisissez si vous envoyez un email au manager/membres.
+                </p>
+            </div>
+            <a href="{{ path('admin_equipes') }}" class="admin-tournament-btn ghost">
+                <i class="fas fa-arrow-left"></i> Retour liste
+            </a>
+        </div>
+
+        <form method="post" class="suspend-form">
+            <input type="hidden" name="_token" value="{{ csrf_token('suspend' ~ equipe.id) }}">
+
+            <div class="suspend-grid">
+                <div class="field field-full">
+                    <label>Manager concerné</label>
+                    <input type="text"
+                           value="{{ manager ? ((manager.pseudo ?: manager.nom) ~ ' - ' ~ manager.email) : 'Aucun manager' }}"
+                           readonly>
+                </div>
+
+                <div class="field field-full">
+                    <label>Raison du bannissement</label>
+                    <textarea name="reason" rows="5" placeholder="Expliquez clairement la raison du bannissement..." required></textarea>
+                </div>
+
+                <div class="field">
+                    <label>Durée du bannissement (jours)</label>
+                    <input type="number" name="duration_days" min="1" max="365" value="7" required>
+                </div>
+
+                <div class="field">
+                    <label>Date de retour active (estimée)</label>
+                    <input type="text" id="estimated-return" value="" readonly>
+                </div>
+
+                <div class="field">
+                    <label>Notification email</label>
+                    <select name="send_mail">
+                        <option value="1" selected>Envoyer un mail aux membres/manager</option>
+                        <option value="0">Ne pas envoyer de mail</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="suspend-actions">
+                <button type="submit" class="admin-tournament-btn danger">
+                    <i class="fas fa-paper-plane"></i> Bannir et enregistrer
+                </button>
+                <a href="{{ path('admin_equipes') }}" class="admin-tournament-btn ghost">
+                    <i class="fas fa-times"></i> Annuler
+                </a>
+            </div>
+        </form>
+    </div>
+</section>
+
+<style>
+    .suspend-panel {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .suspend-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .suspend-subtitle {
+        margin: 6px 0 0;
+        color: var(--text-secondary);
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .suspend-form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .suspend-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .suspend-grid .field {
+        min-width: 0;
+    }
+
+    .suspend-grid .field-full {
+        grid-column: 1 / -1;
+    }
+
+    .suspend-grid .field label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--text-secondary);
+        font-size: 13px;
+        letter-spacing: .4px;
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+
+    .suspend-grid .field input,
+    .suspend-grid .field select,
+    .suspend-grid .field textarea {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.14);
+        background: rgba(255,255,255,0.04);
+        color: #fff;
+        outline: none;
+    }
+
+    .suspend-grid .field textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .suspend-grid .field input:focus,
+    .suspend-grid .field select:focus,
+    .suspend-grid .field textarea:focus {
+        border-color: rgba(67, 97, 238, 0.8);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.18);
+    }
+
+    .suspend-actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding-top: 6px;
+    }
+
+    @media (max-width: 1024px) {
+        .suspend-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 700px) {
+        .suspend-head {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .suspend-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .suspend-actions {
+            justify-content: stretch;
+        }
+
+        .suspend-actions .admin-tournament-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<script>
+    (function () {
+        const daysInput = document.querySelector('input[name="duration_days"]');
+        const output = document.getElementById('estimated-return');
+        if (!daysInput || !output) return;
+
+        const refresh = () => {
+            const days = Math.max(1, parseInt(daysInput.value || '7', 10));
+            const d = new Date();
+            d.setDate(d.getDate() + days);
+            output.value = d.toLocaleString('fr-FR');
+        };
+
+        daysInput.addEventListener('input', refresh);
+        refresh();
+    })();
+</script>
+{% endblock %}
+

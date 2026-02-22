@@ -14,14 +14,23 @@ class TeamMatchService
     public function rankTeams(array $prefs, array $teams): array
     {
         $ranked = [];
+        $maxScore = 75; // region(25) + level(20) + game(12) + style(8) + goals(10)
         foreach ($teams as $team) {
             if (!$team->isActive()) {
                 continue;
             }
             [$score, $reasons] = $this->scoreTeam($prefs, $team);
+            $compatibility = (int) round(($score / $maxScore) * 100);
+            if ($compatibility < 0) {
+                $compatibility = 0;
+            }
+            if ($compatibility > 100) {
+                $compatibility = 100;
+            }
             $ranked[] = [
                 'team' => $team,
                 'score' => $score,
+                'compatibility' => $compatibility,
                 'reasons' => $reasons,
             ];
         }
@@ -74,6 +83,27 @@ class TeamMatchService
             if (str_contains($hay, $playStyle)) {
                 $score += 8;
                 $reasons[] = 'Style de jeu similaire';
+            }
+        }
+
+        $goals = mb_strtolower(trim((string) ($prefs['goals'] ?? '')));
+        if ($goals !== '') {
+            $hay = mb_strtolower((string) ($team->getDescription() ?? '') . ' ' . ($team->getTag() ?? '') . ' ' . ($team->getNomEquipe() ?? ''));
+            $tokens = preg_split('/[\s,;|\/-]+/u', $goals) ?: [];
+            $hits = 0;
+            foreach ($tokens as $token) {
+                $token = trim($token);
+                if ($token === '' || mb_strlen($token) < 4) {
+                    continue;
+                }
+                if (str_contains($hay, $token)) {
+                    $hits++;
+                }
+            }
+            if ($hits > 0) {
+                $bonus = min(10, $hits * 3);
+                $score += $bonus;
+                $reasons[] = 'Objectifs partages';
             }
         }
 

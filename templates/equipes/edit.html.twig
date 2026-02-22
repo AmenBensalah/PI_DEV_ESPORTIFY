@@ -79,6 +79,16 @@
                         </div>
 
                         <div class="admin-form-group">
+                            <label class="admin-form-label"><i class="fab fa-discord"></i> Lien Discord (membres)</label>
+                            <input
+                                type="url"
+                                name="equipe[discordInviteUrl]"
+                                class="admin-form-input"
+                                value="{{ equipe.discordInviteUrl }}"
+                                placeholder="https://discord.gg/xxxxxx">
+                        </div>
+
+                        <div class="admin-form-group">
                             <label class="admin-form-label"><i class="fas fa-image"></i> Logo de l'équipe</label>
                             <div class="admin-upload-box {{ equipe.logo ? 'has-preview' : '' }}" id="logoUploadBox">
                                 <div class="admin-upload-preview {{ equipe.logo ? 'show' : '' }}" id="logoPreview">
