@@ -47,8 +47,11 @@
                 <label style="display: block; margin-bottom: 10px; font-weight: 600; color: var(--text-primary);">
                     <i class="fas fa-pen"></i> Pourquoi cette équipe 
                 </label>
-                <textarea name="reason" rows="4" placeholder="Qu'est-ce qui vous attire chez nous "
+                <textarea id="reason-text" name="reason" rows="4" placeholder="Qu'est-ce qui vous attire chez nous "
                           style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.1); background: var(--darker-bg); color: white; font-size: 16px; resize: vertical;">{{ formData.reason|default('') }}</textarea>
+                <div id="reason-ai-feedback" style="margin-top:10px; padding:10px 12px; border-radius:10px; background: rgba(0,217,255,0.08); border:1px solid rgba(0,217,255,0.25); color: var(--text-secondary); font-size:14px;">
+                    L'IA analysera votre réponse et attribuera un score professionnel.
+                </div>
             </div>
 
             <!-- Style de jeu -->
@@ -58,6 +61,38 @@
                 </label>
                 <textarea name="playStyle" rows="4" placeholder="Votre rôle, vos personnages préférés, votre façon de jouer..."
                           style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.1); background: var(--darker-bg); color: white; font-size: 16px; resize: vertical;">{{ formData.playStyle|default('') }}</textarea>
+            </div>
+
+            <!-- Région -->
+            <div class="form-group" style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 10px; font-weight: 600; color: var(--text-primary);">
+                    <i class="fas fa-earth-europe"></i> Votre Région
+                </label>
+                <select name="region" required
+                        style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.1); background: var(--darker-bg); color: white; font-size: 16px; cursor: pointer;">
+                    <option value="" disabled {{ (not formData.region|default(false)) ? 'selected' : '' }}>Sélectionnez votre région...</option>
+                    <option value="Europe" {{ formData.region|default('') == 'Europe' ? 'selected' : '' }}>Europe</option>
+                    <option value="North America" {{ formData.region|default('') == 'North America' ? 'selected' : '' }}>North America</option>
+                    <option value="South America" {{ formData.region|default('') == 'South America' ? 'selected' : '' }}>South America</option>
+                    <option value="Middle East" {{ formData.region|default('') == 'Middle East' ? 'selected' : '' }}>Middle East</option>
+                    <option value="Asia" {{ formData.region|default('') == 'Asia' ? 'selected' : '' }}>Asia</option>
+                    <option value="Africa" {{ formData.region|default('') == 'Africa' ? 'selected' : '' }}>Africa</option>
+                    <option value="Oceania" {{ formData.region|default('') == 'Oceania' ? 'selected' : '' }}>Oceania</option>
+                </select>
+            </div>
+
+            <!-- Disponibilité -->
+            <div class="form-group" style="margin-bottom: 30px;">
+                <label style="display: block; margin-bottom: 10px; font-weight: 600; color: var(--text-primary);">
+                    <i class="fas fa-clock"></i> Votre Disponibilité
+                </label>
+                <select name="disponibilite" required
+                        style="width: 100%; padding: 15px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.1); background: var(--darker-bg); color: white; font-size: 16px; cursor: pointer;">
+                    <option value="" disabled {{ (not formData.disponibilite|default(false)) ? 'selected' : '' }}>Sélectionnez votre disponibilité...</option>
+                    <option value="Élevée" {{ formData.disponibilite|default('') == 'Élevée' ? 'selected' : '' }}>Élevée (quasi tous les jours)</option>
+                    <option value="Moyenne" {{ formData.disponibilite|default('') == 'Moyenne' ? 'selected' : '' }}>Moyenne (soirs / week-end)</option>
+                    <option value="Faible" {{ formData.disponibilite|default('') == 'Faible' ? 'selected' : '' }}>Faible (occasionnelle)</option>
+                </select>
             </div>
 
             <!-- Autre Motivation / Description Libre -->
@@ -76,4 +111,45 @@
         </form>
     </div>
 </div>
+<script>
+(() => {
+    const reasonInput = document.getElementById('reason-text');
+    const feedback = document.getElementById('reason-ai-feedback');
+    if (!reasonInput || !feedback) return;
+
+    let timer = null;
+    reasonInput.addEventListener('input', () => {
+        const text = reasonInput.value.trim();
+        if (text.length < 12) {
+            feedback.textContent = 'Ajoutez plus de détails pour recevoir un score IA.';
+            return;
+        }
+
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(async () => {
+            try {
+                const body = new URLSearchParams();
+                body.set('reason', text);
+                const res = await fetch('{{ path('app_equipes_reason_analyze') }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                    body: body.toString()
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    feedback.textContent = 'Analyse IA indisponible pour le moment.';
+                    return;
+                }
+
+                const score = Number(data.score || 0);
+                const label = String(data.label || 'moyen').toUpperCase();
+                const analysis = String(data.analysis || '');
+                feedback.textContent = `Score IA: ${score}/100 (${label}) - ${analysis}`;
+            } catch (e) {
+                feedback.textContent = 'Analyse IA indisponible pour le moment.';
+            }
+        }, 550);
+    });
+})();
+</script>
 {% endblock %}

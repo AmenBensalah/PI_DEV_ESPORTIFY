@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\ChatMessage;
 use App\Repository\ChatMessageRepository;
 use App\Repository\EquipeRepository;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,7 +20,8 @@ class ChatController extends AbstractController
     public function getMessages(
         int $id,
         EquipeRepository $equipeRepository,
-        ChatMessageRepository $chatRepository
+        ChatMessageRepository $chatRepository,
+        Connection $connection
     ): JsonResponse {
         $equipe = $equipeRepository->find($id);
         
@@ -33,22 +35,39 @@ class ChatController extends AbstractController
             return new JsonResponse(['error' => 'Non authentifié'], 401);
         }
 
-        $messages = $chatRepository->findRecentByEquipe($equipe, 100);
-        
-        $data = array_map(function($message) {
+        $rows = $connection->fetchAllAssociative(
+            'SELECT m.id, m.message, m.created_at, m.is_read, m.user_id,
+                    u.id AS uid, u.pseudo, u.nom
+             FROM chat_message m
+             LEFT JOIN user u ON u.id = m.user_id
+             WHERE m.equipe_id = :teamId
+             ORDER BY m.created_at ASC, m.id ASC
+             LIMIT 100',
+            ['teamId' => $equipe->getId()]
+        );
+
+        $data = array_map(static function (array $row): array {
+            $uid = isset($row['uid']) ? (int) $row['uid'] : 0;
+            $pseudo = 'Esportify AI Analyst';
+            if ($uid > 0) {
+                $pseudoRaw = isset($row['pseudo']) ? trim((string) $row['pseudo']) : '';
+                $nomRaw = isset($row['nom']) ? trim((string) $row['nom']) : '';
+                $pseudo = $pseudoRaw !== '' ? $pseudoRaw : ($nomRaw !== '' ? $nomRaw : 'Utilisateur supprimé');
+            } elseif (!empty($row['user_id'])) {
+                $pseudo = 'Utilisateur supprimé';
+            }
+
             return [
-                'id' => $message->getId(),
+                'id' => (int) ($row['id'] ?? 0),
                 'user' => [
-                    'id' => $message->getUser() ? $message->getUser()->getId() : 0,
-                    'pseudo' => $message->getUser() 
-                        ? ($message->getUser()->getPseudo() ?? $message->getUser()->getNom())
-                        : 'Esportify AI Analyst',
+                    'id' => $uid,
+                    'pseudo' => $pseudo,
                 ],
-                'message' => $message->getMessage(),
-                'createdAt' => $message->getCreatedAt()->format('Y-m-d H:i:s'),
-                'isRead' => $message->isRead(),
+                'message' => (string) ($row['message'] ?? ''),
+                'createdAt' => (string) ($row['created_at'] ?? ''),
+                'isRead' => ((int) ($row['is_read'] ?? 0)) === 1,
             ];
-        }, array_reverse($messages));
+        }, $rows);
 
         return new JsonResponse($data);
     }

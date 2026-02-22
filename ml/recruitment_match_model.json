@@ -1,0 +1,40 @@
+{
+    "version": 1,
+    "features": [
+        "rank_gap",
+        "region_match",
+        "availability_score",
+        "motivation_len",
+        "reason_len",
+        "play_style_len"
+    ],
+    "weights": {
+        "rank_gap": -1.415724597948048,
+        "region_match": 0,
+        "availability_score": 0,
+        "motivation_len": -0.47228833058687364,
+        "reason_len": -0.12679929348898988,
+        "play_style_len": 0.0035319963433440757
+    },
+    "bias": 2.685592996712703,
+    "means": {
+        "rank_gap": 2.5,
+        "region_match": 0,
+        "availability_score": 0.5,
+        "motivation_len": 21.9,
+        "reason_len": 13.6,
+        "play_style_len": 11.5
+    },
+    "stds": {
+        "rank_gap": 1.284523257866513,
+        "region_match": 1,
+        "availability_score": 1,
+        "motivation_len": 0.8306623862918076,
+        "reason_len": 6.740919818541087,
+        "play_style_len": 6.931810730249348
+    },
+    "metrics": {
+        "samples": 10,
+        "trainer": "php_fallback"
+    }
+}

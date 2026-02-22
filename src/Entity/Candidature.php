@@ -42,6 +42,18 @@ class Candidature
     #[ORM\Column(length: 100)]
     private ?string $playStyle = null;
 
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $region = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $disponibilite = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $reasonAiScore = null;
+
+    #[ORM\Column(length: 30, nullable: true)]
+    private ?string $reasonAiLabel = null;
+
     public function __construct()
     {
         $this->dateCandidature = new \DateTimeImmutable();
@@ -144,6 +156,54 @@ class Candidature
     public function setPlayStyle(string $playStyle): static
     {
         $this->playStyle = $playStyle;
+
+        return $this;
+    }
+
+    public function getRegion(): ?string
+    {
+        return $this->region;
+    }
+
+    public function setRegion(?string $region): static
+    {
+        $this->region = $region;
+
+        return $this;
+    }
+
+    public function getDisponibilite(): ?string
+    {
+        return $this->disponibilite;
+    }
+
+    public function setDisponibilite(?string $disponibilite): static
+    {
+        $this->disponibilite = $disponibilite;
+
+        return $this;
+    }
+
+    public function getReasonAiScore(): ?int
+    {
+        return $this->reasonAiScore;
+    }
+
+    public function setReasonAiScore(?int $reasonAiScore): static
+    {
+        $this->reasonAiScore = $reasonAiScore;
+
+        return $this;
+    }
+
+    public function getReasonAiLabel(): ?string
+    {
+        return $this->reasonAiLabel;
+    }
+
+    public function setReasonAiLabel(?string $reasonAiLabel): static
+    {
+        $this->reasonAiLabel = $reasonAiLabel;
 
         return $this;
     }

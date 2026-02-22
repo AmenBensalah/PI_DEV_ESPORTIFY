@@ -29,6 +29,8 @@ final class RecrutementsController extends AbstractController
         \App\Repository\EquipeRepository $equipeRepository,
         \App\Service\CandidatureScoreService $scoreService,
         \App\Service\CandidatureAiService $aiService,
+        \App\Service\RecruiterAgentService $recruiterAgentService,
+        \Doctrine\DBAL\Connection $connection,
         Request $request
     ): Response
     {
@@ -110,6 +112,37 @@ final class RecrutementsController extends AbstractController
             $sb = $localScores[$b->getId()]['score'] ?? 0;
             return $sb <=> $sa;
         });
+
+        $agentFilters = [
+            'rank' => trim((string) $request->query->get('rank', '')),
+            'region' => trim((string) $request->query->get('region', '')),
+            'availability' => trim((string) $request->query->get('availability', '')),
+        ];
+        $topCandidates = $recruiterAgentService->topCandidates($equipe, $candidatures, $agentFilters, 5);
+
+        $candidateUsers = [];
+        if ($candidatures !== []) {
+            $rows = $connection->fetchAllAssociative(
+                'SELECT c.id AS candidature_id, u.id AS user_id, u.pseudo, u.nom, u.email
+                 FROM candidature c
+                 LEFT JOIN user u ON u.id = c.user_id
+                 WHERE c.equipe_id = :teamId',
+                ['teamId' => $equipe->getId()]
+            );
+
+            foreach ($rows as $row) {
+                $cid = (int) ($row['candidature_id'] ?? 0);
+                if ($cid <= 0) {
+                    continue;
+                }
+                $candidateUsers[$cid] = [
+                    'id' => isset($row['user_id']) ? (int) $row['user_id'] : null,
+                    'pseudo' => isset($row['pseudo']) && $row['pseudo'] !== null && $row['pseudo'] !== '' ? (string) $row['pseudo'] : 'Utilisateur supprimé',
+                    'nom' => isset($row['nom']) && $row['nom'] !== null && $row['nom'] !== '' ? (string) $row['nom'] : '-',
+                    'email' => isset($row['email']) && $row['email'] !== null && $row['email'] !== '' ? (string) $row['email'] : '-',
+                ];
+            }
+        }
         
         return $this->render('recrutements/manage.html.twig', [
             'candidatures' => $candidatures,
@@ -121,6 +154,9 @@ final class RecrutementsController extends AbstractController
             'aiInsights' => $aiInsights,
             'aiEnabled' => $aiEnabled,
             'useAi' => $useAi,
+            'topCandidates' => $topCandidates,
+            'agentFilters' => $agentFilters,
+            'candidateUsers' => $candidateUsers,
         ]);
     }
 

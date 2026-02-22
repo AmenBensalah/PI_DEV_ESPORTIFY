@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Candidature;
 use App\Entity\Equipe;
+use Doctrine\ORM\EntityNotFoundException;
 
 class CandidatureScoreService
 {
@@ -27,14 +28,14 @@ class CandidatureScoreService
                 $reasons[] = 'Niveau compatible';
             } else {
                 $score += 2;
-                $reasons[] = 'Niveau éloigné';
+                $reasons[] = 'Niveau eloigne';
             }
         }
 
         $reasonLen = mb_strlen((string) $candidature->getReason());
         if ($reasonLen >= 120) {
             $score += 18;
-            $reasons[] = 'Motivation détaillée';
+            $reasons[] = 'Motivation detaillee';
         } elseif ($reasonLen >= 50) {
             $score += 10;
             $reasons[] = 'Motivation correcte';
@@ -49,23 +50,65 @@ class CandidatureScoreService
             $reasons[] = 'Style de jeu clair';
         } elseif ($styleLen >= 8) {
             $score += 4;
-            $reasons[] = 'Style de jeu mentionné';
+            $reasons[] = 'Style de jeu mentionne';
         }
 
         $motivationLen = mb_strlen((string) $candidature->getMotivation());
         if ($motivationLen >= 40) {
             $score += 6;
-            $reasons[] = 'Présentation soignée';
+            $reasons[] = 'Presentation soignee';
         }
 
-        $user = $candidature->getUser();
-        if ($user && $user->getPseudo()) {
-            $score += 3;
-            $reasons[] = 'Profil renseigné';
+        $teamRegion = mb_strtolower(trim((string) $equipe->getRegion()));
+        $candidateRegion = mb_strtolower(trim((string) $candidature->getRegion()));
+        if ($teamRegion !== '' && $candidateRegion !== '') {
+            if ($candidateRegion === $teamRegion || str_contains($candidateRegion, $teamRegion) || str_contains($teamRegion, $candidateRegion)) {
+                $score += 20;
+                $reasons[] = 'Region identique';
+            } else {
+                $score += 3;
+                $reasons[] = 'Region differente';
+            }
+        }
+
+        $availability = mb_strtolower(trim((string) $candidature->getDisponibilite()));
+        if ($availability !== '') {
+            if (str_contains($availability, 'elev') || str_contains($availability, 'high')) {
+                $score += 25;
+                $reasons[] = 'Disponibilite elevee';
+            } elseif (str_contains($availability, 'moy')) {
+                $score += 15;
+                $reasons[] = 'Disponibilite moyenne';
+            } elseif (str_contains($availability, 'faib') || str_contains($availability, 'low')) {
+                $score += 5;
+                $reasons[] = 'Disponibilite faible';
+            }
+        }
+
+        $reasonAi = $candidature->getReasonAiScore();
+        if ($reasonAi !== null) {
+            $bonus = (int) round(max(0, min(100, $reasonAi)) * 0.12);
+            $score += $bonus;
+            $reasons[] = 'Bonus IA raison +' . $bonus;
+        }
+
+        try {
+            $user = $candidature->getUser();
+            if ($user && $user->getPseudo()) {
+                $score += 3;
+                $reasons[] = 'Profil renseigne';
+            }
+        } catch (EntityNotFoundException) {
+            // Broken relation (user deleted): ignore profile bonus.
+        } catch (\Throwable) {
+            // Keep scoring resilient.
         }
 
         if ($score < 0) {
             $score = 0;
+        }
+        if ($score > 100) {
+            $score = 100;
         }
 
         return ['score' => $score, 'reasons' => $reasons];

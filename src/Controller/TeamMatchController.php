@@ -30,6 +30,7 @@ class TeamMatchController extends AbstractController
 
         $ranked = [];
         $aiExplanations = [];
+        $localExplanations = [];
         $aiRaw = null;
 
         if ($request->isMethod('POST')) {
@@ -43,6 +44,14 @@ class TeamMatchController extends AbstractController
 
             $teams = $equipeRepository->findBy([], ['id' => 'DESC']);
             $ranked = $teamMatchService->rankTeams($prefs, $teams);
+            foreach ($ranked as $item) {
+                $teamId = $item['team']->getId();
+                $percent = (int) ($item['compatibility'] ?? 0);
+                $reasons = $item['reasons'] ?? [];
+                $label = $percent >= 75 ? 'Très bonne compatibilité' : ($percent >= 50 ? 'Compatibilité moyenne' : 'Compatibilité faible');
+                $extra = $reasons ? ('Principaux points: ' . implode(', ', $reasons) . '.') : 'Aucun critère fort détecté.';
+                $localExplanations[$teamId] = $label . '. ' . $extra;
+            }
 
             $top = array_slice($ranked, 0, 3);
             if ($openAIChatService->isEnabled() && $top) {
@@ -84,6 +93,7 @@ class TeamMatchController extends AbstractController
             'prefs' => $prefs,
             'ranked' => $ranked,
             'aiExplanations' => $aiExplanations,
+            'localExplanations' => $localExplanations,
             'aiRaw' => $aiRaw,
             'aiEnabled' => $openAIChatService->isEnabled(),
         ]);

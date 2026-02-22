@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+﻿{% extends 'base.html.twig' %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -17,16 +17,16 @@
                 <i class="fas fa-user-plus"></i> GESTION DES CANDIDATURES
             </h1>
             <p class="hero-subtitle recrutements-subtitle">
-                Candidatures pour l'équipe <span class="team-name">{{ equipe.nomEquipe }}</span>
+                Candidatures pour l'equipe <span class="team-name">{{ equipe.nomEquipe }}</span>
             </p>
             <div class="page-header-actions">
                 {% if aiEnabled %}
                     <a href="{{ path('app_recrutements_manage', {'id': equipe.id, 'ai': useAi ? 0 : 1}) }}" class="btn-outline">
                         <i class="fas fa-brain"></i>
-                        {% if useAi %}Désactiver IA{% else %}Activer IA{% endif %}
+                        {% if useAi %}Desactiver IA{% else %}Activer IA{% endif %}
                     </a>
                 {% else %}
-                    <span class="badge badge-danger">IA désactivée (clé manquante)</span>
+                    <span class="badge badge-danger">IA desactivee (cle manquante)</span>
                 {% endif %}
                 <span class="badge badge-info">Tri par score local</span>
             </div>
@@ -41,23 +41,82 @@
                 En attente (<span>{{ pendingCount }}</span>)
             </button>
             <button class="filter-tab" onclick="filterRequests('accepted')">
-                Acceptées (<span>{{ acceptedCount }}</span>)
+                Acceptees (<span>{{ acceptedCount }}</span>)
             </button>
             <button class="filter-tab" onclick="filterRequests('refused')">
-                Refusées (<span>{{ refusedCount }}</span>)
+                Refusees (<span>{{ refusedCount }}</span>)
             </button>
+        </div>
+
+        <div class="card recruiter-top5-card" style="margin-bottom:24px; border:1px solid rgba(0,217,255,.22); border-radius:18px; background:linear-gradient(135deg, rgba(8,14,30,.9), rgba(14,20,40,.9)); box-shadow:0 10px 30px rgba(0,0,0,.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+                <h3 style="margin:0; font-family:'Orbitron', sans-serif;">
+                    <i class="fas fa-robot"></i> Top 5 joueurs compatibles
+                </h3>
+                <span class="badge badge-info">Agent recruteur intelligent</span>
+            </div>
+
+            <div class="recruiter-filter-shell" style="margin-top:16px; padding:16px; border-radius:14px; border:1px solid rgba(0,217,255,.24); background:rgba(5,12,26,.75);">
+                <form method="get" action="{{ path('app_recrutements_manage', {'id': equipe.id}) }}" class="recruiter-filter-form" style="display:grid; grid-template-columns:minmax(220px,1fr) minmax(220px,1fr) minmax(190px,.9fr) auto; gap:14px; align-items:end;">
+                    {% if useAi %}
+                        <input type="hidden" name="ai" value="1">
+                    {% endif %}
+                    <div class="recruiter-filter-group" style="display:flex; flex-direction:column; gap:7px;">
+                        <label class="recruiter-filter-label" style="font-size:12px; text-transform:uppercase; letter-spacing:.8px; color:rgba(201,225,255,.92); font-weight:700;">Rank</label>
+                        <input type="text" name="rank" value="{{ agentFilters.rank|default('') }}" placeholder="ex: pro, gold" class="recruiter-filter-input" style="height:48px; border-radius:12px; border:1px solid rgba(0,217,255,.34); background:rgba(6,13,28,.98); color:#e9f8ff; padding:0 14px; font-size:16px; font-weight:600;">
+                    </div>
+                    <div class="recruiter-filter-group" style="display:flex; flex-direction:column; gap:7px;">
+                        <label class="recruiter-filter-label">Region</label>
+                        <input type="text" name="region" value="{{ agentFilters.region|default('') }}" placeholder="ex: Europe" class="recruiter-filter-input" style="height:48px; border-radius:12px; border:1px solid rgba(0,217,255,.34); background:rgba(6,13,28,.98); color:#e9f8ff; padding:0 14px; font-size:16px; font-weight:600;">
+                    </div>
+                    <div class="recruiter-filter-group" style="display:flex; flex-direction:column; gap:7px;">
+                        <label class="recruiter-filter-label">Disponibilité</label>
+                        <select name="availability" class="recruiter-filter-input recruiter-filter-select" style="height:48px; border-radius:12px; border:1px solid rgba(0,217,255,.34); background:rgba(6,13,28,.98); color:#e9f8ff; padding:0 14px; font-size:16px; font-weight:600;">
+                            <option value="">Toutes</option>
+                            <option value="high" {% if agentFilters.availability|default('') == 'high' %}selected{% endif %}>Elevee</option>
+                            <option value="medium" {% if agentFilters.availability|default('') == 'medium' %}selected{% endif %}>Moyenne</option>
+                            <option value="low" {% if agentFilters.availability|default('') == 'low' %}selected{% endif %}>Faible</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-gradient recruiter-filter-btn" style="height:48px; min-width:160px; padding:0 24px; border-radius:12px; font-weight:700; text-transform:uppercase;"><i class="fas fa-filter"></i> Appliquer</button>
+                </form>
+            </div>
+
+            <div style="margin-top: 16px; display:grid; gap:10px;">
+                {% for item in topCandidates %}
+                    {% set c = item.candidature %}
+                    {% set u = candidateUsers[c.id]|default({'pseudo':'Utilisateur supprime','email':'-'}) %}
+                    <div style="background: var(--darker-bg); border: 1px solid rgba(0,217,255,.2); border-radius: 12px; padding: 12px;">
+                        <div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+                            <strong>{{ loop.index }}. {{ u.pseudo }}</strong>
+                            <span class="badge badge-success">Compatibilite {{ item.score }}%</span>
+                        </div>
+                        <div style="margin-top:6px; color:var(--text-secondary); font-size:13px;">
+                            Rank: {{ c.niveau }} | Disponibilite: {{ item.availability|capitalize }} | Email: {{ u.email }}
+                        </div>
+                        <div style="margin-top:6px; color:var(--text-primary); font-size:13px;">
+                            {{ item.reasons|join(' - ') }}
+                        </div>
+                    </div>
+                {% else %}
+                    <p style="margin: 8px 0 0; color: var(--text-secondary);">
+                        Aucun candidat compatible avec les filtres actuels.
+                    </p>
+                {% endfor %}
+            </div>
         </div>
 
         <!-- Recruitment Requests List -->
         <div id="requests-list" class="requests-list" data-recruitment-filter-target="list">
             {% for candidature in candidatures %}
-            <div class="card recruitment-card animate__animated animate__fadeInUp" role="article" aria-label="Candidature de {{ candidature.user.pseudo }}" 
-                 data-status="{% if candidature.statut == 'En attente' %}pending{% elseif candidature.statut == 'Accepté' %}accepted{% else %}refused{% endif %}"
-                 style="animation-delay: {{ loop.index0 * 0.05 }}s; {% if candidature.statut == 'Accepté' %}border-color: var(--success-color);{% elseif candidature.statut == 'Refusé' %}border-color: var(--primary-pink);{% endif %}">
+            {% set userInfo = candidateUsers[candidature.id]|default({'pseudo':'Utilisateur supprime','nom':'-','email':'-'}) %}
+            <div class="card recruitment-card animate__animated animate__fadeInUp" role="article" aria-label="Candidature de {{ userInfo.pseudo }}" 
+                 data-status="{% if candidature.statut == 'En attente' %}pending{% elseif candidature.statut starts with 'Accept' %}accepted{% else %}refused{% endif %}"
+                 style="animation-delay: {{ loop.index0 * 0.05 }}s; {% if candidature.statut starts with 'Accept' %}border-color: var(--success-color);{% elseif candidature.statut starts with 'Refus' %}border-color: var(--primary-pink);{% endif %}">
                 <div style="display: flex; gap: 20px; align-items: start;">
                     <!-- Avatar -->
                     <div style="flex-shrink: 0;">
-                        <div class="avatar" style="background:var(--gradient-1); font-size:24px;">{{ candidature.user.pseudo|slice(0, 2)|upper }}</div>
+                        <div class="avatar" style="background:var(--gradient-1); font-size:24px;">{{ userInfo.pseudo|slice(0, 2)|upper }}</div>
                     </div>
                     
                     <!-- Content -->
@@ -65,27 +124,38 @@
                         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                             <div>
                                 <h3 style="font-size: 24px; margin-bottom: 8px; font-family: 'Orbitron', sans-serif;">
-                                    {{ candidature.user.pseudo }} <span style="font-size: 14px; opacity: 0.7;">({{ candidature.user.nom }})</span>
+                                    {{ userInfo.pseudo }} <span style="font-size: 14px; opacity: 0.7;">({{ userInfo.nom }})</span>
                                 </h3>
                                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                    <span class="badge {% if candidature.statut == 'En attente' %}badge-warning{% elseif candidature.statut == 'Accepté' %}badge-success{% else %}badge-danger{% endif %}" style="{% if candidature.statut == 'En attente' %}background: var(--warning-color);{% endif %}">
+                                    <span class="badge {% if candidature.statut == 'En attente' %}badge-warning{% elseif candidature.statut starts with 'Accept' %}badge-success{% else %}badge-danger{% endif %}" style="{% if candidature.statut == 'En attente' %}background: var(--warning-color);{% endif %}">
                                         {% if candidature.statut == 'En attente' %}
                                             <i class="fas fa-clock"></i> EN ATTENTE
-                                        {% elseif candidature.statut == 'Accepté' %}
-                                            <i class="fas fa-check-circle"></i> ACCEPTÉE
+                                        {% elseif candidature.statut starts with 'Accept' %}
+                                            <i class="fas fa-check-circle"></i> ACCEPTEE
                                         {% else %}
-                                            <i class="fas fa-times-circle"></i> REFUSÉE
+                                            <i class="fas fa-times-circle"></i> REFUSEE
                                         {% endif %}
                                     </span>
                                     <span class="badge badge-primary">
                                         <i class="fas fa-gamepad"></i> {{ candidature.niveau }}
                                     </span>
+                                    <span class="badge badge-info">
+                                        <i class="fas fa-earth-europe"></i> {{ candidature.region ?? 'Non specifiee' }}
+                                    </span>
+                                    <span class="badge badge-warning" style="background: var(--warning-color); color: #111;">
+                                        <i class="fas fa-clock"></i> {{ candidature.disponibilite ?? 'Non specifiee' }}
+                                    </span>
+                                    {% if candidature.reasonAiScore is not null %}
+                                    <span class="badge badge-info">
+                                        <i class="fas fa-brain"></i> Score IA raison {{ candidature.reasonAiScore }}/100 ({{ (candidature.reasonAiLabel ?? 'moyen')|upper }})
+                                    </span>
+                                    {% endif %}
                                     {% set score = localScores[candidature.id].score|default(0) %}
                                     <span class="badge badge-info">
                                         <i class="fas fa-chart-line"></i> Score local {{ score }}
                                     </span>
                                     <span class="badge" style="background: rgba(0, 217, 255, 0.1); color: var(--primary-blue); border: 1px solid var(--primary-blue);">
-                                        <i class="fas fa-envelope"></i> {{ candidature.user.email }}
+                                        <i class="fas fa-envelope"></i> {{ userInfo.email }}
                                     </span>
                                 </div>
                             </div>
@@ -101,7 +171,7 @@
                             <!-- Motivation (Short) -->
                             <div style="background: var(--darker-bg); padding: 15px; border-radius: 12px;">
                                 <h4 style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px;">
-                                    <i class="fas fa-comment"></i> Présentation
+                                    <i class="fas fa-comment"></i> Presentation
                                 </h4>
                                 <p style="color: var(--text-primary); font-size: 14px; line-height: 1.6;">
                                     {{ candidature.motivation }}
@@ -114,7 +184,7 @@
                                     <i class="fas fa-crosshairs"></i> Style de Jeu
                                 </h4>
                                 <p style="color: var(--text-primary); font-size: 14px; line-height: 1.6;">
-                                    {{ candidature.playStyle ?? 'Non spécifié' }}
+                                    {{ candidature.playStyle ?? 'Non specifie' }}
                                 </p>
                             </div>
                         </div>
@@ -128,7 +198,7 @@
                                 </p>
                             </div>
                             <div class="ai-card ai">
-                                <h4 class="ai-card-title"><i class="fas fa-brain"></i> Résumé IA</h4>
+                                <h4 class="ai-card-title"><i class="fas fa-brain"></i> Resume IA</h4>
                                 {% set insight = aiInsights[candidature.id]|default(null) %}
                                 {% if insight %}
                                     <p class="ai-card-text">{{ insight.summary }}</p>
@@ -140,7 +210,7 @@
                                     </div>
                                 {% else %}
                                     <p class="ai-card-text muted">
-                                        {% if useAi %}Analyse IA indisponible.{% else %}IA désactivée.{% endif %}
+                                        {% if useAi %}Analyse IA indisponible.{% else %}IA desactivee.{% endif %}
                                     </p>
                                 {% endif %}
                             </div>
@@ -149,10 +219,10 @@
                         <!-- Raison (Long) -->
                         <div style="background: var(--darker-bg); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
                             <h4 style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;">
-                                <i class="fas fa-question-circle"></i> Pourquoi cette équipe ?
+                                <i class="fas fa-question-circle"></i> Pourquoi cette equipe ?
                             </h4>
                             <p style="color: var(--text-primary); line-height: 1.8; font-size: 15px;">
-                                {{ candidature.reason ?? 'Candidature simplifiée' }}
+                                {{ candidature.reason ?? 'Candidature simplifiee' }}
                             </p>
                         </div>
                         
@@ -160,18 +230,18 @@
                         <div class="card-actions">
                             {% if candidature.statut == 'En attente' %}
                                 <form method="post" action="{{ path('app_recrutements_accept', {'id': candidature.id}) }}" class="inline-form">
-                                    <button type="submit" class="btn-gradient" onclick="return confirm('✅ Accepter {{ candidature.user.pseudo }} ?')">
+                                    <button type="submit" class="btn-gradient" onclick="return confirm('Accepter {{ userInfo.pseudo }} ?')">
                                         <i class="fas fa-check"></i> Accepter
                                     </button>
                                 </form>
                                 <form method="post" action="{{ path('app_recrutements_refuse', {'id': candidature.id}) }}" class="inline-form">
-                                    <button type="submit" class="btn-danger" onclick="return confirm('❌ Refuser {{ candidature.user.pseudo }} ?')">
+                                    <button type="submit" class="btn-danger" onclick="return confirm('Refuser {{ userInfo.pseudo }} ?')">
                                         <i class="fas fa-times"></i> Refuser
                                     </button>
                                 </form>
                             {% else %}
                                 <button disabled class="btn-outline">
-                                    <i class="fas fa-lock"></i> Traitée
+                                    <i class="fas fa-lock"></i> Traitee
                                 </button>
                             {% endif %}
                         </div>
@@ -185,7 +255,7 @@
                 </div>
                 <h3 class="empty-title" style="font-family: 'Orbitron', sans-serif; font-size: 24px; margin-bottom: 10px;">Aucune Candidature</h3>
                 <p class="empty-text" style="color: var(--text-secondary);">
-                    Votre équipe n'a pas encore reçu de candidature.
+                    Votre equipe n'a pas encore recu de candidature.
                 </p>
             </div>
             {% endfor %}
@@ -213,3 +283,6 @@
         }
     </script>
 {% endblock %}
+
+
+

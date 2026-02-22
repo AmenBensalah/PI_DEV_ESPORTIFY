@@ -4,9 +4,10 @@ namespace App\Form;
 
 use App\Entity\Equipe;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
 class EquipeType extends AbstractType
 {
@@ -28,12 +29,14 @@ class EquipeType extends AbstractType
                     'Africa' => 'Africa',
                 ],
                 'required' => false,
-                'placeholder' => 'Sélectionner une région',
+                'placeholder' => 'Selectionner une region',
+            ])
+            ->add('discordInviteUrl', UrlType::class, [
+                'required' => false,
             ])
             ->add('classement')
             ->add('maxMembers')
-            ->add('isPrivate')
-        ;
+            ->add('isPrivate');
     }
 
     public function configureOptions(OptionsResolver $resolver): void

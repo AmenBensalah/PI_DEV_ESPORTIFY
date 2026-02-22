@@ -51,6 +51,13 @@ class EquipeRepository extends ServiceEntityRepository
      */
     public function searchAndSort(?string $query, ?string $region = null, ?string $visibility = null, string $sortField = 'id', string $sortDirection = 'DESC'): array
     {
+        return $this->searchAndSortQueryBuilder($query, $region, $visibility, $sortField, $sortDirection)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function searchAndSortQueryBuilder(?string $query, ?string $region = null, ?string $visibility = null, string $sortField = 'id', string $sortDirection = 'DESC'): \Doctrine\ORM\QueryBuilder
+    {
         $qb = $this->createQueryBuilder('e');
 
         if ($query) {
@@ -78,9 +85,7 @@ class EquipeRepository extends ServiceEntityRepository
         // Whitelist direction
         $sortDirection = strtoupper($sortDirection) === 'ASC' ? 'ASC' : 'DESC';
 
-        return $qb->orderBy('e.' . $sortField, $sortDirection)
-                  ->getQuery()
-                  ->getResult();
+        return $qb->orderBy('e.' . $sortField, $sortDirection);
     }
 
 //    /**

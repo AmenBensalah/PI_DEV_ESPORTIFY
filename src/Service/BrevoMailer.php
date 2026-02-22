@@ -33,9 +33,9 @@ class BrevoMailer
             'to' => [
                 ['email' => $toEmail],
             ],
-            'subject' => 'Votre code de réinitialisation',
+            'subject' => 'Votre code de reinitialisation',
             'textContent' => sprintf(
-                "Voici votre code de réinitialisation : %s\n\nCe code expire dans 10 minutes.",
+                "Voici votre code de reinitialisation : %s\n\nCe code expire dans 10 minutes.",
                 $code
             ),
         ];
@@ -68,15 +68,23 @@ class BrevoMailer
         return false;
     }
 
-    public function sendTeamSuspensionEmail(string $toEmail, string $teamName, ?string $reason, int $totalTeams): bool
-    {
+    public function sendTeamSuspensionEmail(
+        string $toEmail,
+        string $teamName,
+        ?string $reason,
+        int $totalTeams,
+        ?\DateTimeImmutable $suspendedUntil = null,
+        ?int $durationDays = null
+    ): bool {
         if (!$this->isConfigured()) {
             $this->logger->warning('Brevo mailer is not configured; skipping team suspension email.');
             return false;
         }
 
-        $reasonText = $reason ?: "équipe suspendue par l'admin";
-        
+        $reasonText = $reason ?: "equipe suspendue par l'admin";
+        $durationText = $durationDays !== null ? sprintf('%d jour(s)', $durationDays) : 'non precisee';
+        $returnDateText = $suspendedUntil ? $suspendedUntil->format('d/m/Y H:i') : 'non definie';
+
         $payload = [
             'sender' => [
                 'name' => $this->senderName !== '' ? $this->senderName : 'Esportify',
@@ -85,11 +93,13 @@ class BrevoMailer
             'to' => [
                 ['email' => $toEmail],
             ],
-            'subject' => "Suspension de l'activité de votre équipe : " . $teamName,
+            'subject' => "Suspension de l'activite de votre equipe : " . $teamName,
             'textContent' => sprintf(
-                "Bonjour,\n\nNous vous informons que l'activité de votre équipe '%s' a été suspendue sur Esportify.\n\nRaison : %s\n\nIl y a actuellement %d équipes inscrites sur notre plateforme.\n\nCordialement,\nL'équipe Esportify.",
+                "Bonjour,\n\nNous vous informons que l'activite de votre equipe '%s' a ete suspendue sur Esportify.\n\nRaison : %s\nDuree de suspension : %s\nReactivation prevue : %s\n\nIl y a actuellement %d equipes inscrites sur notre plateforme.\n\nCordialement,\nL'equipe Esportify.",
                 $teamName,
                 $reasonText,
+                $durationText,
+                $returnDateText,
                 $totalTeams
             ),
         ];
@@ -118,3 +128,4 @@ class BrevoMailer
         return trim($this->apiKey) !== '' && trim($this->senderEmail) !== '';
     }
 }
+

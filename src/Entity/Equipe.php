@@ -46,6 +46,18 @@ class Equipe
     #[ORM\Column(options: ["default" => true])]
     private ?bool $isActive = true;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $suspensionReason = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $suspendedUntil = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $suspensionDurationDays = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $discordInviteUrl = null;
+
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?User $manager = null;
@@ -259,6 +271,50 @@ class Equipe
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
+        return $this;
+    }
+
+    public function getSuspensionReason(): ?string
+    {
+        return $this->suspensionReason;
+    }
+
+    public function setSuspensionReason(?string $suspensionReason): static
+    {
+        $this->suspensionReason = $suspensionReason;
+        return $this;
+    }
+
+    public function getSuspendedUntil(): ?\DateTimeImmutable
+    {
+        return $this->suspendedUntil;
+    }
+
+    public function setSuspendedUntil(?\DateTimeImmutable $suspendedUntil): static
+    {
+        $this->suspendedUntil = $suspendedUntil;
+        return $this;
+    }
+
+    public function getSuspensionDurationDays(): ?int
+    {
+        return $this->suspensionDurationDays;
+    }
+
+    public function setSuspensionDurationDays(?int $suspensionDurationDays): static
+    {
+        $this->suspensionDurationDays = $suspensionDurationDays;
+        return $this;
+    }
+
+    public function getDiscordInviteUrl(): ?string
+    {
+        return $this->discordInviteUrl;
+    }
+
+    public function setDiscordInviteUrl(?string $discordInviteUrl): static
+    {
+        $this->discordInviteUrl = $discordInviteUrl;
         return $this;
     }
 
