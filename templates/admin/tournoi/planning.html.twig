@@ -111,6 +111,8 @@
 
 <section class="admin-tournament-shell">
     <div class="planning-grid">
+        {% include 'tournoi/_solo_prediction_panel.html.twig' with {tournoi: tournoi, prediction: soloPrediction} only %}
+
         <div class="planning-card">
             <div class="planning-title">Matchs planifies</div>
             <div class="planning-actions">

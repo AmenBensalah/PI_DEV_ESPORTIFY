@@ -129,6 +129,15 @@
             <a href="{{ path('tournoi_participation_requests') }}" class="admin-tournament-btn ghost">
                 <i class="fas fa-clipboard-list"></i> Mes demandes
             </a>
+            <button
+                type="button"
+                class="admin-tournament-btn ghost"
+                id="participants-toggle-btn"
+                aria-expanded="false"
+                aria-controls="participants-list-user"
+            >
+                <i class="fas fa-users"></i> Voir participants ({{ participants|length }})
+            </button>
         </div>
     </div>
     <div class="admin-tournament-hero-glow"></div>
@@ -198,8 +207,10 @@
         </div>
     </div>
 
+    {% include 'tournoi/_solo_prediction_panel.html.twig' with {tournoi: tournoi, prediction: soloPrediction} only %}
+
     <div id="participants-planning" class="planning-grid" style="margin-top: 14px;">
-        <div class="planning-card">
+        <div id="participants-list-user" class="planning-card" hidden>
             <div class="planning-title">Participants ({{ participants|length }})</div>
             {% if isParticipant %}
                 {% if participants|length > 0 %}
@@ -298,4 +309,30 @@
         </a>
     </div>
 </section>
+
+<script>
+    (function () {
+        const toggleBtn = document.getElementById('participants-toggle-btn');
+        const participantsList = document.getElementById('participants-list-user');
+
+        if (!toggleBtn || !participantsList) {
+            return;
+        }
+
+        toggleBtn.addEventListener('click', function () {
+            const isHidden = participantsList.hasAttribute('hidden');
+
+            if (isHidden) {
+                participantsList.removeAttribute('hidden');
+                toggleBtn.setAttribute('aria-expanded', 'true');
+                toggleBtn.innerHTML = '<i class="fas fa-users"></i> Masquer participants ({{ participants|length }})';
+                return;
+            }
+
+            participantsList.setAttribute('hidden', '');
+            toggleBtn.setAttribute('aria-expanded', 'false');
+            toggleBtn.innerHTML = '<i class="fas fa-users"></i> Voir participants ({{ participants|length }})';
+        });
+    })();
+</script>
 {% endblock %}

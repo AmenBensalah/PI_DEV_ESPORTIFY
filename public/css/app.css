@@ -7249,3 +7249,152 @@ body.page-equipes {
     height: 420px;
   }
 }
+
+/* Solo tournament prediction panel */
+.solo-prediction-panel {
+  background: linear-gradient(145deg, rgba(70, 255, 190, 0.08), rgba(79, 209, 255, 0.08));
+  border: 1px solid rgba(79, 209, 255, 0.24);
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: 14px;
+}
+
+.solo-prediction-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.solo-prediction-head h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.solo-prediction-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.solo-prediction-chip.muted {
+  color: #bdd7d3;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.solo-prediction-winner {
+  border: 1px solid rgba(70, 255, 190, 0.26);
+  background: rgba(10, 24, 22, 0.4);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.solo-prediction-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: #8cdcc6;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.solo-prediction-name {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+.solo-prediction-prob {
+  color: #46ffbe;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-top: 2px;
+}
+
+.solo-prediction-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.solo-prediction-ranking-wrap {
+  overflow-x: auto;
+}
+
+.solo-prediction-ranking {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.solo-prediction-ranking th,
+.solo-prediction-ranking td {
+  padding: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: left;
+  color: #fff;
+  font-size: 13px;
+}
+
+.solo-prediction-ranking th {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-size: 11px;
+}
+
+.solo-prediction-ranking tr:last-child td {
+  border-bottom: none;
+}
+
+.solo-prediction-prob-cell {
+  display: grid;
+  grid-template-columns: 52px minmax(90px, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.solo-prediction-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.solo-prediction-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #4fd1ff, #46ffbe);
+}
+
+.solo-prediction-empty {
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  padding: 12px;
+  color: #c5d1e7;
+  font-size: 14px;
+}
+
+@media (max-width: 760px) {
+  .solo-prediction-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
