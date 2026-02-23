@@ -600,6 +600,15 @@
             let infiniteDone = false;
             let sentinelTimer = null;
 
+            const setSentinelState = (message, hide = false) => {
+                if (!sentinel) return;
+                const label = sentinel.querySelector('[data-feed-infinite-label]');
+                if (label && message) {
+                    label.textContent = message;
+                }
+                sentinel.hidden = hide;
+            };
+
             const extractPostsFromHtml = (htmlText) => {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(htmlText, 'text/html');
@@ -615,20 +624,18 @@
                 const nextUrl = postList.getAttribute('data-next-page-url') || '';
                 if (!nextUrl) {
                     infiniteDone = true;
-                    if (sentinel) sentinel.hidden = true;
+                    setSentinelState('Fin du fil', true);
                     return;
                 }
                 infiniteLoading = true;
                 if (sentinel) {
-                    sentinel.hidden = true;
+                    setSentinelState('Chargement...');
                     if (sentinelTimer) {
                         window.clearTimeout(sentinelTimer);
                     }
                     sentinelTimer = window.setTimeout(() => {
                         if (!infiniteLoading || !sentinel) return;
-                        const label = sentinel.querySelector('[data-feed-infinite-label]');
-                        if (label) label.textContent = 'Chargement en cours...';
-                        sentinel.hidden = false;
+                        setSentinelState('Chargement en cours...');
                     }, 850);
                 }
                 try {
@@ -646,10 +653,7 @@
                     const { cards, nextUrl: newerUrl } = extractPostsFromHtml(html);
                     if (cards.length === 0) {
                         infiniteDone = true;
-                        if (sentinel) {
-                            const label = sentinel.querySelector('[data-feed-infinite-label]');
-                            if (label) label.textContent = 'Fin du fil';
-                        }
+                        setSentinelState('Fin du fil', true);
                         return;
                     }
 
@@ -666,19 +670,17 @@
                     postList.setAttribute('data-next-page-url', newerUrl || '');
                     if (!newerUrl) {
                         infiniteDone = true;
-                    }
-                    if (sentinel) {
-                        sentinel.hidden = true;
+                        setSentinelState('Fin du fil', true);
+                    } else {
+                        setSentinelState('Descendez pour charger plus');
                     }
                     applyFeedFilter(currentFilter);
                 } catch (error) {
                     if (sentinel) {
-                        const label = sentinel.querySelector('[data-feed-infinite-label]');
-                        if (label) label.textContent = 'Erreur de chargement, réessayez.';
-                        sentinel.hidden = false;
+                        setSentinelState('Erreur de chargement, nouvel essai...');
                         window.setTimeout(() => {
                             if (!infiniteLoading) {
-                                sentinel.hidden = true;
+                                setSentinelState('Descendez pour reessayer');
                             }
                         }, 2400);
                     }
@@ -695,7 +697,8 @@
                 pager.style.display = 'none';
             }
             if (sentinel) {
-                sentinel.hidden = true;
+                const initialNextUrl = postList ? (postList.getAttribute('data-next-page-url') || '') : '';
+                setSentinelState(initialNextUrl ? 'Descendez pour charger plus' : 'Fin du fil', !initialNextUrl);
             }
             if ('IntersectionObserver' in window && sentinel) {
                 const observer = new IntersectionObserver((entries) => {

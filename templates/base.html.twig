@@ -288,8 +288,8 @@
                 requestPath = String(requestUrlRaw || '');
             }
             const forceLoader = Boolean(initArg && initArg.__withLoader);
-            const isFeedOrMessengerTask = /^\/fil(\/|$)/.test(requestPath) || /^\/messages(\/|$)/.test(requestPath);
-            if (!(forceLoader || isFeedOrMessengerTask)) {
+            const isFeedTask = /^\/fil(\/|$)/.test(requestPath);
+            if (!(forceLoader || isFeedTask)) {
                 return nativeFetch(...args);
             }
             show(false);
