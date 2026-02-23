@@ -57,16 +57,23 @@ body::-webkit-scrollbar {
 }
 
 [data-theme="light"] {
-    --bg: #f8fafc;
-    --panel: rgba(255, 255, 255, 0.92);
+    --bg: #f4f7fb;
+    --panel: rgba(255, 255, 255, 0.9);
     --text: #0f172a;
-    --text-muted: #64748b;
-    --accent: #0891b2;
-    --accent-dark: #0e7490;
-    --purple: #a855f7;
-    --purple-dark: #9333ea;
-    --glow: rgba(14, 165, 233, 0.3);
-    --bg-overlay: rgba(255, 255, 255, 0.3);
+    --text-muted: #5f6f86;
+    --accent: #0ea5e9;
+    --accent-dark: #0369a1;
+    --purple: #7c3aed;
+    --purple-dark: #6d28d9;
+    --glow: rgba(14, 165, 233, 0.18);
+    --bg-overlay: rgba(244, 248, 255, 0.72);
+    --primary-blue: #0ea5e9;
+    --primary-pink: #db2777;
+    --primary-purple: #7c3aed;
+    --text-secondary: #5f6f86;
+    --darker-bg: #edf2f8;
+    --card-bg: rgba(255, 255, 255, 0.82);
+    --gradient-1: linear-gradient(135deg, #0ea5e9 0%, #6366f1 55%, #8b5cf6 100%);
 }
 
 /* ────────────────────────────────────────────────
@@ -8578,4 +8585,198 @@ body.page-equipes {
         border-right: none !important;
         border-top: 1px solid rgba(148, 163, 184, 0.18) !important;
     }
+}
+
+/* Light theme refinement: cleaner, premium, balanced */
+[data-theme="light"] body {
+    color: var(--text);
+}
+
+[data-theme="light"] .background {
+    background:
+        linear-gradient(0deg, var(--bg-overlay), var(--bg-overlay)),
+        url('/images/bg-cyberpunk.jpg') center/cover no-repeat fixed;
+}
+
+[data-theme="light"] .topbar {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.92), rgba(248, 251, 255, 0.9), rgba(243, 248, 255, 0.92));
+    border-bottom: 1px solid rgba(148, 163, 184, 0.38);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="light"] .brand {
+    background: linear-gradient(90deg, #0369a1 0%, #2563eb 58%, #6d28d9 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+[data-theme="light"] .brand-tag {
+    color: #7c2d12;
+    border-color: rgba(251, 146, 60, 0.4);
+    background: linear-gradient(90deg, rgba(254, 215, 170, 0.75), rgba(254, 240, 138, 0.72), rgba(253, 186, 116, 0.75));
+}
+
+[data-theme="light"] .search-input,
+[data-theme="light"] .topbar-action {
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(148, 163, 184, 0.42);
+    color: var(--text);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+[data-theme="light"] .search-input:focus,
+[data-theme="light"] .topbar-action:hover {
+    border-color: rgba(14, 165, 233, 0.5);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.14);
+}
+
+[data-theme="light"] .sidebar {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(246, 250, 255, 0.9));
+    border-right: 1px solid rgba(148, 163, 184, 0.35);
+    box-shadow: 10px 0 28px rgba(15, 23, 42, 0.06);
+}
+
+[data-theme="light"] .sidebar::before,
+[data-theme="light"] .sidebar::after {
+    opacity: 0.25;
+}
+
+[data-theme="light"] .sidebar-link,
+[data-theme="light"] .sidebar-sublink,
+[data-theme="light"] .theme-toggle-btn,
+[data-theme="light"] .sidebar-logout {
+    color: #1e293b;
+    border-color: rgba(148, 163, 184, 0.4);
+    background: rgba(255, 255, 255, 0.72);
+}
+
+[data-theme="light"] .sidebar-link:hover,
+[data-theme="light"] .sidebar-sublink:hover,
+[data-theme="light"] .sidebar-link.active,
+[data-theme="light"] .sidebar-sublink.active {
+    background: linear-gradient(135deg, rgba(219, 234, 254, 0.95), rgba(224, 231, 255, 0.92));
+    border-color: rgba(59, 130, 246, 0.34);
+    color: #0f172a;
+}
+
+[data-theme="light"] .glass-card,
+[data-theme="light"] .post-card,
+[data-theme="light"] .admin-card,
+[data-theme="light"] .admin-table,
+[data-theme="light"] .tournoi-table,
+[data-theme="light"] .order-table,
+[data-theme="light"] .dropdown-menu,
+[data-theme="light"] .messenger-shell,
+[data-theme="light"] .messenger-sidebar,
+[data-theme="light"] .messenger-main {
+    background: var(--card-bg) !important;
+    border: 1px solid rgba(148, 163, 184, 0.34) !important;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08) !important;
+}
+
+[data-theme="light"] .reaction-pill,
+[data-theme="light"] .filter-pill,
+[data-theme="light"] .chip-btn,
+[data-theme="light"] .comment-tool-btn,
+[data-theme="light"] .publish-btn,
+[data-theme="light"] .event-join-btn {
+    background: rgba(255, 255, 255, 0.9);
+    color: #0f172a;
+    border-color: rgba(148, 163, 184, 0.38);
+}
+
+[data-theme="light"] .reaction-pill:hover,
+[data-theme="light"] .filter-pill:hover,
+[data-theme="light"] .chip-btn:hover,
+[data-theme="light"] .publish-btn:hover {
+    background: linear-gradient(135deg, rgba(224, 242, 254, 0.95), rgba(238, 242, 255, 0.94));
+    border-color: rgba(59, 130, 246, 0.38);
+}
+
+[data-theme="light"] .composer-input,
+[data-theme="light"] .comment-input,
+[data-theme="light"] .tournoi-input,
+[data-theme="light"] .profile-input,
+[data-theme="light"] .admin-form-input,
+[data-theme="light"] .admin-form input,
+[data-theme="light"] .order-form input,
+[data-theme="light"] .order-search input,
+[data-theme="light"] .tournoi-filter input,
+[data-theme="light"] .messenger-search,
+[data-theme="light"] .messenger-thread-input input,
+[data-theme="light"] .mini-chat-input input,
+[data-theme="light"] .gif-picker-head input {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid rgba(148, 163, 184, 0.42) !important;
+}
+
+[data-theme="light"] .composer-input:focus,
+[data-theme="light"] .comment-input:focus,
+[data-theme="light"] .tournoi-input:focus,
+[data-theme="light"] .profile-input:focus,
+[data-theme="light"] .admin-form-input:focus,
+[data-theme="light"] .admin-form input:focus,
+[data-theme="light"] .order-form input:focus,
+[data-theme="light"] .order-search input:focus,
+[data-theme="light"] .tournoi-filter input:focus,
+[data-theme="light"] .messenger-thread-input input:focus,
+[data-theme="light"] .mini-chat-input input:focus {
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.14) !important;
+    border-color: rgba(14, 165, 233, 0.5) !important;
+}
+
+[data-theme="light"] .admin-table th,
+[data-theme="light"] .admin-table td,
+[data-theme="light"] .tournoi-table th,
+[data-theme="light"] .tournoi-table td,
+[data-theme="light"] .order-table th,
+[data-theme="light"] .order-table td {
+    border-color: rgba(148, 163, 184, 0.32);
+}
+
+[data-theme="light"] .admin-table th,
+[data-theme="light"] .tournoi-table th,
+[data-theme="light"] .order-table th {
+    color: #334155;
+    background: rgba(241, 245, 249, 0.9);
+}
+
+[data-theme="light"] .notif-card,
+[data-theme="light"] .msg-menu,
+[data-theme="light"] .msg-item,
+[data-theme="light"] .notif-item {
+    background: rgba(255, 255, 255, 0.92) !important;
+    color: #0f172a !important;
+    border-color: rgba(148, 163, 184, 0.32) !important;
+}
+
+[data-theme="light"] .messenger-page .messenger-shell {
+    background: rgba(255, 255, 255, 0.92) !important;
+}
+
+[data-theme="light"] .messenger-page .messenger-sidebar {
+    background: linear-gradient(180deg, rgba(248, 251, 255, 0.96), rgba(243, 247, 255, 0.95)) !important;
+}
+
+[data-theme="light"] .messenger-page .messenger-main {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 251, 255, 0.95)) !important;
+}
+
+[data-theme="light"] .messenger-page .messenger-thread-body {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(248, 251, 255, 0.96)) !important;
+}
+
+[data-theme="light"] .messenger-page .messenger-conv,
+[data-theme="light"] .messenger-page .messenger-contact,
+[data-theme="light"] .messenger-page .msg-bubble.other {
+    background: rgba(255, 255, 255, 0.96) !important;
+    color: #0f172a !important;
+    border-color: rgba(148, 163, 184, 0.3) !important;
+}
+
+[data-theme="light"] .messenger-page .msg-bubble.mine {
+    background: linear-gradient(135deg, rgba(224, 242, 254, 0.95), rgba(224, 231, 255, 0.95)) !important;
+    color: #0f172a !important;
+    border-color: rgba(56, 189, 248, 0.45) !important;
 }
