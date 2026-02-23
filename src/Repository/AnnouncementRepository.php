@@ -27,6 +27,20 @@ class AnnouncementRepository extends ServiceEntityRepository
      */
     public function searchAdmin(array $filters): array
     {
+        return $this->searchAdminQueryBuilder($filters)->getQuery()->getResult();
+    }
+
+    /**
+     * @param array{
+     *     q?: string,
+     *     date_from?: string,
+     *     date_to?: string,
+     *     sort?: string,
+     *     direction?: string
+     * } $filters
+     */
+    public function searchAdminQueryBuilder(array $filters): \Doctrine\ORM\QueryBuilder
+    {
         $qb = $this->createQueryBuilder('a');
 
         $query = trim((string) ($filters['q'] ?? ''));
@@ -71,6 +85,6 @@ class AnnouncementRepository extends ServiceEntityRepository
         ];
         $qb->orderBy($sortMap[$sort] ?? 'a.createdAt', $direction)->addOrderBy('a.id', 'DESC');
 
-        return $qb->getQuery()->getResult();
+        return $qb;
     }
 }

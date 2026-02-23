@@ -220,7 +220,16 @@
             </table>
         </div>
         <div class="admin-pagination-wrap">
-            {{ knp_pagination_render(equipes, 'admin/_pagination.html.twig') }}
+            {% include 'admin/_pagination.html.twig' with {
+                pageCount: pagination.pageCount,
+                previous: pagination.previous,
+                next: pagination.next,
+                pagesInRange: pagination.pagesInRange,
+                current: pagination.current,
+                route: 'admin_equipes',
+                query: app.request.query.all,
+                pageParameterName: 'page'
+            } only %}
         </div>
     {% else %}
         <div class="admin-tournament-empty">

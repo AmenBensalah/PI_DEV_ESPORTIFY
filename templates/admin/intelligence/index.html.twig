@@ -1,0 +1,212 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Centre IA du Fil - Admin{% endblock %}
+{% block page_title %}Centre IA du Fil{% endblock %}
+
+{% block body %}
+<section class="admin-tournament-hero">
+    <div class="admin-tournament-hero-inner">
+        <div class="admin-tournament-kicker">Fil d'actualité</div>
+        <h2 class="admin-tournament-title">Centre IA du Fil</h2>
+        <p class="admin-tournament-lead">Modération intelligente, tendances live, highlights journaliers et recommandations.</p>
+    </div>
+    <div class="admin-tournament-hero-glow"></div>
+</section>
+
+<section class="admin-tournament-shell">
+    <div class="admin-tournament-tabs">
+        <a href="{{ path('fil_admin_post_index') }}" class="tab">Publications</a>
+        <a href="{{ path('fil_admin_announcement_index') }}" class="tab">Annonces</a>
+        <a href="{{ path('fil_admin_comment_index') }}" class="tab">Commentaires</a>
+        <a href="{{ path('fil_admin_intelligence_index') }}" class="tab active">Centre IA</a>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="admin-tournament-alert success"><i class="fas fa-check-circle"></i> {{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('warning') %}
+        <div class="admin-tournament-alert"><i class="fas fa-triangle-exclamation"></i> {{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="admin-tournament-alert" style="border-color: rgba(239,68,68,.5);"><i class="fas fa-circle-xmark"></i> {{ message }}</div>
+    {% endfor %}
+
+    <div class="admin-tournament-panel">
+        <div class="admin-tournament-panel-title"><i class="fas fa-gauge-high"></i> Vue d'ensemble IA</div>
+        <div class="admin-grid-4">
+            <div class="admin-stat-card">
+                <div class="label">Posts</div>
+                <div class="value">{{ stats.postCount }}</div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="label">Commentaires</div>
+                <div class="value">{{ stats.commentCount }}</div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="label">Posts à risque</div>
+                <div class="value">{{ stats.flaggedPosts }}</div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="label">Coms à risque</div>
+                <div class="value">{{ stats.flaggedComments }}</div>
+            </div>
+        </div>
+
+        <div class="admin-tournament-hero-actions" style="margin-top: 14px;">
+            <form method="post" action="{{ path('fil_admin_intelligence_reanalyze') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('fil_ai_admin_reanalyze') }}">
+                <button type="submit" class="admin-tournament-btn">
+                    <i class="fas fa-robot"></i> Réanalyser le fil
+                </button>
+            </form>
+            <form method="post" action="{{ path('fil_admin_intelligence_train_model') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('fil_ai_admin_train_model') }}">
+                <button type="submit" class="admin-tournament-btn ghost">
+                    <i class="fas fa-brain"></i> Entraîner modèle IA local
+                </button>
+            </form>
+            <form method="post" action="{{ path('fil_admin_intelligence_publish_highlights') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('fil_ai_admin_publish_highlights') }}">
+                <button type="submit" class="admin-tournament-btn ghost">
+                    <i class="fas fa-star"></i> Publier Top 5 du jour
+                </button>
+            </form>
+            <form method="post" action="{{ path('fil_admin_intelligence_publish_trends') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('fil_ai_admin_publish_trends') }}">
+                <button type="submit" class="admin-tournament-btn ghost">
+                    <i class="fas fa-fire"></i> Publier tendances
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="admin-tournament-panel">
+        <div class="admin-tournament-panel-title"><i class="fas fa-clock"></i> Best Time To Post</div>
+        <p>Heure recommandée: <strong>{{ bestTime.label }}</strong></p>
+        <p style="opacity:.8;">{{ bestTime.reason }}</p>
+    </div>
+
+    <div class="admin-tournament-panel">
+        <div class="admin-tournament-panel-title"><i class="fas fa-bolt"></i> Tendances en temps réel</div>
+        {% if trends is empty %}
+            <p>Aucune tendance détectée.</p>
+        {% else %}
+            <div class="admin-tournament-sort">
+                {% for trend in trends %}
+                    <span class="badge badge-info">#{{ trend.topic }} ({{ trend.count }})</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="admin-tournament-panel">
+        <div class="admin-tournament-panel-title"><i class="fas fa-ranking-star"></i> Top 5 posts du jour</div>
+        {% if highlights is empty %}
+            <p>Aucun highlight disponible.</p>
+        {% else %}
+            <div class="admin-tournament-table">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Post</th>
+                        <th>Résumé</th>
+                        <th>Likes</th>
+                        <th>Commentaires</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for item in highlights %}
+                        <tr class="admin-tournament-row">
+                            <td>{{ loop.index }}</td>
+                            <td>{{ item.title }}</td>
+                            <td>{{ item.summary }}</td>
+                            <td>{{ item.likes }}</td>
+                            <td>{{ item.comments }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="admin-tournament-panel">
+        <div class="admin-tournament-panel-title"><i class="fas fa-shield-halved"></i> Publications à risque</div>
+        {% if flaggedPostAnalyses is empty %}
+            <p>Aucune publication à risque.</p>
+        {% else %}
+            <div class="admin-tournament-table">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Post</th>
+                        <th>Action</th>
+                        <th>Toxicité</th>
+                        <th>Spam</th>
+                        <th>Hate</th>
+                        <th>Catégorie</th>
+                        <th>Raison</th>
+                        <th>Action recommandée</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for analysis in flaggedPostAnalyses %}
+                        {% set post = postById[analysis.entityId]|default(null) %}
+                        {% set info = postModerationInfo[analysis.entityId]|default({'reason': '-', 'tip': '-'}) %}
+                        <tr class="admin-tournament-row">
+                            <td>#{{ analysis.entityId }} {{ post ? (post.content|default('')|slice(0, 70)) : '' }}</td>
+                            <td><span class="badge {{ analysis.autoAction == 'block' ? 'badge-danger' : 'badge-info' }}">{{ analysis.autoAction }}</span></td>
+                            <td>{{ analysis.toxicityScore }}</td>
+                            <td>{{ analysis.spamScore }}</td>
+                            <td>{{ analysis.hateSpeechScore }}</td>
+                            <td>{{ analysis.category|default('general') }}</td>
+                            <td>{{ info.reason }}</td>
+                            <td>{{ info.tip }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="admin-tournament-panel">
+        <div class="admin-tournament-panel-title"><i class="fas fa-comment-slash"></i> Commentaires à risque</div>
+        {% if flaggedCommentAnalyses is empty %}
+            <p>Aucun commentaire à risque.</p>
+        {% else %}
+            <div class="admin-tournament-table">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Commentaire</th>
+                        <th>Action</th>
+                        <th>Toxicité</th>
+                        <th>Spam</th>
+                        <th>Hate</th>
+                        <th>Raison</th>
+                        <th>Action recommandée</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for analysis in flaggedCommentAnalyses %}
+                        {% set comment = commentById[analysis.entityId]|default(null) %}
+                        {% set info = commentModerationInfo[analysis.entityId]|default({'reason': '-', 'tip': '-'}) %}
+                        <tr class="admin-tournament-row">
+                            <td>#{{ analysis.entityId }} {{ comment ? (comment.content|slice(0, 70)) : '' }}</td>
+                            <td><span class="badge {{ analysis.autoAction == 'block' ? 'badge-danger' : 'badge-info' }}">{{ analysis.autoAction }}</span></td>
+                            <td>{{ analysis.toxicityScore }}</td>
+                            <td>{{ analysis.spamScore }}</td>
+                            <td>{{ analysis.hateSpeechScore }}</td>
+                            <td>{{ info.reason }}</td>
+                            <td>{{ info.tip }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

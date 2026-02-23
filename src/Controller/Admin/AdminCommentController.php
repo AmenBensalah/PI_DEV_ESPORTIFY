@@ -4,7 +4,10 @@ namespace App\Controller\Admin;
 
 use App\Entity\Commentaire;
 use App\Repository\CommentaireRepository;
+use App\Repository\FeedAiAnalysisRepository;
+use App\Service\FeedIntelligenceService;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,27 +17,54 @@ use Symfony\Component\Routing\Attribute\Route;
 class AdminCommentController extends AbstractController
 {
     #[Route('/', name: 'fil_admin_comment_index')]
-    public function index(Request $request, CommentaireRepository $commentaireRepository): Response
+    public function index(
+        Request $request,
+        CommentaireRepository $commentaireRepository,
+        FeedAiAnalysisRepository $feedAiAnalysisRepository,
+        FeedIntelligenceService $feedIntelligenceService,
+        PaginatorInterface $paginator
+    ): Response
     {
+        $perPage = (int) $request->query->get('per_page', 10);
+        if (!in_array($perPage, [10, 25, 50, 100], true)) {
+            $perPage = 10;
+        }
+        $page = max(1, (int) $request->query->get('page', 1));
+
         $filters = [
             'q' => trim((string) $request->query->get('q', '')),
             'date_from' => trim((string) $request->query->get('date_from', '')),
             'date_to' => trim((string) $request->query->get('date_to', '')),
             'sort' => trim((string) $request->query->get('sort', 'date')),
             'direction' => strtoupper(trim((string) $request->query->get('direction', 'DESC'))) === 'ASC' ? 'ASC' : 'DESC',
+            'per_page' => $perPage,
         ];
 
-        $commentaires = $commentaireRepository->searchAdmin($filters);
+        $commentaires = $paginator->paginate(
+            $commentaireRepository->searchAdminQueryBuilder($filters),
+            $page,
+            $perPage,
+            [
+                'sortFieldParameterName' => 'knp_sort',
+                'sortDirectionParameterName' => 'knp_direction',
+            ]
+        );
+        $commentRows = iterator_to_array($commentaires->getItems());
+        $feedIntelligenceService->ensureCommentAnalyses($commentRows, 80);
+        $commentIds = array_values(array_filter(array_map(static fn (Commentaire $commentaire) => $commentaire->getId(), $commentRows)));
+        $analysesByComment = $feedAiAnalysisRepository->findMapForEntities('comment', $commentIds);
 
         if ($request->isXmlHttpRequest()) {
             return $this->render('admin/comment/_results.html.twig', [
                 'commentaires' => $commentaires,
+                'analysesByComment' => $analysesByComment,
             ]);
         }
 
         return $this->render('admin/comment/index.html.twig', [
             'commentaires' => $commentaires,
             'filters' => $filters,
+            'analysesByComment' => $analysesByComment,
         ]);
     }
 

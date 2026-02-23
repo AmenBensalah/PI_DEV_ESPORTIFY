@@ -1,4 +1,4 @@
-{% if announcements %}
+{% if announcements|length > 0 %}
     <div class="admin-tournament-table">
         <table data-table="announcements">
             <thead>
@@ -39,6 +39,9 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+    <div class="admin-pagination-wrap">
+        {{ knp_pagination_render(announcements, 'admin/_pagination.html.twig') }}
     </div>
 {% else %}
     <div class="admin-tournament-empty">

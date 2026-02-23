@@ -1,4 +1,4 @@
-{% if commentaires %}
+{% if commentaires|length > 0 %}
     <div class="admin-tournament-table">
         <table data-table="comments">
             <thead>
@@ -7,6 +7,7 @@
                     <th>Auteur</th>
                     <th>Publication</th>
                     <th>Commentaire</th>
+                    <th>Risque IA</th>
                     <th>Création</th>
                     <th>Actions</th>
                 </tr>
@@ -14,11 +15,22 @@
             <tbody>
                 {% for comment in commentaires %}
                     {% set authorName = comment.author ? (comment.author.pseudo ?: comment.author.nom) : 'Utilisateur' %}
+                    {% set analysis = analysesByComment[comment.id]|default(null) %}
                     <tr class="admin-tournament-row">
                         <td>#{{ comment.id }}</td>
                         <td class="name">{{ authorName }}</td>
                         <td>#{{ comment.post ? comment.post.id : 'N/A' }}</td>
                         <td>{{ comment.content|default('')|slice(0, 80) }}</td>
+                        <td>
+                            {% if analysis %}
+                                {% set riskClass = analysis.autoAction == 'block' ? 'badge-danger' : (analysis.autoAction == 'review' ? 'badge-info' : 'badge-success') %}
+                                <span class="badge {{ riskClass }}">
+                                    {{ analysis.autoAction }} (T{{ analysis.toxicityScore }}/S{{ analysis.spamScore }})
+                                </span>
+                            {% else %}
+                                <span class="badge badge-success">n/a</span>
+                            {% endif %}
+                        </td>
                         <td>{{ comment.createdAt ? comment.createdAt|date('d/m/Y H:i') : '' }}</td>
                         <td>
                             <div class="admin-tournament-row-actions">
@@ -34,6 +46,9 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+    <div class="admin-pagination-wrap">
+        {{ knp_pagination_render(commentaires, 'admin/_pagination.html.twig') }}
     </div>
 {% else %}
     <div class="admin-tournament-empty">

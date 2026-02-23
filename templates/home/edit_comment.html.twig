@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier commentaire{% endblock %}
+
+{% block body %}
+    <section class="feed-layout">
+        <div class="feed-main">
+            <article class="glass-card" style="max-width: 860px; margin: 0 auto;">
+                <h2 style="margin-top: 0;">Modifier le commentaire</h2>
+                {% for message in app.flashes('error') %}
+                    <div class="admin-tournament-alert" style="display:block; margin-bottom: 12px; border-color: rgba(239,68,68,.6);">{{ message }}</div>
+                {% endfor %}
+                {{ form_start(form) }}
+                    <div class="admin-form-group">
+                        {{ form_label(form.content, null, {'label_attr': {'class': 'admin-form-label'}}) }}
+                        {{ form_widget(form.content, {'attr': {'class': 'composer-input', 'style': 'min-height: 140px;'}}) }}
+                    </div>
+                    <div class="reaction-row" style="margin-top: 14px;">
+                        {{ form_widget(form.save, {'attr': {'class': 'publish-btn'}}) }}
+                        <a class="reaction-pill" href="{{ path('fil_home') }}#post-{{ comment.post.id }}">Annuler</a>
+                    </div>
+                {{ form_end(form) }}
+            </article>
+        </div>
+    </section>
+{% endblock %}

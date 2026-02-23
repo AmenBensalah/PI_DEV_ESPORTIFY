@@ -1,5 +1,15 @@
 {% extends 'base.html.twig' %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .is-translating {
+            opacity: .7;
+            pointer-events: none;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
 
 <div class="feed-layout">
@@ -10,6 +20,12 @@
                  data-composer-front
                  data-post-url="{{ path('fil_post_create') }}"
                  data-csrf-token="{{ csrf_token('fil_post_create') }}"
+                 data-ai-token="{{ csrf_token('fil_ai_tools') }}"
+                 data-ai-write-url="{{ path('fil_ai_write_assistant') }}"
+                 data-ai-hashtags-url="{{ path('fil_ai_hashtags') }}"
+                 data-ai-analyze-url="{{ path('fil_ai_analyze_draft') }}"
+                 data-ai-best-time-url="{{ path('fil_ai_best_time') }}"
+                 data-ai-translate-url="{{ path('fil_ai_translate') }}"
                  data-event-token="{{ csrf_token('event_participate') }}"
                  data-like-token="{{ csrf_token('post_like') }}"
                  data-comment-token="{{ csrf_token('post_comment') }}"
@@ -42,6 +58,17 @@
                 </div>
                 <button class="publish-btn" type="button" data-publish-button>Publier</button>
             </div>
+            <div class="composer-actions" style="margin-top: 10px;">
+                <div class="action-group">
+                    <button class="chip-btn" type="button" data-ai-write-mode="correct"><i class="fa-solid fa-spell-check"></i> Orthographe</button>
+                    <button class="chip-btn" type="button" data-ai-write-mode="pro"><i class="fa-solid fa-pen-nib"></i> Ton pro</button>
+                    <button class="chip-btn" type="button" data-ai-write-mode="short"><i class="fa-solid fa-compress"></i> Version courte</button>
+                    <button class="chip-btn" type="button" data-ai-write-mode="long"><i class="fa-solid fa-expand"></i> Version longue</button>
+                    <button class="chip-btn" type="button" data-ai-hashtags><i class="fa-solid fa-hashtag"></i> Hashtags IA</button>
+                    <button class="chip-btn" type="button" data-ai-analyze><i class="fa-solid fa-shield-halved"></i> Analyse IA</button>
+                </div>
+            </div>
+            <div class="admin-tournament-alert" data-ai-feedback style="margin-top: 10px; display:none;"></div>
             <input type="hidden" data-is-event value="0">
             <input type="hidden" data-image-path>
             <input type="file" class="admin-file-input" data-media-file accept="image/*,video/*" multiple>
@@ -84,15 +111,16 @@
 
         <div class="glass-card">
             <div class="filters">
-                <button class="filter-pill active" type="button">Tout</button>
-                <button class="filter-pill" type="button">Équipes</button>
-                <button class="filter-pill" type="button">Joueurs</button>
-                <button class="filter-pill" type="button">Tournois</button>
-                <button class="filter-pill" type="button">Média</button>
+                <button class="filter-pill active" type="button" data-feed-filter="tout">Tout</button>
+                <button class="filter-pill" type="button" data-feed-filter="equipes">Équipes</button>
+                <button class="filter-pill" type="button" data-feed-filter="joueurs">Joueurs</button>
+                <button class="filter-pill" type="button" data-feed-filter="tournois">Tournois</button>
+                <button class="filter-pill" type="button" data-feed-filter="media">Média</button>
             </div>
         </div>
 
-        <div id="post-list">
+        <div id="post-list"
+             data-next-page-url="{% if page < totalPages %}{{ path('fil_home', {page: page + 1, per_page: perPage}) }}{% endif %}">
             {% if posts is empty %}
                 <div class="glass-card post-card" id="post-empty">
                     <div class="post-content">Aucune publication pour le moment.</div>
@@ -101,8 +129,26 @@
                 {% for post in posts %}
                     {% set isSaved = savedIds is defined and post.id in savedIds %}
                     {% set likedByMe = likedIds is defined and post.id in likedIds %}
+                    {% set analysis = analysisByPost[post.id]|default(null) %}
+                    {% set aiCategory = analysis and analysis.category ? analysis.category|lower : '' %}
+                    {% set combinedText = ((post.content ?? '') ~ ' ' ~ (post.eventTitle ?? '') ~ ' ' ~ (post.eventLocation ?? ''))|lower %}
+                    {% set filterTags = ['tout'] %}
+                    {% if post.isEvent or aiCategory in ['tournoi', 'tournament', 'resultat', 'résultat'] or 'tournoi' in combinedText or 'match' in combinedText or 'scrim' in combinedText %}
+                        {% set filterTags = filterTags|merge(['tournois']) %}
+                    {% endif %}
+                    {% if post.medias|length > 0 or post.imagePath or post.videoUrl %}
+                        {% set filterTags = filterTags|merge(['media']) %}
+                    {% endif %}
+                    {% if aiCategory in ['recrutement', 'team', 'equipe', 'équipe', 'equipes', 'équipes'] or 'equipe' in combinedText or 'équipe' in combinedText or 'team' in combinedText or 'clan' in combinedText %}
+                        {% set filterTags = filterTags|merge(['equipes']) %}
+                    {% endif %}
+                    {% if aiCategory in ['joueur', 'player'] or 'joueur' in combinedText or 'player' in combinedText %}
+                        {% set filterTags = filterTags|merge(['joueurs']) %}
+                    {% endif %}
                     <article class="glass-card post-card {{ post.isEvent ? 'event-card' : '' }}"
                              data-post-id="{{ post.id }}"
+                             data-filter-tags="{{ filterTags|join(',') }}"
+                             data-entity-type="post"
                              id="post-{{ post.id }}"
                              data-like-url="{{ path('fil_post_like', {id: post.id}) }}"
                              data-like-list-url="{{ path('fil_post_likes', {id: post.id}) }}"
@@ -141,7 +187,31 @@
                             </div>
                         {% endif %}
                         {% if post.content %}
-                            <div class="post-content">{{ post.content }}</div>
+                            <div class="post-content-wrap">
+                                <div class="post-content" data-post-content data-original="{{ post.content|e('html_attr') }}">{{ post.content }}</div>
+                                {% set summaryShort = analysis and analysis.summaryShort ? analysis.summaryShort|trim : '' %}
+                                {% set summaryLong = analysis and analysis.summaryLong ? analysis.summaryLong|trim : '' %}
+                                {% if summaryShort %}
+                                    <div class="post-social-stats ai-summary-box" style="margin-top: 8px;" data-ai-summary-box hidden>
+                                        <span style="font-size: 13px;">
+                                            <i class="fa-solid fa-wand-magic-sparkles"></i> Résumé IA:
+                                            <span data-ai-summary data-summary-short="{{ summaryShort|e('html_attr') }}" data-summary-long="{{ summaryLong|e('html_attr') }}">{{ summaryShort }}</span>
+                                        </span>
+                                    </div>
+                                {% endif %}
+                                <div class="reaction-row" style="margin-top: 8px;">
+                                    {% if summaryShort %}
+                                        <button class="reaction-pill ai-summary-toggle-btn" type="button" data-ai-summary-toggle data-summary-short="{{ summaryShort|e('html_attr') }}" data-summary-long="{{ summaryLong|e('html_attr') }}">
+                                            <img src="{{ asset('images/logo5.png') }}" alt="AI" class="ai-summary-btn-logo">
+                                            <span>Afficher résumé IA</span>
+                                        </button>
+                                    {% endif %}
+                                    <button class="reaction-pill" type="button" data-translate-original>Original</button>
+                                    <button class="reaction-pill" type="button" data-translate-button data-entity-type="post" data-entity-id="{{ post.id }}" data-target-lang="en">EN</button>
+                                    <button class="reaction-pill" type="button" data-translate-button data-entity-type="post" data-entity-id="{{ post.id }}" data-target-lang="fr">FR</button>
+                                    <button class="reaction-pill" type="button" data-translate-button data-entity-type="post" data-entity-id="{{ post.id }}" data-target-lang="ar">AR</button>
+                                </div>
+                            </div>
                         {% endif %}
 
                         {% if post.medias|length > 1 %}
@@ -225,8 +295,7 @@
                                     </div>
                                 {% elseif embedUrl %}
                                     <div class="media-single media-embed-tile" data-media-item data-media-type="embed" data-media-src="{{ embedUrl }}">
-                                        <i class="fa-solid fa-circle-play"></i>
-                                        <span>Ouvrir la video</span>
+                                        <iframe class="video-embed" src="{{ embedUrl }}" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe>
                                     </div>
                                 {% else %}
                                     <a class="media-placeholder" href="{{ video }}" target="_blank" rel="noopener">Voir la video</a>
@@ -261,10 +330,10 @@
                             </div>
                             <div class="reaction-row">
                                 <button class="reaction-pill {{ isSaved ? 'is-saved' : '' }}" type="button" data-save-button>
-                                    <i class="fa-regular fa-bookmark"></i> {{ isSaved ? 'EnregistrÃ©' : 'Sauvegarder' }}
+                                    <i class="fa-regular fa-bookmark"></i> {{ isSaved ? 'Enregistré' : 'Sauvegarder' }}
                                 </button>
                                 {% if app.user and post.author and app.user.id == post.author.id %}
-                                    <button class="reaction-pill" type="button" data-post-edit><i class="fa-regular fa-pen-to-square"></i> Modifier</button>
+                                    <a class="reaction-pill" href="{{ path('fil_post_edit', {id: post.id, page: page|default(1)}) }}"><i class="fa-regular fa-pen-to-square"></i> Modifier</a>
                                     <button class="reaction-pill" type="button" data-post-delete><i class="fa-regular fa-trash-can"></i> Supprimer</button>
                                 {% endif %}
                             </div>
@@ -293,7 +362,7 @@
                                             <strong>{{ comment.author ? (comment.author.pseudo ?: comment.author.nom) : 'Utilisateur' }}</strong>
                                             <span class="comment-time">{{ comment.createdAt|date('d/m/Y H:i') }}</span>
                                             {% if app.user and comment.author and app.user.id == comment.author.id %}
-                                                <button class="comment-mini-btn" type="button" data-comment-edit><i class="fa-regular fa-pen-to-square"></i></button>
+                                                <a class="comment-mini-btn" href="{{ path('fil_comment_edit', {id: comment.id, page: page|default(1)}) }}"><i class="fa-regular fa-pen-to-square"></i></a>
                                                 <button class="comment-mini-btn" type="button" data-comment-delete><i class="fa-regular fa-trash-can"></i></button>
                                             {% endif %}
                                         </div>
@@ -305,8 +374,14 @@
                                                 </a>
                                             </span>
                                         {% else %}
-                                            <span class="comment-text">{{ comment.content }}</span>
+                                            <span class="comment-text" data-comment-text data-original="{{ comment.content|e('html_attr') }}">{{ comment.content }}</span>
                                         {% endif %}
+                                        <div class="reaction-row" style="margin-top: 6px;">
+                                            <button class="comment-mini-btn" type="button" data-translate-original>ORIG</button>
+                                            <button class="comment-mini-btn" type="button" data-translate-button data-entity-type="comment" data-entity-id="{{ comment.id }}" data-target-lang="en">EN</button>
+                                            <button class="comment-mini-btn" type="button" data-translate-button data-entity-type="comment" data-entity-id="{{ comment.id }}" data-target-lang="fr">FR</button>
+                                            <button class="comment-mini-btn" type="button" data-translate-button data-entity-type="comment" data-entity-id="{{ comment.id }}" data-target-lang="ar">AR</button>
+                                        </div>
                                     </div>
                                 </div>
                             {% endfor %}
@@ -321,9 +396,83 @@
                 {% endfor %}
             {% endif %}
         </div>
+        {% if totalPages|default(1) > 1 %}
+            <div class="glass-card feed-pager">
+                <div class="feed-pager__left">
+                    <span>Affichage par lots</span>
+                    <a class="reaction-pill {{ perPage == 10 ? 'is-active' : '' }}" href="{{ path('fil_home', {page: 1, per_page: 10}) }}">10</a>
+                    <a class="reaction-pill {{ perPage == 25 ? 'is-active' : '' }}" href="{{ path('fil_home', {page: 1, per_page: 25}) }}">25</a>
+                    <a class="reaction-pill {{ perPage == 30 ? 'is-active' : '' }}" href="{{ path('fil_home', {page: 1, per_page: 30}) }}">30</a>
+                </div>
+                <div class="feed-pager__right">
+                    <a class="reaction-pill {{ page <= 1 ? 'is-disabled' : '' }}" {% if page > 1 %}href="{{ path('fil_home', {page: page - 1, per_page: perPage}) }}"{% endif %}>Précédent</a>
+                    <span>Page {{ page }} / {{ totalPages }}</span>
+                    <a class="reaction-pill {{ page >= totalPages ? 'is-disabled' : '' }}" {% if page < totalPages %}href="{{ path('fil_home', {page: page + 1, per_page: perPage}) }}"{% endif %}>Suivant</a>
+                </div>
+            </div>
+        {% endif %}
+        <div class="feed-infinite-sentinel" data-feed-infinite-sentinel hidden>
+            <span data-feed-infinite-label>Chargement...</span>
+        </div>
     </section>
 
     <aside class="feed-right">
+        <div class="admin-tournament-panel announce-panel">
+            <div class="admin-tournament-panel-title">
+                <i class="fas fa-clock"></i> Best time to post
+            </div>
+            <div class="announce-item clean">
+                <div class="title">Heure idéale: {{ bestTime.label|default('20:00') }}</div>
+                <div class="meta">{{ bestTime.reason|default('Basé sur l’audience active récente.') }}</div>
+            </div>
+        </div>
+
+        <div class="admin-tournament-panel announce-panel">
+            <div class="admin-tournament-panel-title">
+                <i class="fas fa-fire"></i> Tendances
+            </div>
+            <div class="announce-scroll">
+                {% if trendingTopics is empty %}
+                    <div class="announce-item clean">
+                        <div class="meta">Aucune tendance détectée.</div>
+                    </div>
+                {% else %}
+                    {% for trend in trendingTopics %}
+                        <div class="announce-item clean">
+                            <div class="announce-row">
+                                <div class="title">#{{ trend.topic }}</div>
+                                <div class="tag">{{ trend.count }}</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="admin-tournament-panel announce-panel">
+            <div class="admin-tournament-panel-title">
+                <i class="fas fa-ranking-star"></i> Top 5 du jour
+            </div>
+            <div class="announce-scroll">
+                {% if dailyHighlights is empty %}
+                    <div class="announce-item clean">
+                        <div class="meta">Pas encore de highlights.</div>
+                    </div>
+                {% else %}
+                    {% for item in dailyHighlights %}
+                        <div class="announce-item clean">
+                            <div class="announce-row">
+                                <div class="title">{{ loop.index }}. {{ item.title }}</div>
+                            </div>
+                            <div class="meta">
+                                {{ item.summary|slice(0, 120) }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
         <div class="admin-tournament-panel announce-panel">
             <div class="admin-tournament-panel-title">
                 <i class="fas fa-bullhorn"></i> Annonces officielles
@@ -372,5 +521,381 @@
         </div>
     </aside>
 </div>
+<button class="back-to-top back-to-top--top-center" type="button" data-back-to-top aria-label="Revenir en haut">
+    <i class="fa-solid fa-arrow-up"></i>
+</button>
 
 {% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const composer = document.querySelector('[data-composer-front]');
+            const postList = document.getElementById('post-list');
+            const aiToken = composer ? (composer.getAttribute('data-ai-token') || '') : '{{ csrf_token('fil_ai_tools') }}';
+            const aiWriteUrl = composer ? (composer.getAttribute('data-ai-write-url') || '') : '{{ path('fil_ai_write_assistant') }}';
+            const aiHashtagsUrl = composer ? (composer.getAttribute('data-ai-hashtags-url') || '') : '{{ path('fil_ai_hashtags') }}';
+            const aiAnalyzeUrl = composer ? (composer.getAttribute('data-ai-analyze-url') || '') : '{{ path('fil_ai_analyze_draft') }}';
+            const aiTranslateUrl = composer ? (composer.getAttribute('data-ai-translate-url') || '') : '{{ path('fil_ai_translate') }}';
+            const contentInput = composer ? composer.querySelector('[data-content]') : null;
+            const feedback = composer ? composer.querySelector('[data-ai-feedback]') : null;
+
+            const showFeedback = (message, isError = false) => {
+                if (!feedback) return;
+                feedback.style.display = 'block';
+                feedback.textContent = message;
+                feedback.style.borderColor = isError ? 'rgba(239,68,68,.6)' : 'rgba(56,189,248,.5)';
+            };
+
+            const postAi = async (url, body) => {
+                const payload = new FormData();
+                payload.append('_token', aiToken);
+                Object.entries(body).forEach(([key, value]) => payload.append(key, value));
+                const response = await fetch(url, { method: 'POST', body: payload });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(data.error || 'Erreur IA');
+                }
+                return data;
+            };
+
+            const filterButtons = Array.from(document.querySelectorAll('[data-feed-filter]'));
+            const getFeedCards = () => Array.from(document.querySelectorAll('#post-list [data-post-id]'));
+            let currentFilter = 'tout';
+            const applyFeedFilter = (filter) => {
+                currentFilter = filter;
+                const cards = getFeedCards();
+                cards.forEach((card) => {
+                    const tags = String(card.getAttribute('data-filter-tags') || 'tout')
+                        .split(',')
+                        .map((item) => item.trim())
+                        .filter((item) => item !== '');
+                    const matches = filter === 'tout' || tags.includes(filter);
+                    card.style.display = matches ? '' : 'none';
+                });
+
+                const initialEmpty = document.getElementById('post-empty');
+                if (initialEmpty) {
+                    initialEmpty.style.display = cards.length === 0 ? '' : 'none';
+                }
+            };
+
+            if (filterButtons.length > 0) {
+                filterButtons.forEach((button) => {
+                    button.addEventListener('click', () => {
+                        const filter = button.getAttribute('data-feed-filter') || 'tout';
+                        filterButtons.forEach((item) => item.classList.remove('active'));
+                        button.classList.add('active');
+                        applyFeedFilter(filter);
+                    });
+                });
+                const active = document.querySelector('[data-feed-filter].active');
+                applyFeedFilter(active ? (active.getAttribute('data-feed-filter') || 'tout') : 'tout');
+            }
+
+            const sentinel = document.querySelector('[data-feed-infinite-sentinel]');
+            const pager = document.querySelector('.feed-pager');
+            let infiniteLoading = false;
+            let infiniteDone = false;
+            let sentinelTimer = null;
+
+            const extractPostsFromHtml = (htmlText) => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
+                const incomingList = doc.querySelector('#post-list');
+                if (!incomingList) return { cards: [], nextUrl: '' };
+                const cards = Array.from(incomingList.querySelectorAll('[data-post-id]'));
+                const nextUrl = incomingList.getAttribute('data-next-page-url') || '';
+                return { cards, nextUrl };
+            };
+
+            const loadNextBatch = async () => {
+                if (!postList || infiniteLoading || infiniteDone) return;
+                const nextUrl = postList.getAttribute('data-next-page-url') || '';
+                if (!nextUrl) {
+                    infiniteDone = true;
+                    if (sentinel) sentinel.hidden = true;
+                    return;
+                }
+                infiniteLoading = true;
+                if (sentinel) {
+                    sentinel.hidden = true;
+                    if (sentinelTimer) {
+                        window.clearTimeout(sentinelTimer);
+                    }
+                    sentinelTimer = window.setTimeout(() => {
+                        if (!infiniteLoading || !sentinel) return;
+                        const label = sentinel.querySelector('[data-feed-infinite-label]');
+                        if (label) label.textContent = 'Chargement en cours...';
+                        sentinel.hidden = false;
+                    }, 850);
+                }
+                try {
+                    const response = await fetch(nextUrl, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-Silent-Refresh': '1',
+                        },
+                        __silent: true,
+                    });
+                    if (!response.ok) {
+                        throw new Error('Chargement impossible');
+                    }
+                    const html = await response.text();
+                    const { cards, nextUrl: newerUrl } = extractPostsFromHtml(html);
+                    if (cards.length === 0) {
+                        infiniteDone = true;
+                        if (sentinel) {
+                            const label = sentinel.querySelector('[data-feed-infinite-label]');
+                            if (label) label.textContent = 'Fin du fil';
+                        }
+                        return;
+                    }
+
+                    const existingIds = new Set(
+                        Array.from(postList.querySelectorAll('[data-post-id]')).map((node) => node.getAttribute('data-post-id'))
+                    );
+                    cards.forEach((card) => {
+                        const id = card.getAttribute('data-post-id');
+                        if (id && !existingIds.has(id)) {
+                            postList.appendChild(card);
+                        }
+                    });
+
+                    postList.setAttribute('data-next-page-url', newerUrl || '');
+                    if (!newerUrl) {
+                        infiniteDone = true;
+                    }
+                    if (sentinel) {
+                        sentinel.hidden = true;
+                    }
+                    applyFeedFilter(currentFilter);
+                } catch (error) {
+                    if (sentinel) {
+                        const label = sentinel.querySelector('[data-feed-infinite-label]');
+                        if (label) label.textContent = 'Erreur de chargement, réessayez.';
+                        sentinel.hidden = false;
+                        window.setTimeout(() => {
+                            if (!infiniteLoading) {
+                                sentinel.hidden = true;
+                            }
+                        }, 2400);
+                    }
+                } finally {
+                    if (sentinelTimer) {
+                        window.clearTimeout(sentinelTimer);
+                        sentinelTimer = null;
+                    }
+                    infiniteLoading = false;
+                }
+            };
+
+            if (pager) {
+                pager.style.display = 'none';
+            }
+            if (sentinel) {
+                sentinel.hidden = true;
+            }
+            if ('IntersectionObserver' in window && sentinel) {
+                const observer = new IntersectionObserver((entries) => {
+                    const visible = entries.some((entry) => entry.isIntersecting);
+                    if (visible) {
+                        loadNextBatch();
+                    }
+                }, { root: null, rootMargin: '420px 0px', threshold: 0.01 });
+                observer.observe(sentinel);
+            }
+
+            document.addEventListener('click', (event) => {
+                const toggle = event.target.closest('[data-ai-summary-toggle]');
+                if (!toggle) return;
+                const wrap = toggle.closest('.post-content-wrap');
+                const summaryBox = wrap ? wrap.querySelector('[data-ai-summary-box]') : null;
+                const summaryNode = wrap ? wrap.querySelector('[data-ai-summary]') : null;
+                if (!summaryBox || !summaryNode) return;
+                const isHidden = summaryBox.hasAttribute('hidden');
+                if (isHidden) {
+                    const summaryLong = (toggle.dataset.summaryLong || '').trim();
+                    const summaryShort = (toggle.dataset.summaryShort || '').trim();
+                    summaryNode.textContent = summaryLong || summaryShort;
+                    summaryBox.removeAttribute('hidden');
+                    summaryBox.classList.add('is-open');
+                    toggle.innerHTML = '<img src="{{ asset('images/logo5.png') }}" alt="AI" class="ai-summary-btn-logo"><span>Masquer résumé IA</span>';
+                } else {
+                    summaryBox.setAttribute('hidden', '');
+                    summaryBox.classList.remove('is-open');
+                    toggle.innerHTML = '<img src="{{ asset('images/logo5.png') }}" alt="AI" class="ai-summary-btn-logo"><span>Afficher résumé IA</span>';
+                }
+            });
+
+            document.querySelectorAll('[data-ai-write-mode]').forEach((button) => {
+                button.addEventListener('click', async () => {
+                    if (!contentInput || !aiWriteUrl) return;
+                    const text = contentInput.value.trim();
+                    if (!text) {
+                        showFeedback('Ajoutez du texte avant d’utiliser l’assistant.', true);
+                        return;
+                    }
+                    button.disabled = true;
+                    try {
+                        const data = await postAi(aiWriteUrl, { text, mode: button.getAttribute('data-ai-write-mode') || 'pro' });
+                        const output = (data.output || '').trim();
+                        if (!output || output === text) {
+                            showFeedback('Service IA indisponible pour le moment. Aucune modification appliquée.', true);
+                            return;
+                        }
+                        contentInput.value = output;
+                        showFeedback('Texte amélioré par l’assistant IA.');
+                    } catch (error) {
+                        showFeedback(error.message || 'Assistant indisponible.', true);
+                    } finally {
+                        button.disabled = false;
+                    }
+                });
+            });
+
+            const hashtagsBtn = composer ? composer.querySelector('[data-ai-hashtags]') : null;
+            if (hashtagsBtn) {
+                hashtagsBtn.addEventListener('click', async () => {
+                    if (!contentInput || !aiHashtagsUrl) return;
+                    const text = contentInput.value.trim();
+                    if (!text) {
+                        showFeedback('Ajoutez du texte pour générer des hashtags.', true);
+                        return;
+                    }
+                    hashtagsBtn.disabled = true;
+                    try {
+                        const data = await postAi(aiHashtagsUrl, { text });
+                        const hashtags = Array.isArray(data.hashtags) ? data.hashtags : [];
+                        if (hashtags.length) {
+                            const line = hashtags.join(' ');
+                            if (!contentInput.value.includes(line)) {
+                                contentInput.value = `${contentInput.value.trim()} ${line}`.trim();
+                            }
+                            showFeedback(`Hashtags proposés: ${line}`);
+                        }
+                    } catch (error) {
+                        showFeedback(error.message || 'Hashtags indisponibles.', true);
+                    } finally {
+                        hashtagsBtn.disabled = false;
+                    }
+                });
+            }
+
+            const analyzeBtn = composer ? composer.querySelector('[data-ai-analyze]') : null;
+            if (analyzeBtn) {
+                analyzeBtn.addEventListener('click', async () => {
+                    if (!contentInput || !aiAnalyzeUrl) return;
+                    const text = contentInput.value.trim();
+                    if (!text) {
+                        showFeedback('Ajoutez du texte pour lancer l’analyse.', true);
+                        return;
+                    }
+                    analyzeBtn.disabled = true;
+                    try {
+                        const data = await postAi(aiAnalyzeUrl, { text });
+                        const hashtags = Array.isArray(data.hashtags) ? data.hashtags.join(' ') : '';
+                        showFeedback(`Catégorie: ${data.category || 'general'} | Risque: ${(data.moderation && data.moderation.risk) || 'faible'} | ${data.summary || ''} ${hashtags}`);
+                    } catch (error) {
+                        showFeedback(error.message || 'Analyse indisponible.', true);
+                    } finally {
+                        analyzeBtn.disabled = false;
+                    }
+                });
+            }
+
+            document.addEventListener('click', async (event) => {
+                const originalBtn = event.target.closest('[data-translate-original]');
+                if (originalBtn) {
+                    const commentWrap = originalBtn.closest('.comment-content-wrap');
+                    const postWrap = originalBtn.closest('.post-content-wrap');
+                    const summaryBox = postWrap ? postWrap.querySelector('[data-ai-summary-box]') : null;
+                    const visibleSummaryNode = (summaryBox && !summaryBox.hasAttribute('hidden'))
+                        ? summaryBox.querySelector('[data-ai-summary]')
+                        : null;
+                    const sourceNode = commentWrap
+                        ? commentWrap.querySelector('.comment-text')
+                        : (postWrap ? (visibleSummaryNode || postWrap.querySelector('[data-post-content]')) : null);
+                    if (sourceNode && sourceNode.dataset && sourceNode.dataset.original) {
+                        sourceNode.textContent = sourceNode.dataset.original;
+                    }
+                    return;
+                }
+
+                const btn = event.target.closest('[data-translate-button]');
+                if (!btn || !aiTranslateUrl) return;
+
+                const targetLang = btn.getAttribute('data-target-lang') || 'en';
+                const entityType = btn.getAttribute('data-entity-type') || '';
+                const entityId = btn.getAttribute('data-entity-id') || '';
+                const commentWrap = btn.closest('.comment-content-wrap');
+                const postWrap = btn.closest('.post-content-wrap');
+                const summaryBox = postWrap ? postWrap.querySelector('[data-ai-summary-box]') : null;
+                const visibleSummaryNode = (summaryBox && !summaryBox.hasAttribute('hidden'))
+                    ? summaryBox.querySelector('[data-ai-summary]')
+                    : null;
+                const sourceNode = entityType === 'comment'
+                    ? (commentWrap ? commentWrap.querySelector('.comment-text') : null)
+                    : (postWrap ? (visibleSummaryNode || postWrap.querySelector('[data-post-content]')) : null);
+
+                if (!sourceNode || sourceNode.classList.contains('comment-gif')) {
+                    return;
+                }
+
+                const cacheKey = `tr_${targetLang}`;
+                const original = sourceNode.dataset.original || sourceNode.textContent.trim();
+                if (!sourceNode.dataset.original) {
+                    sourceNode.dataset.original = original;
+                }
+                if (sourceNode.dataset[cacheKey]) {
+                    sourceNode.textContent = sourceNode.dataset[cacheKey];
+                    return;
+                }
+
+                const previousLabel = btn.textContent;
+                btn.textContent = `${targetLang.toUpperCase()}...`;
+                btn.classList.add('is-translating');
+                btn.disabled = true;
+                try {
+                    const data = await postAi(aiTranslateUrl, {
+                        text: original,
+                        target: targetLang,
+                        entityType,
+                        entityId,
+                        force: '1',
+                    });
+                    const translated = (data.translated || '').trim();
+                    if (translated && translated !== original) {
+                        sourceNode.dataset[cacheKey] = translated;
+                        sourceNode.textContent = translated;
+                    } else if (feedback) {
+                        showFeedback('Traduction indisponible pour le moment.', true);
+                    }
+                } catch (error) {
+                    if (feedback) {
+                        showFeedback(error.message || 'Traduction indisponible.', true);
+                    }
+                } finally {
+                    btn.disabled = false;
+                    btn.classList.remove('is-translating');
+                    btn.textContent = previousLabel;
+                }
+            });
+
+            const backToTopBtn = document.querySelector('[data-back-to-top]');
+            if (backToTopBtn) {
+                const toggleBackToTop = () => {
+                    const visible = window.scrollY > 360;
+                    backToTopBtn.classList.toggle('is-visible', visible);
+                };
+                toggleBackToTop();
+                window.addEventListener('scroll', toggleBackToTop, { passive: true });
+                backToTopBtn.addEventListener('click', () => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            }
+        });
+    </script>
+{% endblock %}
+

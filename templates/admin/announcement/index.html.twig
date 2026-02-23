@@ -26,6 +26,7 @@
         <a href="{{ path('fil_admin_post_index') }}" class="tab">Publications</a>
         <a href="{{ path('fil_admin_announcement_index') }}" class="tab active">Annonces</a>
         <a href="{{ path('fil_admin_comment_index') }}" class="tab">Commentaires</a>
+        <a href="{{ path('fil_admin_intelligence_index') }}" class="tab">Centre IA</a>
     </div>
 
     <div class="admin-tournament-panel">
@@ -46,8 +47,19 @@
                 <label>Date (au)</label>
                 <input type="date" name="date_to" value="{{ filters.date_to|default('') }}">
             </div>
+            <div class="field">
+                <label>Par page</label>
+                <select name="per_page">
+                    {% set selectedPerPage = filters.per_page|default(10) %}
+                    <option value="10" {% if selectedPerPage == 10 %}selected{% endif %}>10</option>
+                    <option value="25" {% if selectedPerPage == 25 %}selected{% endif %}>25</option>
+                    <option value="50" {% if selectedPerPage == 50 %}selected{% endif %}>50</option>
+                    <option value="100" {% if selectedPerPage == 100 %}selected{% endif %}>100</option>
+                </select>
+            </div>
             <input type="hidden" name="sort" value="{{ filters.sort|default('date') }}">
             <input type="hidden" name="direction" value="{{ filters.direction|default('DESC') }}">
+            <input type="hidden" name="page" value="{{ app.request.query.get('page', 1) }}">
             <div class="admin-tournament-actions">
                 <button type="submit" class="admin-tournament-btn">
                     <i class="fas fa-search"></i> Rechercher
@@ -79,6 +91,7 @@
         const results = document.querySelector('[data-results]');
         const sortInput = form ? form.querySelector('input[name="sort"]') : null;
         const directionInput = form ? form.querySelector('input[name="direction"]') : null;
+        const pageInput = form ? form.querySelector('input[name="page"]') : null;
 
         let debounceTimer = null;
 
@@ -115,11 +128,18 @@
             form.addEventListener('reset', () => {
                 if (sortInput) sortInput.value = 'date';
                 if (directionInput) directionInput.value = 'DESC';
+                if (pageInput) pageInput.value = '1';
                 setTimeout(fetchResults, 0);
             });
             form.querySelectorAll('input[type="text"], input[type="date"], select').forEach((input) => {
-                input.addEventListener('input', triggerDebouncedFetch);
-                input.addEventListener('change', triggerDebouncedFetch);
+                input.addEventListener('input', () => {
+                    if (pageInput) pageInput.value = '1';
+                    triggerDebouncedFetch();
+                });
+                input.addEventListener('change', () => {
+                    if (pageInput) pageInput.value = '1';
+                    triggerDebouncedFetch();
+                });
             });
         }
 
@@ -130,8 +150,30 @@
                     sortInput.value = link.dataset.sort || 'date';
                     directionInput.value = link.dataset.direction || 'DESC';
                 }
+                if (pageInput) pageInput.value = '1';
                 fetchResults();
             });
+        });
+
+        results?.addEventListener('click', async (event) => {
+            const target = event.target instanceof Element ? event.target.closest('.admin-pagination a[href]') : null;
+            if (!target) return;
+            event.preventDefault();
+
+            try {
+                const response = await fetch(target.href, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                });
+                if (!response.ok) return;
+                results.innerHTML = await response.text();
+                const url = new URL(target.href);
+                if (pageInput) {
+                    pageInput.value = url.searchParams.get('page') || '1';
+                }
+                window.history.replaceState({}, '', url.toString());
+            } catch (e) {
+                // Keep current list on fetch error.
+            }
         });
     });
 </script>
