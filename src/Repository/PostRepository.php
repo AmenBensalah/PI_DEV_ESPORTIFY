@@ -29,6 +29,21 @@ class PostRepository extends ServiceEntityRepository
      */
     public function searchAdmin(array $filters): array
     {
+        return $this->searchAdminQueryBuilder($filters)->getQuery()->getResult();
+    }
+
+    /**
+     * @param array{
+     *     q?: string,
+     *     media?: string,
+     *     date_from?: string,
+     *     date_to?: string,
+     *     sort?: string,
+     *     direction?: string
+     * } $filters
+     */
+    public function searchAdminQueryBuilder(array $filters): \Doctrine\ORM\QueryBuilder
+    {
         $qb = $this->createQueryBuilder('p');
 
         $query = trim((string) ($filters['q'] ?? ''));
@@ -80,7 +95,7 @@ class PostRepository extends ServiceEntityRepository
         ];
         $qb->orderBy($sortMap[$sort] ?? 'p.createdAt', $direction)->addOrderBy('p.id', 'DESC');
 
-        return $qb->getQuery()->getResult();
+        return $qb;
     }
 
     /**
@@ -94,8 +109,11 @@ class PostRepository extends ServiceEntityRepository
     {
         // Query 1: load posts + post authors (ManyToOne — safe to join)
         $posts = $this->createQueryBuilder('p')
+            ->distinct()
             ->leftJoin('p.author', 'a')
             ->addSelect('a')
+            ->leftJoin('p.medias', 'm')
+            ->addSelect('m')
             ->orderBy('p.createdAt', 'DESC')
             ->addOrderBy('p.id', 'DESC')
             ->getQuery()
@@ -135,6 +153,42 @@ class PostRepository extends ServiceEntityRepository
             ->setParameter('author', $author)
             ->orderBy('p.createdAt', 'DESC')
             ->addOrderBy('p.id', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return string[]
+     */
+    public function findRecentTextsByAuthor(User $author, int $limit = 20): array
+    {
+        $rows = $this->createQueryBuilder('p')
+            ->select('p.content')
+            ->andWhere('p.author = :author')
+            ->andWhere('p.content IS NOT NULL')
+            ->setParameter('author', $author)
+            ->orderBy('p.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getScalarResult();
+
+        return array_values(array_filter(array_map(static fn (array $row) => (string) ($row['content'] ?? ''), $rows)));
+    }
+
+    /**
+     * @return Post[]
+     */
+    public function findSinceWithMetrics(\DateTimeImmutable $since, int $limit = 400): array
+    {
+        return $this->createQueryBuilder('p')
+            ->leftJoin('p.author', 'a')->addSelect('a')
+            ->leftJoin('p.likes', 'l')->addSelect('l')
+            ->leftJoin('p.commentaires', 'c')->addSelect('c')
+            ->leftJoin('c.author', 'ca')->addSelect('ca')
+            ->andWhere('p.createdAt >= :since')
+            ->setParameter('since', $since)
+            ->orderBy('p.createdAt', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();

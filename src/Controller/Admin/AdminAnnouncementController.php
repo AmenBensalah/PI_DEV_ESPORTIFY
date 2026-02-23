@@ -8,6 +8,7 @@ use App\Repository\AnnouncementRepository;
 use App\Repository\UserRepository;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -20,17 +21,36 @@ use Symfony\Component\Routing\Attribute\Route;
 class AdminAnnouncementController extends AbstractController
 {
     #[Route('/', name: 'fil_admin_announcement_index')]
-    public function index(Request $request, AnnouncementRepository $announcementRepository): Response
+    public function index(
+        Request $request,
+        AnnouncementRepository $announcementRepository,
+        PaginatorInterface $paginator
+    ): Response
     {
+        $perPage = (int) $request->query->get('per_page', 10);
+        if (!in_array($perPage, [10, 25, 50, 100], true)) {
+            $perPage = 10;
+        }
+        $page = max(1, (int) $request->query->get('page', 1));
+
         $filters = [
             'q' => trim((string) $request->query->get('q', '')),
             'date_from' => trim((string) $request->query->get('date_from', '')),
             'date_to' => trim((string) $request->query->get('date_to', '')),
             'sort' => trim((string) $request->query->get('sort', 'date')),
             'direction' => strtoupper(trim((string) $request->query->get('direction', 'DESC'))) === 'ASC' ? 'ASC' : 'DESC',
+            'per_page' => $perPage,
         ];
 
-        $announcements = $announcementRepository->searchAdmin($filters);
+        $announcements = $paginator->paginate(
+            $announcementRepository->searchAdminQueryBuilder($filters),
+            $page,
+            $perPage,
+            [
+                'sortFieldParameterName' => 'knp_sort',
+                'sortDirectionParameterName' => 'knp_direction',
+            ]
+        );
 
         if ($request->isXmlHttpRequest()) {
             return $this->render('admin/announcement/_results.html.twig', [

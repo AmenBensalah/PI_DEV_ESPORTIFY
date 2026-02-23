@@ -1,6 +1,6 @@
 {% if pageCount > 1 %}
     <nav class="admin-pagination" aria-label="Pagination">
-        {% if previous is defined %}
+        {% if previous is defined and previous is not null %}
             <a class="admin-pagination-btn" rel="prev" href="{{ path(route, query|merge({(pageParameterName): previous})) }}">
                 <i class="fas fa-chevron-left"></i>
             </a>
@@ -18,7 +18,7 @@
             {% endif %}
         {% endfor %}
 
-        {% if next is defined %}
+        {% if next is defined and next is not null %}
             <a class="admin-pagination-btn" rel="next" href="{{ path(route, query|merge({(pageParameterName): next})) }}">
                 <i class="fas fa-chevron-right"></i>
             </a>

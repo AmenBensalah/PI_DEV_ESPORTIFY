@@ -5,9 +5,12 @@ namespace App\Controller\Admin;
 use App\Entity\Post;
 use App\Entity\PostMedia;
 use App\Form\PostType;
+use App\Repository\FeedAiAnalysisRepository;
 use App\Repository\PostRepository;
 use App\Service\FileUploader;
+use App\Service\FeedIntelligenceService;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -19,8 +22,20 @@ use Symfony\Component\Routing\Attribute\Route;
 class AdminPostController extends AbstractController
 {
     #[Route('/', name: 'fil_admin_post_index')]
-    public function index(Request $request, PostRepository $postRepository): Response
+    public function index(
+        Request $request,
+        PostRepository $postRepository,
+        FeedAiAnalysisRepository $feedAiAnalysisRepository,
+        FeedIntelligenceService $feedIntelligenceService,
+        PaginatorInterface $paginator
+    ): Response
     {
+        $perPage = (int) $request->query->get('per_page', 10);
+        if (!in_array($perPage, [10, 25, 50, 100], true)) {
+            $perPage = 10;
+        }
+        $page = max(1, (int) $request->query->get('page', 1));
+
         $filters = [
             'q' => trim((string) $request->query->get('q', '')),
             'media' => trim((string) $request->query->get('media', '')),
@@ -28,19 +43,35 @@ class AdminPostController extends AbstractController
             'date_to' => trim((string) $request->query->get('date_to', '')),
             'sort' => trim((string) $request->query->get('sort', 'date')),
             'direction' => strtoupper(trim((string) $request->query->get('direction', 'DESC'))) === 'ASC' ? 'ASC' : 'DESC',
+            'per_page' => $perPage,
         ];
 
-        $posts = $postRepository->searchAdmin($filters);
+        $posts = $paginator->paginate(
+            $postRepository->searchAdminQueryBuilder($filters),
+            $page,
+            $perPage,
+            [
+                'sortFieldParameterName' => 'knp_sort',
+                'sortDirectionParameterName' => 'knp_direction',
+            ]
+        );
+
+        $postRows = iterator_to_array($posts->getItems());
+        $feedIntelligenceService->ensurePostAnalyses($postRows, 40);
+        $postIds = array_values(array_filter(array_map(static fn (Post $post) => $post->getId(), $postRows)));
+        $analysesByPost = $feedAiAnalysisRepository->findMapForEntities('post', $postIds);
 
         if ($request->isXmlHttpRequest()) {
             return $this->render('admin/post/_results.html.twig', [
                 'posts' => $posts,
+                'analysesByPost' => $analysesByPost,
             ]);
         }
 
         return $this->render('admin/post/index.html.twig', [
             'posts' => $posts,
             'filters' => $filters,
+            'analysesByPost' => $analysesByPost,
         ]);
     }
 

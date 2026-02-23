@@ -6,7 +6,6 @@ use App\Entity\Equipe;
 use App\Repository\EquipeRepository;
 use App\Repository\TeamReportRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,8 +21,7 @@ class AdminEquipeController extends AbstractController
         Request $request,
         EquipeRepository $equipeRepository,
         TeamReportRepository $teamReportRepository,
-        EntityManagerInterface $entityManager,
-        PaginatorInterface $paginator
+        EntityManagerInterface $entityManager
     ): Response
     {
         $this->reactivateExpiredSuspensions($equipeRepository, $entityManager);
@@ -34,9 +32,29 @@ class AdminEquipeController extends AbstractController
         $sort = $request->query->get('sort', 'id');
         $direction = $request->query->get('direction', 'DESC');
 
+        $perPage = 10;
         $page = max(1, (int) $request->query->get('page', 1));
         $queryBuilder = $equipeRepository->searchAndSortQueryBuilder($query, $region, $visibility, $sort, $direction);
-        $equipes = $paginator->paginate($queryBuilder, $page, 10, ['distinct' => true]);
+        $countQueryBuilder = clone $queryBuilder;
+        $totalItems = (int) $countQueryBuilder
+            ->select('COUNT(e.id)')
+            ->resetDQLPart('orderBy')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $pageCount = max(1, (int) ceil($totalItems / $perPage));
+        $page = min($page, $pageCount);
+
+        $equipes = (clone $queryBuilder)
+            ->setFirstResult(($page - 1) * $perPage)
+            ->setMaxResults($perPage)
+            ->getQuery()
+            ->getResult();
+
+        $rangeStart = max(1, $page - 2);
+        $rangeEnd = min($pageCount, $rangeStart + 4);
+        $rangeStart = max(1, $rangeEnd - 4);
+        $pagesInRange = range($rangeStart, $rangeEnd);
 
         $equipeIds = [];
         foreach ($equipes as $equipe) {
@@ -54,6 +72,13 @@ class AdminEquipeController extends AbstractController
             'currentVisibility' => $visibility,
             'currentSort' => $sort,
             'currentDirection' => $direction,
+            'pagination' => [
+                'current' => $page,
+                'pageCount' => $pageCount,
+                'pagesInRange' => $pagesInRange,
+                'previous' => $page > 1 ? $page - 1 : null,
+                'next' => $page < $pageCount ? $page + 1 : null,
+            ],
         ]);
     }
 

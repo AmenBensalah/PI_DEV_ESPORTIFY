@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Commentaire;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -26,6 +27,20 @@ class CommentaireRepository extends ServiceEntityRepository
      * } $filters
      */
     public function searchAdmin(array $filters): array
+    {
+        return $this->searchAdminQueryBuilder($filters)->getQuery()->getResult();
+    }
+
+    /**
+     * @param array{
+     *     q?: string,
+     *     date_from?: string,
+     *     date_to?: string,
+     *     sort?: string,
+     *     direction?: string
+     * } $filters
+     */
+    public function searchAdminQueryBuilder(array $filters): \Doctrine\ORM\QueryBuilder
     {
         $qb = $this->createQueryBuilder('c')
             ->leftJoin('c.author', 'u')
@@ -77,6 +92,23 @@ class CommentaireRepository extends ServiceEntityRepository
         ];
         $qb->orderBy($sortMap[$sort] ?? 'c.createdAt', $direction)->addOrderBy('c.id', 'DESC');
 
-        return $qb->getQuery()->getResult();
+        return $qb;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function findRecentTextsByAuthor(User $author, int $limit = 30): array
+    {
+        $rows = $this->createQueryBuilder('c')
+            ->select('c.content')
+            ->andWhere('c.author = :author')
+            ->setParameter('author', $author)
+            ->orderBy('c.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getScalarResult();
+
+        return array_values(array_filter(array_map(static fn (array $row) => (string) ($row['content'] ?? ''), $rows)));
     }
 }

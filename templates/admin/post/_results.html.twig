@@ -1,4 +1,4 @@
-{% if posts %}
+{% if posts|length > 0 %}
     <div class="admin-tournament-table">
         <table data-table="posts">
             <thead>
@@ -6,6 +6,9 @@
                     <th>ID</th>
                     <th>Type</th>
                     <th>Contenu</th>
+                    <th>Résumé IA</th>
+                    <th>Catégorie</th>
+                    <th>Risque</th>
                     <th>Média</th>
                     <th>Création</th>
                     <th>Actions</th>
@@ -13,11 +16,23 @@
             </thead>
             <tbody>
                 {% for post in posts %}
-                    {% set mediaType = post.isEvent ? 'event' : 'post' %}
+                    {% set analysis = analysesByPost[post.id]|default(null) %}
                     <tr class="admin-tournament-row">
                         <td>#{{ post.id }}</td>
                         <td><span class="badge badge-info">{{ post.isEvent ? 'Événement' : 'Publication' }}</span></td>
                         <td>{{ post.content|default('')|slice(0, 80) }}</td>
+                        <td>{{ analysis and analysis.summaryShort ? analysis.summaryShort|slice(0, 90) : '-' }}</td>
+                        <td>{{ analysis and analysis.category ? analysis.category : 'general' }}</td>
+                        <td>
+                            {% if analysis %}
+                                {% set riskClass = analysis.autoAction == 'block' ? 'badge-danger' : (analysis.autoAction == 'review' ? 'badge-info' : 'badge-success') %}
+                                <span class="badge {{ riskClass }}">
+                                    {{ analysis.autoAction }} (T{{ analysis.toxicityScore }}/S{{ analysis.spamScore }})
+                                </span>
+                            {% else %}
+                                <span class="badge badge-success">n/a</span>
+                            {% endif %}
+                        </td>
                         <td>
                             {% if post.imagePath %}
                                 {{ post.imagePath|slice(0, 40) }}
@@ -46,6 +61,9 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+    <div class="admin-pagination-wrap">
+        {{ knp_pagination_render(posts, 'admin/_pagination.html.twig') }}
     </div>
 {% else %}
     <div class="admin-tournament-empty">
