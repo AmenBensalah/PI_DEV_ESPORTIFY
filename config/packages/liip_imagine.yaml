@@ -1,0 +1,11 @@
+liip_imagine:
+    driver: "gd"
+    filter_sets:
+        cache: ~
+        feed_post_card:
+            quality: 82
+            filters:
+                thumbnail:
+                    size: [960, 540]
+                    mode: outbound
+

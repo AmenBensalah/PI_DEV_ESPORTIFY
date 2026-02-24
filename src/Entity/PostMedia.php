@@ -4,9 +4,12 @@ namespace App\Entity;
 
 use App\Repository\PostMediaRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\File;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: PostMediaRepository::class)]
 #[ORM\Table(name: 'post_media')]
+#[Vich\Uploadable]
 class PostMedia
 {
     #[ORM\Id]
@@ -26,6 +29,9 @@ class PostMedia
 
     #[ORM\Column]
     private int $position = 0;
+
+    #[Vich\UploadableField(mapping: 'feed_post_images', fileNameProperty: 'path')]
+    private ?File $imageFile = null;
 
     public function getId(): ?int
     {
@@ -76,6 +82,18 @@ class PostMedia
     public function setPosition(int $position): static
     {
         $this->position = $position;
+
+        return $this;
+    }
+
+    public function getImageFile(): ?File
+    {
+        return $this->imageFile;
+    }
+
+    public function setImageFile(?File $imageFile): static
+    {
+        $this->imageFile = $imageFile;
 
         return $this;
     }

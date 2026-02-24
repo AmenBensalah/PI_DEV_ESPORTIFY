@@ -180,6 +180,56 @@
 <script src="{{ asset('js/app.js') }}"></script>
 <script>
 (() => {
+    const sidebar = document.getElementById('sidebar');
+    let sidebarToggle = document.getElementById('sidebar-toggle');
+
+    if (sidebar) {
+        const isDesktopViewport = window.matchMedia('(min-width: 1025px)').matches;
+        sidebar.classList.toggle('expanded', isDesktopViewport);
+    }
+
+    if (sidebar && sidebarToggle) {
+        // Rebind toggle to avoid stale/double listeners from cached scripts.
+        const cleanSidebarToggle = sidebarToggle.cloneNode(true);
+        sidebarToggle.replaceWith(cleanSidebarToggle);
+        sidebarToggle = cleanSidebarToggle;
+        sidebarToggle.dataset.sidebarBound = '1';
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('expanded');
+        });
+    }
+
+    document.querySelectorAll('.sidebar-accordion-toggle').forEach((rawToggle) => {
+        // Rebind accordion toggles to guarantee a single click handler.
+        const toggle = rawToggle.cloneNode(true);
+        rawToggle.replaceWith(toggle);
+        toggle.dataset.accordionBound = '1';
+
+        toggle.addEventListener('click', () => {
+            const group = toggle.closest('.sidebar-group');
+            if (!group) {
+                return;
+            }
+
+            const isOpen = group.classList.contains('open');
+            document.querySelectorAll('.sidebar-group.open').forEach((openGroup) => {
+                if (openGroup === group) {
+                    return;
+                }
+
+                openGroup.classList.remove('open');
+                const openToggle = openGroup.querySelector('.sidebar-accordion-toggle');
+                if (openToggle) {
+                    openToggle.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            group.classList.toggle('open', !isOpen);
+            toggle.setAttribute('aria-expanded', (!isOpen).toString());
+        });
+    });
+
     const init = (setupFn) => {
         document.querySelectorAll('form[data-composer]').forEach(setupFn);
     };

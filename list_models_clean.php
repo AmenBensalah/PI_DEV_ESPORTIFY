@@ -3,7 +3,23 @@ require __DIR__ . '/vendor/autoload.php';
 
 use Symfony\Component\HttpClient\HttpClient;
 
-$apiKey = 'AIzaSyDEDqijlfqBlJxEpPFxfA0wvE16T6PBBqg';
+$apiKey = (string) ($_ENV['GEMINI_API_KEY'] ?? getenv('GEMINI_API_KEY') ?? '');
+if ($apiKey === '' && is_file(__DIR__ . '/.env')) {
+    $lines = file(__DIR__ . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || str_starts_with($line, '#') || !str_starts_with($line, 'GEMINI_API_KEY=')) {
+            continue;
+        }
+        $apiKey = trim((string) substr($line, strlen('GEMINI_API_KEY=')));
+        break;
+    }
+}
+
+if ($apiKey === '') {
+    throw new RuntimeException('GEMINI_API_KEY introuvable. Ajoutez-la dans .env ou en variable d environnement.');
+}
+
 $client = HttpClient::create();
 
 try {

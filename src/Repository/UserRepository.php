@@ -34,9 +34,9 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
-     * @return User[] Returns filtered and sorted users
+     * @return \Doctrine\ORM\QueryBuilder
      */
-    public function searchAndSort(?string $query, ?string $roleValue = null, string $sortField = 'id', string $sortDirection = 'DESC'): array
+    public function searchAndSortQueryBuilder(?string $query, ?string $roleValue = null, string $sortField = 'id', string $sortDirection = 'DESC'): \Doctrine\ORM\QueryBuilder
     {
         $qb = $this->createQueryBuilder('u');
 
@@ -61,9 +61,17 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         
         $sortDirection = strtoupper($sortDirection) === 'ASC' ? 'ASC' : 'DESC';
 
-        return $qb->orderBy('u.' . $sortField, $sortDirection)
-                  ->getQuery()
-                  ->getResult();
+        return $qb->orderBy('u.' . $sortField, $sortDirection);
+    }
+
+    /**
+     * @return User[] Returns filtered and sorted users
+     */
+    public function searchAndSort(?string $query, ?string $roleValue = null, string $sortField = 'id', string $sortDirection = 'DESC'): array
+    {
+        return $this->searchAndSortQueryBuilder($query, $roleValue, $sortField, $sortDirection)
+            ->getQuery()
+            ->getResult();
     }
 
     /**

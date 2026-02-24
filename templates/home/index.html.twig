@@ -221,7 +221,7 @@
                                 </button>
                                 <div class="post-media-carousel" data-media-carousel>
                                     {% for media in post.medias %}
-                                        {% set mediaUrl = media.path starts with 'http' ? media.path : asset('uploads/' ~ media.path) %}
+                                        {% set mediaUrl = media.path starts with 'http' ? media.path : (asset('uploads/' ~ media.path)|imagine_filter('feed_post_card')) %}
                                         <div class="media-slide" data-media-item data-media-type="{{ media.type == 'video' ? 'video' : 'image' }}" data-media-src="{{ mediaUrl }}">
                                             {% if media.type == 'video' %}
                                                 <video controls playsinline preload="metadata">
@@ -241,7 +241,7 @@
                             </div>
                         {% elseif post.medias|length == 1 %}
                             {% set media = post.medias|first %}
-                            {% set mediaUrl = media.path starts with 'http' ? media.path : asset('uploads/' ~ media.path) %}
+                            {% set mediaUrl = media.path starts with 'http' ? media.path : (asset('uploads/' ~ media.path)|imagine_filter('feed_post_card')) %}
                             <div class="post-media">
                                 <div class="media-single" data-media-item data-media-type="{{ media.type == 'video' ? 'video' : 'image' }}" data-media-src="{{ mediaUrl }}">
                                     {% if media.type == 'video' %}
@@ -256,7 +256,7 @@
                                 </div>
                             </div>
                         {% elseif post.imagePath %}
-                            {% set imageUrl = asset(post.imagePath starts with 'http' ? post.imagePath : 'uploads/' ~ post.imagePath) %}
+                            {% set imageUrl = post.imagePath starts with 'http' ? post.imagePath : (asset('uploads/' ~ post.imagePath)|imagine_filter('feed_post_card')) %}
                             <div class="post-media">
                                 <div class="media-single" data-media-item data-media-type="image" data-media-src="{{ imageUrl }}">
                                     <img src="{{ imageUrl }}" alt="media">
@@ -898,6 +898,7 @@
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 });
             }
+
         });
     </script>
 {% endblock %}

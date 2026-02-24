@@ -4,11 +4,11 @@ namespace App\Form;
 
 use App\Entity\Produit;
 use App\Entity\Categorie;
+use FOS\CKEditorBundle\Form\Type\CKEditorType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -21,7 +21,11 @@ class ProduitType extends AbstractType
         $builder
             ->add('nom', TextType::class, ['label' => 'Nom'])
             ->add('prix', null, ['label' => 'Prix'])
-            ->add('description', TextareaType::class, ['required' => false, 'label' => 'Description'])
+            ->add('description', CKEditorType::class, [
+                'required' => false,
+                'label' => 'Description',
+                'config_name' => 'admin_product',
+            ])
             ->add('imageFile', FileType::class, [
                 'label' => 'Image',
                 'mapped' => false,

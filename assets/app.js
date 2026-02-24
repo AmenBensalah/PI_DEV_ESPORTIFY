@@ -26,6 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const sidebarToggles = document.querySelectorAll('.sidebar-accordion-toggle');
     sidebarToggles.forEach(toggle => {
+        if (toggle.dataset.accordionBound) {
+            return;
+        }
+        toggle.dataset.accordionBound = '1';
         toggle.addEventListener('click', () => {
             const group = toggle.closest('.sidebar-group');
             if (!group) {

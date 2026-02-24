@@ -228,29 +228,37 @@ class HomeController extends AbstractController
             if (!$uploadedFile instanceof UploadedFile) {
                 continue;
             }
-            try {
-                $upload = $fileUploader->upload($uploadedFile);
-                $mime = strtolower((string) ($upload['mime'] ?? ''));
-                $type = str_starts_with($mime, 'video/') ? 'video' : 'image';
 
-                $media = (new PostMedia())
-                    ->setPost($post)
-                    ->setType($type)
-                    ->setPath($upload['filename'])
-                    ->setPosition($position++);
-                $post->addMedia($media);
+            $mime = strtolower((string) ($uploadedFile->getMimeType() ?: $uploadedFile->getClientMimeType()));
+            $isVideo = str_starts_with($mime, 'video/');
 
-                // Backward compatibility for legacy fields.
-                if ($post->getImagePath() === null && $post->getVideoUrl() === null) {
-                    if ($type === 'video') {
+            if ($isVideo) {
+                try {
+                    $upload = $fileUploader->upload($uploadedFile);
+                    $media = (new PostMedia())
+                        ->setPost($post)
+                        ->setType('video')
+                        ->setPath($upload['filename'])
+                        ->setPosition($position++);
+                    $post->addMedia($media);
+
+                    // Backward compatibility for legacy fields.
+                    if ($post->getImagePath() === null && $post->getVideoUrl() === null) {
                         $post->setVideoUrl($packages->getUrl('uploads/' . $upload['filename']));
-                    } else {
-                        $post->setImagePath($upload['filename']);
                     }
+                } catch (FileException $e) {
+                    return new JsonResponse(['error' => 'Impossible d\'uploader le fichier.'], Response::HTTP_BAD_REQUEST);
                 }
-            } catch (FileException $e) {
-                return new JsonResponse(['error' => 'Impossible d\'uploader le fichier.'], Response::HTTP_BAD_REQUEST);
+                continue;
             }
+
+            // Frontoffice feed images use VichUploaderBundle.
+            $media = (new PostMedia())
+                ->setPost($post)
+                ->setType('image')
+                ->setPosition($position++)
+                ->setImageFile($uploadedFile);
+            $post->addMedia($media);
         }
 
         $entityManager->persist($post);

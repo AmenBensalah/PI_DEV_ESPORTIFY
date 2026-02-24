@@ -1,6 +1,8 @@
 twig:
     charset: 'UTF-8'
     file_name_pattern: '*.twig'
+    form_themes:
+        - '@FOSCKEditor/Form/ckeditor_widget.html.twig'
 
 when@test:
     twig:
