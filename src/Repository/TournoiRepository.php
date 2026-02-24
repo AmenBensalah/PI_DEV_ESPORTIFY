@@ -26,9 +26,9 @@ class TournoiRepository extends ServiceEntityRepository
      *   order?: string|null
      * } $filters
      *
-     * @return Tournoi[]
+     * @return \Doctrine\ORM\QueryBuilder
      */
-    public function findForAdminFilters(array $filters): array
+    public function findForAdminFiltersQueryBuilder(array $filters): \Doctrine\ORM\QueryBuilder
     {
         $qb = $this->createQueryBuilder('t');
 
@@ -62,9 +62,28 @@ class TournoiRepository extends ServiceEntityRepository
 
         if (in_array($sort, $allowedSorts, true)) {
             $qb->orderBy('t.' . $sort, $order);
+        } else {
+            $qb->orderBy('t.id_tournoi', 'DESC');
         }
 
-        return $qb->getQuery()->getResult();
+        return $qb;
+    }
+
+    /**
+     * @param array{
+     *   q?: string|null,
+     *   game?: string|null,
+     *   type_game?: string|null,
+     *   type_tournoi?: string|null,
+     *   sort?: string|null,
+     *   order?: string|null
+     * } $filters
+     *
+     * @return Tournoi[]
+     */
+    public function findForAdminFilters(array $filters): array
+    {
+        return $this->findForAdminFiltersQueryBuilder($filters)->getQuery()->getResult();
     }
 
     //    /**

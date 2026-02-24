@@ -7,6 +7,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    {% if recaptcha_enabled %}
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    {% endif %}
     <style>
         :root {
             --primary-purple: #9d4edd;
@@ -168,6 +171,12 @@
             margin-bottom: 8px;
             font-size: 12px;
             border-left: 3px solid #ff6b6b;
+        }
+
+        .recaptcha-wrap {
+            margin: 14px 0 8px;
+            display: flex;
+            justify-content: center;
         }
 
         .btn-signup {
@@ -393,6 +402,14 @@
             </div>
             {% if registrationForm.agreeTerms.vars.errors|length > 0 %}
                 <div class="field-error">{{ form_errors(registrationForm.agreeTerms) }}</div>
+            {% endif %}
+
+            {% if recaptcha_enabled %}
+                <div class="recaptcha-wrap">
+                    <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
+                </div>
+            {% else %}
+                <div class="field-error">reCAPTCHA non configure. Veuillez definir les cles dans l'environnement.</div>
             {% endif %}
 
             <button type="submit" class="btn-signup">Inscription Gratuite</button>

@@ -2,6 +2,51 @@
 
 {% block title %}Gestion des Comptes - Admin{% endblock %}
 {% block page_title %}Gestion des Comptes{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .admin-pagination-wrap {
+            margin-top: 18px;
+            display: flex;
+            justify-content: center;
+        }
+        .admin-pagination {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            padding: 10px 12px !important;
+            border-radius: 14px !important;
+            border: 1px solid rgba(79, 209, 255, 0.24) !important;
+            background: rgba(8, 14, 30, 0.72) !important;
+            backdrop-filter: blur(10px);
+        }
+        .admin-pagination-btn,
+        .admin-pagination-page {
+            min-width: 36px !important;
+            height: 36px !important;
+            padding: 0 12px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 10px !important;
+            border: 1px solid rgba(255, 255, 255, 0.13) !important;
+            background: rgba(255, 255, 255, 0.06) !important;
+            color: #dbe7ff !important;
+            text-decoration: none !important;
+            font-weight: 700 !important;
+            line-height: 1 !important;
+        }
+        .admin-pagination-page.is-active {
+            border-color: rgba(56, 189, 248, 0.65) !important;
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.32), rgba(59, 130, 246, 0.34)) !important;
+            color: #fff !important;
+        }
+        .admin-pagination-btn.is-disabled {
+            opacity: .35 !important;
+            pointer-events: none !important;
+        }
+    </style>
+{% endblock %}
 
 {% block body %}
 <section class="admin-tournament-hero">
@@ -74,8 +119,8 @@
         </div>
     </div>
 
-    <div id="admin-users-results" data-sort="{{ currentSort }}" data-direction="{{ currentDirection }}">
-        {% include 'admin/users/_table.html.twig' with { users: users } %}
+    <div id="admin-users-results" data-sort="{{ currentSort }}" data-direction="{{ currentDirection }}" data-page="{{ currentPage|default(1) }}">
+        {% include 'admin/users/_table.html.twig' with { users: users, pagination: pagination, query: app.request.query.all } %}
     </div>
 </section>
 
@@ -98,6 +143,7 @@
         const role = roleSelect.value;
         const sort = results.dataset.sort || 'id';
         const direction = results.dataset.direction || 'DESC';
+        const page = results.dataset.page || '1';
 
         if (query !== '') {
             params.set('q', query);
@@ -111,6 +157,7 @@
         if (direction) {
             params.set('direction', direction);
         }
+        params.set('page', page);
         params.set('ajax', '1');
 
         return `${form.action || window.location.pathname}?${params.toString()}`;
@@ -136,6 +183,7 @@
             })
             .then((html) => {
                 results.innerHTML = html;
+                results.dataset.page = results.dataset.page || '1';
                 results.classList.remove('is-loading');
             })
             .catch((error) => {
@@ -147,13 +195,34 @@
 
     const scheduleFetch = () => {
         window.clearTimeout(debounceTimer);
+        results.dataset.page = '1';
         debounceTimer = window.setTimeout(fetchResults, 300);
     };
 
     queryInput.addEventListener('input', scheduleFetch);
-    roleSelect.addEventListener('change', fetchResults);
+    roleSelect.addEventListener('change', () => {
+        results.dataset.page = '1';
+        fetchResults();
+    });
     form.addEventListener('submit', (event) => {
         event.preventDefault();
+        results.dataset.page = '1';
+        fetchResults();
+    });
+
+    document.addEventListener('click', (event) => {
+        const target = event.target instanceof Element ? event.target.closest('#admin-users-results .admin-pagination a[href]') : null;
+        if (!target) {
+            return;
+        }
+
+        event.preventDefault();
+        try {
+            const url = new URL(target.getAttribute('href'), window.location.origin);
+            results.dataset.page = url.searchParams.get('page') || '1';
+        } catch (e) {
+            results.dataset.page = '1';
+        }
         fetchResults();
     });
 })();

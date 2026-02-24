@@ -1,0 +1,6 @@
+<div class="admin-tournament-chart-wrap">
+    {{ render_chart(tournamentStatusChart) }}
+</div>
+<p class="admin-tournament-chart-note">
+    Statistiques basees sur les filtres actuels ({{ filteredTournamentCount }} tournoi{% if filteredTournamentCount > 1 %}s{% endif %}).
+</p>

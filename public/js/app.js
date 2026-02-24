@@ -41,16 +41,24 @@ if (sidebar && sidebarToggle) {
         sidebar.classList.add('expanded');
     }
 
-    sidebarToggle.addEventListener('click', () => {
-        sidebar.classList.toggle('expanded');
-        localStorage.setItem('sidebar', sidebar.classList.contains('expanded') ? 'expanded' : 'collapsed');
-    });
+    if (!sidebarToggle.dataset.sidebarBound) {
+        sidebarToggle.dataset.sidebarBound = '1';
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('expanded');
+            localStorage.setItem('sidebar', sidebar.classList.contains('expanded') ? 'expanded' : 'collapsed');
+        });
+    }
 }
 
 // --------------------------------------------------
 // Sidebar accordion navigation
 // --------------------------------------------------
 document.querySelectorAll('.sidebar-accordion-toggle').forEach((toggle) => {
+    if (toggle.dataset.accordionBound) {
+        return;
+    }
+
+    toggle.dataset.accordionBound = '1';
     toggle.addEventListener('click', () => {
         const group = toggle.closest('.sidebar-group');
         if (!group) {

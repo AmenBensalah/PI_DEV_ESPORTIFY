@@ -20,6 +20,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
+use Symfony\UX\Chartjs\Model\Chart;
 
 #[Route('/admin', name: 'admin_')]
 class TournoiAdminController extends AbstractController
@@ -38,13 +40,19 @@ class TournoiAdminController extends AbstractController
     }
 
     #[Route('/tournoi', name: 'tournoi_index')]
-    public function index(Request $request, TournoiRepository $tournoiRepository): Response
+    public function index(
+        Request $request,
+        TournoiRepository $tournoiRepository,
+        ChartBuilderInterface $chartBuilder
+    ): Response
     {
+        $perPage = 10;
+        $page = max(1, (int) $request->query->get('page', 1));
         $filterStatus = trim((string)$request->query->get('status', ''));
         $sort = trim((string)$request->query->get('sort', ''));
         $order = strtoupper((string)$request->query->get('order', 'ASC')) === 'DESC' ? 'DESC' : 'ASC';
 
-        $tournois = $tournoiRepository->findForAdminFilters([
+        $queryBuilder = $tournoiRepository->findForAdminFiltersQueryBuilder([
             'q' => $request->query->get('q'),
             'game' => $request->query->get('game'),
             'type_tournoi' => $request->query->get('type_tournoi'),
@@ -54,10 +62,35 @@ class TournoiAdminController extends AbstractController
         ]);
 
         if ($filterStatus !== '') {
-            $tournois = array_values(array_filter($tournois, static function (Tournoi $tournoi) use ($filterStatus) {
-                return $tournoi->getCurrentStatus() === $filterStatus;
-            }));
+            if ($filterStatus === 'planned') {
+                $queryBuilder->andWhere('t.startDate > :now')->setParameter('now', new \DateTime());
+            } elseif ($filterStatus === 'ongoing') {
+                $queryBuilder
+                    ->andWhere('t.startDate <= :now')
+                    ->andWhere('t.endDate >= :now')
+                    ->setParameter('now', new \DateTime());
+            } elseif ($filterStatus === 'finished') {
+                $queryBuilder->andWhere('t.endDate < :now')->setParameter('now', new \DateTime());
+            }
         }
+
+        $countQueryBuilder = clone $queryBuilder;
+        $totalItems = (int) $countQueryBuilder
+            ->select('COUNT(t.id_tournoi)')
+            ->resetDQLPart('orderBy')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $pageCount = max(1, (int) ceil($totalItems / $perPage));
+        $page = min($page, $pageCount);
+
+        $tournois = (clone $queryBuilder)
+            ->setFirstResult(($page - 1) * $perPage)
+            ->setMaxResults($perPage)
+            ->getQuery()
+            ->getResult();
+
+        $tournamentStatusChart = $this->buildTournamentStatusChart($tournois, $chartBuilder);
 
         return $this->render('admin/tournoi/index.html.twig', [
             'tournois' => $tournois,
@@ -68,17 +101,27 @@ class TournoiAdminController extends AbstractController
             'filterStatus' => $filterStatus,
             'currentSort' => $sort,
             'currentOrder' => $order,
+            'currentPage' => $page,
+            'pagination' => $this->buildPaginationData($page, $pageCount),
+            'tournamentStatusChart' => $tournamentStatusChart,
+            'totalItems' => $totalItems,
         ]);
     }
 
     #[Route('/tournoi/search', name: 'tournoi_search', methods: ['GET'])]
-    public function search(Request $request, TournoiRepository $tournoiRepository): JsonResponse
+    public function search(
+        Request $request,
+        TournoiRepository $tournoiRepository,
+        ChartBuilderInterface $chartBuilder
+    ): JsonResponse
     {
+        $perPage = 10;
+        $page = max(1, (int) $request->query->get('page', 1));
         $filterStatus = trim((string)$request->query->get('status', ''));
         $sort = trim((string)$request->query->get('sort', ''));
         $order = strtoupper((string)$request->query->get('order', 'ASC')) === 'DESC' ? 'DESC' : 'ASC';
 
-        $tournois = $tournoiRepository->findForAdminFilters([
+        $queryBuilder = $tournoiRepository->findForAdminFiltersQueryBuilder([
             'q' => $request->query->get('q'),
             'game' => $request->query->get('game'),
             'type_tournoi' => $request->query->get('type_tournoi'),
@@ -88,18 +131,52 @@ class TournoiAdminController extends AbstractController
         ]);
 
         if ($filterStatus !== '') {
-            $tournois = array_values(array_filter($tournois, static function (Tournoi $tournoi) use ($filterStatus) {
-                return $tournoi->getCurrentStatus() === $filterStatus;
-            }));
+            if ($filterStatus === 'planned') {
+                $queryBuilder->andWhere('t.startDate > :now')->setParameter('now', new \DateTime());
+            } elseif ($filterStatus === 'ongoing') {
+                $queryBuilder
+                    ->andWhere('t.startDate <= :now')
+                    ->andWhere('t.endDate >= :now')
+                    ->setParameter('now', new \DateTime());
+            } elseif ($filterStatus === 'finished') {
+                $queryBuilder->andWhere('t.endDate < :now')->setParameter('now', new \DateTime());
+            }
         }
+
+        $countQueryBuilder = clone $queryBuilder;
+        $totalItems = (int) $countQueryBuilder
+            ->select('COUNT(t.id_tournoi)')
+            ->resetDQLPart('orderBy')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $pageCount = max(1, (int) ceil($totalItems / $perPage));
+        $page = min($page, $pageCount);
+
+        $tournois = (clone $queryBuilder)
+            ->setFirstResult(($page - 1) * $perPage)
+            ->setMaxResults($perPage)
+            ->getQuery()
+            ->getResult();
 
         $rowsHtml = $this->renderView('admin/tournoi/_table_rows.html.twig', [
             'tournois' => $tournois,
         ]);
+        $paginationHtml = $this->renderView('admin/tournoi/_pagination.html.twig', [
+            'pagination' => $this->buildPaginationData($page, $pageCount),
+            'query' => $request->query->all(),
+        ]);
+        $statusChartHtml = $this->renderView('admin/tournoi/_status_chart.html.twig', [
+            'tournamentStatusChart' => $this->buildTournamentStatusChart($tournois, $chartBuilder),
+            'filteredTournamentCount' => $totalItems,
+        ]);
 
         return $this->json([
             'rows' => $rowsHtml,
-            'count' => count($tournois),
+            'count' => $totalItems,
+            'pagination' => $paginationHtml,
+            'page' => $page,
+            'chart' => $statusChartHtml,
         ]);
     }
 
@@ -735,6 +812,66 @@ class TournoiAdminController extends AbstractController
     }
 
     /**
+     * @param Tournoi[] $tournois
+     */
+    private function buildTournamentStatusChart(array $tournois, ChartBuilderInterface $chartBuilder): Chart
+    {
+        $statusCounts = [
+            'planned' => 0,
+            'ongoing' => 0,
+            'finished' => 0,
+        ];
+
+        foreach ($tournois as $tournoi) {
+            $currentStatus = $tournoi->getCurrentStatus();
+            if (array_key_exists($currentStatus, $statusCounts)) {
+                ++$statusCounts[$currentStatus];
+            }
+        }
+
+        $chart = $chartBuilder->createChart(Chart::TYPE_DOUGHNUT);
+        $chart->setData([
+            'labels' => ['Planifies', 'En cours', 'Termines'],
+            'datasets' => [[
+                'label' => 'Tournois',
+                'data' => [
+                    $statusCounts['planned'],
+                    $statusCounts['ongoing'],
+                    $statusCounts['finished'],
+                ],
+                'backgroundColor' => [
+                    'rgba(0, 217, 255, 0.68)',
+                    'rgba(126, 98, 252, 0.68)',
+                    'rgba(76, 201, 240, 0.68)',
+                ],
+                'borderColor' => [
+                    'rgba(0, 217, 255, 1)',
+                    'rgba(126, 98, 252, 1)',
+                    'rgba(76, 201, 240, 1)',
+                ],
+                'borderWidth' => 1,
+            ]],
+        ]);
+
+        $chart->setOptions([
+            'plugins' => [
+                'legend' => [
+                    'position' => 'bottom',
+                    'labels' => [
+                        'color' => '#d4e5ff',
+                        'font' => ['size' => 12],
+                        'padding' => 18,
+                    ],
+                ],
+            ],
+            'cutout' => '58%',
+            'maintainAspectRatio' => false,
+        ]);
+
+        return $chart;
+    }
+
+    /**
      * @return array<int, User>
      */
     private function getSortedParticipants(Tournoi $tournoi): array
@@ -887,6 +1024,21 @@ class TournoiAdminController extends AbstractController
         }
 
         return mb_strtolower((string) preg_replace('/\s+/', ' ', $trimmed));
+    }
+
+    private function buildPaginationData(int $page, int $pageCount): array
+    {
+        $rangeStart = max(1, $page - 2);
+        $rangeEnd = min($pageCount, $rangeStart + 4);
+        $rangeStart = max(1, $rangeEnd - 4);
+
+        return [
+            'current' => $page,
+            'pageCount' => $pageCount,
+            'pagesInRange' => range($rangeStart, $rangeEnd),
+            'previous' => $page > 1 ? $page - 1 : null,
+            'next' => $page < $pageCount ? $page + 1 : null,
+        ];
     }
 
     /**

@@ -306,15 +306,49 @@ class DashboardController extends AbstractController
     #[Route('/admin/utilisateurs', name: 'admin_users')]
     public function users(Request $request, UserRepository $userRepository): Response
     {
+        $perPage = 10;
+        $page = max(1, (int) $request->query->get('page', 1));
         $query = $request->query->get('q');
         $role = $request->query->get('role');
         $sort = $request->query->get('sort', 'id');
         $direction = $request->query->get('direction', 'DESC');
 
-        $users = $userRepository->searchAndSort($query, $role, $sort, $direction);
+        $queryBuilder = $userRepository->searchAndSortQueryBuilder($query, $role, (string) $sort, (string) $direction);
+        $countQueryBuilder = clone $queryBuilder;
+        $totalItems = (int) $countQueryBuilder
+            ->select('COUNT(u.id)')
+            ->resetDQLPart('orderBy')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $pageCount = max(1, (int) ceil($totalItems / $perPage));
+        $page = min($page, $pageCount);
+
+        $users = (clone $queryBuilder)
+            ->setFirstResult(($page - 1) * $perPage)
+            ->setMaxResults($perPage)
+            ->getQuery()
+            ->getResult();
+
+        $rangeStart = max(1, $page - 2);
+        $rangeEnd = min($pageCount, $rangeStart + 4);
+        $rangeStart = max(1, $rangeEnd - 4);
+        $pagination = [
+            'current' => $page,
+            'pageCount' => $pageCount,
+            'pagesInRange' => range($rangeStart, $rangeEnd),
+            'previous' => $page > 1 ? $page - 1 : null,
+            'next' => $page < $pageCount ? $page + 1 : null,
+        ];
+
         if ($request->isXmlHttpRequest() || $request->query->getBoolean('ajax')) {
+            $queryParams = $request->query->all();
+            unset($queryParams['ajax']);
+
             return $this->render('admin/users/_table.html.twig', [
                 'users' => $users,
+                'pagination' => $pagination,
+                'query' => $queryParams,
             ]);
         }
 
@@ -323,7 +357,9 @@ class DashboardController extends AbstractController
             'currentQuery' => $query,
             'currentRole' => $role,
             'currentSort' => $sort,
-            'currentDirection' => $direction
+            'currentDirection' => $direction,
+            'currentPage' => $page,
+            'pagination' => $pagination,
         ]);
     }
 

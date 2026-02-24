@@ -1,0 +1,15 @@
+fos_ck_editor:
+    base_path: 'https://cdn.ckeditor.com/4.22.1/full-all/'
+    js_path: 'https://cdn.ckeditor.com/4.22.1/full-all/ckeditor.js'
+    default_config: admin_product
+    configs:
+        admin_product:
+            language: fr
+            toolbar:
+                - [Bold, Italic, Underline, Strike, RemoveFormat]
+                - [NumberedList, BulletedList, Blockquote]
+                - [Link, Unlink]
+                - [Undo, Redo]
+                - [Source]
+            uiColor: '#0b1327'
+            height: 200

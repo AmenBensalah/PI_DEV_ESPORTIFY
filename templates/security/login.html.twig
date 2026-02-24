@@ -293,6 +293,10 @@
         
         <h2>Connexion</h2>
 
+        {% for flashError in app.flashes('error') %}
+            <div class="error-message">{{ flashError }}</div>
+        {% endfor %}
+
         {% if error %}
             <div class="error-message">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
         {% endif %}
@@ -327,9 +331,8 @@
         <div class="social-login">
             <p>Ou continuer avec</p>
             <div class="social-icons">
-                <a href="#" class="social-icon"><i class="fab fa-google"></i></a>
-                <a href="#" class="social-icon"><i class="fab fa-discord"></i></a>
-                <a href="#" class="social-icon"><i class="fab fa-steam"></i></a>
+                <a href="{{ path('connect_google_start') }}" class="social-icon" title="Continuer avec Google"><i class="fab fa-google"></i></a>
+                <a href="{{ path('connect_discord_start') }}" class="social-icon" title="Continuer avec Discord"><i class="fab fa-discord"></i></a>
             </div>
         </div>
     </div>

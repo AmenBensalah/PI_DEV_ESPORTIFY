@@ -17,6 +17,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class RegistrationController extends AbstractController
 {
@@ -26,14 +27,27 @@ class RegistrationController extends AbstractController
         UserPasswordHasherInterface $userPasswordHasher,
         Security $security,
         EntityManagerInterface $entityManager,
-        NotificationService $notificationService
+        NotificationService $notificationService,
+        HttpClientInterface $httpClient
     ): Response
     {
+        $recaptchaSiteKey = trim((string) $this->getParameter('recaptcha_site_key'));
+        $recaptchaSecretKey = trim((string) $this->getParameter('recaptcha_secret_key'));
+        $recaptchaEnabled = $recaptchaSiteKey !== '' && $recaptchaSecretKey !== '';
+
         $user = new User();
         $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
+            if (!$this->validateRecaptcha($request, $form, $httpClient, $recaptchaEnabled, $recaptchaSecretKey)) {
+                return $this->render('registration/register.html.twig', [
+                    'registrationForm' => $form,
+                    'recaptcha_site_key' => $recaptchaSiteKey,
+                    'recaptcha_enabled' => $recaptchaEnabled,
+                ]);
+            }
+
             $this->validateRegistrationForm($form, $user);
 
             if ($form->isValid()) {
@@ -66,6 +80,8 @@ class RegistrationController extends AbstractController
                 if (!$form->isValid()) {
                     return $this->render('registration/register.html.twig', [
                         'registrationForm' => $form,
+                        'recaptcha_site_key' => $recaptchaSiteKey,
+                        'recaptcha_enabled' => $recaptchaEnabled,
                     ]);
                 }
 
@@ -88,7 +104,48 @@ class RegistrationController extends AbstractController
 
         return $this->render('registration/register.html.twig', [
             'registrationForm' => $form,
+            'recaptcha_site_key' => $recaptchaSiteKey,
+            'recaptcha_enabled' => $recaptchaEnabled,
         ]);
+    }
+
+    private function validateRecaptcha(
+        Request $request,
+        FormInterface $form,
+        HttpClientInterface $httpClient,
+        bool $recaptchaEnabled,
+        string $secretKey
+    ): bool {
+        if (!$recaptchaEnabled) {
+            $form->addError(new FormError('reCAPTCHA est desactive. Configurez RECAPTCHA_SITE_KEY et RECAPTCHA_SECRET_KEY.'));
+            return false;
+        }
+
+        $token = trim((string) $request->request->get('g-recaptcha-response', ''));
+        if ($token === '') {
+            $form->addError(new FormError('Veuillez valider le reCAPTCHA.'));
+            return false;
+        }
+
+        try {
+            $verification = $httpClient->request('POST', 'https://www.google.com/recaptcha/api/siteverify', [
+                'body' => [
+                    'secret' => $secretKey,
+                    'response' => $token,
+                    'remoteip' => (string) $request->getClientIp(),
+                ],
+            ])->toArray(false);
+        } catch (\Throwable) {
+            $form->addError(new FormError('Impossible de verifier le reCAPTCHA. Reessayez.'));
+            return false;
+        }
+
+        if (!($verification['success'] ?? false)) {
+            $form->addError(new FormError('Verification reCAPTCHA invalide.'));
+            return false;
+        }
+
+        return true;
     }
 
     private function validateRegistrationForm(FormInterface $form, User $user): void

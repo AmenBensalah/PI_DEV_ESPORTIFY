@@ -13,6 +13,19 @@
             <a href="{{ path('admin_payment_index') }}" class="admin-tournament-btn ghost">
                 <i class="fas fa-rotate"></i> Rafraîchir
             </a>
+            <a
+                href="{{ path('admin_payment_export_pdf', {
+                    q: currentQuery|default(''),
+                    status: currentStatus|default(''),
+                    sort: currentSort|default('id'),
+                    direction: currentDirection|default('DESC')
+                }) }}"
+                class="admin-tournament-btn"
+                data-export-pdf
+                data-export-base="{{ path('admin_payment_export_pdf') }}"
+            >
+                <i class="fas fa-file-pdf"></i> Exporter PDF
+            </a>
         </div>
     </div>
     <div class="admin-tournament-hero-glow"></div>
@@ -211,6 +224,11 @@
             <i class="fas fa-check-circle"></i> {{ message }}
         </div>
     {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="admin-tournament-alert danger">
+            <i class="fas fa-circle-exclamation"></i> {{ message }}
+        </div>
+    {% endfor %}
 
     <div id="admin-payments-results" data-sort="{{ currentSort|default('id') }}" data-direction="{{ currentDirection|default('DESC') }}">
         {% include 'backoffice/payment/_table.html.twig' with { payments: payments } %}
@@ -225,6 +243,7 @@
     const tabs = document.querySelectorAll('.admin-tournament-tabs .tab');
     const sortLinks = document.querySelectorAll('.admin-tournament-sort a[data-sort]');
     const results = document.getElementById('admin-payments-results');
+    const exportPdfLink = document.querySelector('[data-export-pdf]');
     if (!form || !queryInput || !statusSelect || !results) {
         return;
     }
@@ -246,12 +265,18 @@
         });
     };
 
-    const buildUrl = (includeAjax = true) => {
-        const params = new URLSearchParams();
+    const currentFilters = () => {
         const query = queryInput.value.trim();
         const status = statusSelect.value;
         const sort = results.dataset.sort || 'id';
         const direction = (results.dataset.direction || 'DESC').toUpperCase();
+
+        return { query, status, sort, direction };
+    };
+
+    const buildUrl = (includeAjax = true) => {
+        const params = new URLSearchParams();
+        const { query, status, sort, direction } = currentFilters();
 
         if (query !== '') {
             params.set('q', query);
@@ -266,6 +291,26 @@
         }
 
         return `${form.action || window.location.pathname}?${params.toString()}`;
+    };
+
+    const updateExportUrl = () => {
+        if (!exportPdfLink) {
+            return;
+        }
+
+        const { query, status, sort, direction } = currentFilters();
+        const params = new URLSearchParams();
+        if (query !== '') {
+            params.set('q', query);
+        }
+        if (status !== '') {
+            params.set('status', status);
+        }
+        params.set('sort', sort);
+        params.set('direction', direction);
+
+        const exportBase = exportPdfLink.dataset.exportBase || exportPdfLink.getAttribute('href') || '';
+        exportPdfLink.setAttribute('href', `${exportBase}?${params.toString()}`);
     };
 
     const updateBrowserUrl = () => {
@@ -303,6 +348,7 @@
                 updateSortActive();
                 updateTabsActive();
                 updateBrowserUrl();
+                updateExportUrl();
             })
             .catch((error) => {
                 if (error.name !== 'AbortError') {
@@ -329,6 +375,7 @@
             statusSelect.value = '';
             updateSortActive();
             updateTabsActive();
+            updateExportUrl();
             fetchResults();
         }, 0);
     });
@@ -338,6 +385,7 @@
             event.preventDefault();
             statusSelect.value = tab.dataset.status || '';
             updateTabsActive();
+            updateExportUrl();
             fetchResults();
         });
     });
@@ -353,12 +401,14 @@
             results.dataset.sort = field;
             results.dataset.direction = direction.toUpperCase();
             updateSortActive();
+            updateExportUrl();
             fetchResults();
         });
     });
 
     updateSortActive();
     updateTabsActive();
+    updateExportUrl();
 })();
 </script>
 

@@ -12,10 +12,15 @@ parameters:
     brevo_api_key: '%env(BREVO_API_KEY)%'
     brevo_sender_email: '%env(BREVO_SENDER_EMAIL)%'
     brevo_sender_name: '%env(BREVO_SENDER_NAME)%'
+    rawg_empty: ''
+    rawg_api_key: '%env(default:rawg_empty:RAWG_API_KEY)%'
     openai_api_key: '%env(default:openai_empty:OPENAI_API_KEY)%'
     openai_empty: ''
     openai_model_default: 'gpt-4o-mini'
     openai_model: '%env(default:openai_model_default:OPENAI_MODEL)%'
+    recaptcha_empty: ''
+    recaptcha_site_key: '%env(default:recaptcha_empty:RECAPTCHA_SITE_KEY)%'
+    recaptcha_secret_key: '%env(default:recaptcha_empty:RECAPTCHA_SECRET_KEY)%'
 
 services:
     # default configuration for services in *this* file
@@ -45,6 +50,10 @@ services:
             $apiKey: '%brevo_api_key%'
             $senderEmail: '%brevo_sender_email%'
             $senderName: '%brevo_sender_name%'
+
+    App\Service\RawgApiService:
+        arguments:
+            $apiKey: '%rawg_api_key%'
 
     App\Service\OpenAIChatService:
         arguments:

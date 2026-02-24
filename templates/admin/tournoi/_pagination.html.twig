@@ -1,0 +1,14 @@
+{% if pagination.pageCount > 1 %}
+    <div class="admin-pagination-wrap">
+        {% include 'admin/_pagination.html.twig' with {
+            pageCount: pagination.pageCount,
+            previous: pagination.previous,
+            next: pagination.next,
+            pagesInRange: pagination.pagesInRange,
+            current: pagination.current,
+            route: 'admin_tournoi_index',
+            query: query|default({}),
+            pageParameterName: 'page'
+        } only %}
+    </div>
+{% endif %}

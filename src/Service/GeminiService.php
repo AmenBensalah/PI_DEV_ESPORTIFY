@@ -23,12 +23,16 @@ class GeminiService
     public function chat(string $userMessage, array $history = [], string $context = '', string $userName = 'Visiteur'): string
     {
         $modelCandidates = [
+            'gemini-2.5-flash',
+            'gemini-2.5-flash-lite',
+            'gemini-flash-latest',
+            'gemini-flash-lite-latest',
             'gemini-2.0-flash',
-            'gemini-1.5-flash-latest',
-            'gemini-1.5-flash',
-            'gemini-1.5-pro',
+            'gemini-2.0-flash-001',
+            'gemini-2.0-flash-lite',
+            'gemini-2.0-flash-lite-001',
         ];
-        $apiVersions = ['v1beta', 'v1'];
+        $apiVersions = ['v1', 'v1beta'];
 
         try {
             $systemPrompt = "Ton nom est Nexus_AI, l'assistant intelligent d'E-Sportify. Style moderne et cyberpunk.\n"
@@ -65,6 +69,8 @@ class GeminiService
             ];
 
             $lastError = null;
+            $bestError = null;
+            $bestErrorScore = -1;
             foreach ($apiVersions as $version) {
                 foreach ($modelCandidates as $modelName) {
                     $url = sprintf(
@@ -95,14 +101,45 @@ class GeminiService
                     }
 
                     $errorData = $response->toArray(false);
-                    $lastError = $errorData['error']['message'] ?? ('Code ' . $statusCode);
+                    $errorMessage = (string) ($errorData['error']['message'] ?? ('Code ' . $statusCode));
+                    $lastError = $errorMessage;
+
+                    // Keep the most useful error seen across attempts (e.g. 429 over 404).
+                    $errorCode = (int) ($errorData['error']['code'] ?? $statusCode);
+                    $errorStatus = strtoupper((string) ($errorData['error']['status'] ?? ''));
+                    $score = $this->errorPriorityScore($errorCode, $errorStatus);
+                    if ($score >= $bestErrorScore) {
+                        $bestErrorScore = $score;
+                        $bestError = $errorMessage;
+                    }
                 }
             }
 
-            $err = $lastError ?? 'Aucun modele Gemini compatible trouve.';
+            $err = $bestError ?? $lastError ?? 'Aucun modele Gemini compatible trouve.';
             return 'ERREUR_GEMINI : Desole, Nexus_AI est temporairement hors ligne. (' . $err . ')';
         } catch (\Throwable $e) {
             return 'ERREUR_GEMINI : Desole, Nexus_AI est temporairement hors ligne. (' . $e->getMessage() . ')';
         }
+    }
+
+    private function errorPriorityScore(int $errorCode, string $errorStatus): int
+    {
+        if ($errorCode === 429 || $errorStatus === 'RESOURCE_EXHAUSTED') {
+            return 5;
+        }
+        if ($errorCode >= 500) {
+            return 4;
+        }
+        if ($errorCode === 401 || $errorCode === 403) {
+            return 3;
+        }
+        if ($errorCode === 400) {
+            return 2;
+        }
+        if ($errorCode === 404) {
+            return 1;
+        }
+
+        return 0;
     }
 }

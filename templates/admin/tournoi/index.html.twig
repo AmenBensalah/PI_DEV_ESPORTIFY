@@ -2,6 +2,84 @@
 
 {% block title %}Gestion des Tournois - Admin{% endblock %}
 {% block page_title %}Gestion des Tournois{% endblock %}
+{% block stylesheets %}
+<style>
+    .admin-pagination-wrap {
+        margin-top: 18px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .admin-pagination {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        padding: 10px 12px !important;
+        border-radius: 14px !important;
+        border: 1px solid rgba(79, 209, 255, 0.24) !important;
+        background: rgba(8, 14, 30, 0.72) !important;
+        backdrop-filter: blur(10px);
+    }
+
+    .admin-pagination-btn,
+    .admin-pagination-page {
+        min-width: 36px !important;
+        height: 36px !important;
+        padding: 0 12px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 10px !important;
+        border: 1px solid rgba(255, 255, 255, 0.13) !important;
+        background: rgba(255, 255, 255, 0.06) !important;
+        color: #dbe7ff !important;
+        text-decoration: none !important;
+        font-weight: 700 !important;
+        line-height: 1 !important;
+    }
+
+    .admin-pagination-page.is-active {
+        border-color: rgba(56, 189, 248, 0.65) !important;
+        background: linear-gradient(135deg, rgba(34, 211, 238, 0.32), rgba(59, 130, 246, 0.34)) !important;
+        color: #fff !important;
+    }
+
+    .admin-pagination-btn.is-disabled {
+        opacity: .35 !important;
+        pointer-events: none !important;
+    }
+
+    .admin-tournament-chart-panel {
+        margin-bottom: 14px;
+    }
+
+    .admin-tournament-chart-wrap {
+        position: relative;
+        min-height: 280px;
+    }
+
+    .admin-tournament-chart-wrap canvas {
+        width: 100% !important;
+        height: 280px !important;
+    }
+
+    .admin-tournament-chart-note {
+        margin: 10px 0 0;
+        color: rgba(223, 238, 255, 0.72);
+        font-size: 12px;
+    }
+
+    @media (max-width: 768px) {
+        .admin-tournament-chart-wrap {
+            min-height: 240px;
+        }
+
+        .admin-tournament-chart-wrap canvas {
+            height: 240px !important;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block body %}
 <section class="admin-tournament-hero">
@@ -16,7 +94,7 @@
             <a href="{{ path('admin_tournoi_index') }}" class="admin-tournament-btn ghost">
                 <i class="fas fa-rotate"></i> Rafraîchir
             </a>
-            <a href="https://rawg.io/" target="_blank" rel="noopener noreferrer" class="admin-tournament-btn ghost">
+            <a href="{{ path('app_rawg_browser', filterGame ? {'q': filterGame} : {}) }}" target="_blank" rel="noopener noreferrer" class="admin-tournament-btn ghost">
                 <i class="fas fa-gamepad"></i> Consulter jeux
             </a>
         </div>
@@ -31,6 +109,19 @@
         <a href="{{ path('admin_tournoi_index', app.request.query.all|merge({'type_game': 'Sports'})) }}" class="tab {{ filterTypeGame|default('') == 'Sports' ? 'active' : '' }}" data-type-game="Sports">Sports</a>
         <a href="{{ path('admin_tournoi_index', app.request.query.all|merge({'type_game': 'Battle_royale'})) }}" class="tab {{ filterTypeGame|default('') == 'Battle_royale' ? 'active' : '' }}" data-type-game="Battle_royale">Battle Royale</a>
         <a href="{{ path('admin_tournoi_index', app.request.query.all|merge({'type_game': 'Mind'})) }}" class="tab {{ filterTypeGame|default('') == 'Mind' ? 'active' : '' }}" data-type-game="Mind">Mind</a>
+    </div>
+
+    <div class="admin-tournament-panel admin-tournament-chart-panel">
+        <div class="admin-tournament-panel-title">
+            <i class="fas fa-chart-pie"></i>
+            Repartition des statuts
+        </div>
+        <div data-ajax-search-chart>
+            {% include 'admin/tournoi/_status_chart.html.twig' with {
+                tournamentStatusChart: tournamentStatusChart,
+                filteredTournamentCount: tournois|length
+            } %}
+        </div>
     </div>
 
     <div class="admin-tournament-panel">
@@ -72,6 +163,7 @@
             </div>
             <input type="hidden" name="sort" value="{{ currentSort|default('') }}" data-sort-field>
             <input type="hidden" name="order" value="{{ currentOrder|default('ASC') }}" data-order-field>
+            <input type="hidden" name="page" value="{{ currentPage|default(1) }}" data-page-field>
             <div class="admin-tournament-actions">
                 <button type="submit" class="admin-tournament-btn">
                     <i class="fas fa-search"></i> Rechercher
@@ -127,10 +219,17 @@
                 <i class="fas fa-plus"></i> Créer le premier tournoi
             </a>
         </div>
+        <div data-ajax-search-pagination>
+            {% include 'admin/tournoi/_pagination.html.twig' with {
+                pagination: pagination,
+                query: app.request.query.all
+            } %}
+        </div>
 </section>
 {% endblock %}
 
 {% block javascripts %}
+{{ importmap('admin-chart') }}
 <script>
 (() => {
     const form = document.querySelector('[data-ajax-search-form]');
@@ -142,14 +241,17 @@
     const rowsContainer = document.querySelector('[data-ajax-search-rows]');
     const tableContainer = document.querySelector('[data-ajax-search-table]');
     const emptyState = document.querySelector('[data-ajax-search-empty]');
+    const chartContainer = document.querySelector('[data-ajax-search-chart]');
     const tabs = document.querySelectorAll('.admin-tournament-tabs .tab[data-type-game]');
     const sortLinks = document.querySelectorAll('.admin-tournament-sort a[data-sort]');
     const sortField = form.querySelector('[data-sort-field]');
     const orderField = form.querySelector('[data-order-field]');
+    const pageField = form.querySelector('[data-page-field]');
     const resetLink = form.querySelector('[data-reset-link]');
     const typeGameSelect = form.querySelector('select[name="type_game"]');
+    const paginationContainer = document.querySelector('[data-ajax-search-pagination]');
 
-    if (!searchInput || !rowsContainer || !tableContainer || !emptyState || !sortField || !orderField || !typeGameSelect) {
+    if (!searchInput || !rowsContainer || !tableContainer || !emptyState || !sortField || !orderField || !pageField || !typeGameSelect) {
         return;
     }
 
@@ -189,6 +291,15 @@
             .then((data) => {
                 rowsContainer.innerHTML = data.rows || '';
                 updateVisibility(Number(data.count || 0));
+                if (paginationContainer && typeof data.pagination === 'string') {
+                    paginationContainer.innerHTML = data.pagination;
+                }
+                if (typeof data.page !== 'undefined') {
+                    pageField.value = String(data.page);
+                }
+                if (chartContainer && typeof data.chart === 'string') {
+                    chartContainer.innerHTML = data.chart;
+                }
             })
             .catch((error) => {
                 if (error.name === 'AbortError') {
@@ -205,11 +316,13 @@
 
     searchInput.addEventListener('input', () => {
         clearTimeout(debounceTimer);
+        pageField.value = '1';
         debounceTimer = setTimeout(runSearch, 180);
     });
 
     form.querySelectorAll('select').forEach((field) => {
         field.addEventListener('change', () => {
+            pageField.value = '1';
             if (field.name === 'type_game') {
                 setActiveTypeGameTab(field.value || '');
             }
@@ -236,6 +349,7 @@
             }
             sortField.value = sort;
             orderField.value = order;
+            pageField.value = '1';
             runSearch();
         });
     });
@@ -249,10 +363,29 @@
             form.querySelector('select[name="status"]').value = '';
             sortField.value = '';
             orderField.value = 'ASC';
+            pageField.value = '1';
             setActiveTypeGameTab('');
             runSearch();
         });
     }
+
+    document.addEventListener('click', (event) => {
+        const target = event.target instanceof Element ? event.target.closest('[data-ajax-search-pagination] a[href]') : null;
+        if (!target) {
+            return;
+        }
+
+        event.preventDefault();
+        try {
+            const url = new URL(target.getAttribute('href'), window.location.origin);
+            const requestedPage = url.searchParams.get('page') || '1';
+            pageField.value = requestedPage;
+            runSearch();
+        } catch (e) {
+            pageField.value = '1';
+            runSearch();
+        }
+    });
 })();
 </script>
 {% endblock %}

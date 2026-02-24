@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Export paiements</title>
+    <style>
+        @page { margin: 12mm 8mm; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: DejaVu Sans, Arial, sans-serif;
+            font-size: 11px;
+            color: #101828;
+        }
+        .header {
+            margin-bottom: 12px;
+            border-bottom: 1px solid #d0d5dd;
+            padding-bottom: 8px;
+        }
+        .title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .meta {
+            margin-top: 4px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 14px;
+            color: #475467;
+        }
+        .meta strong {
+            color: #1f2937;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        thead th {
+            text-align: left;
+            padding: 7px 8px;
+            border-bottom: 1px solid #98a2b3;
+            background: #f2f4f7;
+            color: #111827;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        tbody td {
+            padding: 7px 8px;
+            border-bottom: 1px solid #eaecf0;
+            vertical-align: top;
+            word-break: break-word;
+        }
+        tbody tr:nth-child(even) td {
+            background: #fafbff;
+        }
+        .status {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 700;
+            border: 1px solid transparent;
+        }
+        .status-success {
+            color: #047857;
+            background: #ecfdf3;
+            border-color: #a6f4c5;
+        }
+        .status-pending {
+            color: #b54708;
+            background: #fffaeb;
+            border-color: #fedf89;
+        }
+        .status-failed {
+            color: #b42318;
+            background: #fef3f2;
+            border-color: #fecdca;
+        }
+        .status-other {
+            color: #344054;
+            background: #f2f4f7;
+            border-color: #d0d5dd;
+        }
+        .summary {
+            margin-top: 10px;
+            color: #475467;
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1 class="title">Export des paiements</h1>
+        <div class="meta">
+            <span><strong>Date export:</strong> {{ generatedAt|date('d/m/Y H:i') }}</span>
+            <span><strong>Recherche:</strong> {{ currentQuery is not empty ? currentQuery : 'Aucune' }}</span>
+            <span><strong>Statut:</strong> {{ currentStatus is not empty ? currentStatus : 'Tous' }}</span>
+            <span><strong>Tri:</strong> {{ currentSort|default('id') }} {{ currentDirection|default('DESC') }}</span>
+            <span><strong>Lignes:</strong> {{ payments|length }}</span>
+        </div>
+    </header>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 8%;">ID</th>
+                <th style="width: 12%;">Commande</th>
+                <th style="width: 18%;">Montant</th>
+                <th style="width: 24%;">Statut</th>
+                <th style="width: 24%;">Date</th>
+                <th style="width: 14%;">Ref</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for payment in payments %}
+            {% set status = payment.status|lower %}
+            {% set statusClass = 'status-other' %}
+            {% set statusLabel = payment.status %}
+            {% if status matches '/success|succeeded|paid/' %}
+                {% set statusClass = 'status-success' %}
+                {% set statusLabel = 'Valide' %}
+            {% elseif status matches '/pending/' %}
+                {% set statusClass = 'status-pending' %}
+                {% set statusLabel = 'En attente' %}
+            {% elseif status matches '/failed|cancel/' %}
+                {% set statusClass = 'status-failed' %}
+                {% set statusLabel = 'Echoue' %}
+            {% endif %}
+            <tr>
+                <td>{{ payment.id }}</td>
+                <td>{{ payment.commande.id }}</td>
+                <td>{{ payment.amount|number_format(2, '.', ' ') }} EUR</td>
+                <td><span class="status {{ statusClass }}">{{ statusLabel }}</span></td>
+                <td>{{ payment.createdAt|date('d/m/Y H:i') }}</td>
+                <td>PAY-{{ payment.id }}</td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">Aucun paiement trouve pour ce filtre.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <p class="summary">
+        Genere depuis le backoffice Esportify.
+    </p>
+</body>
+</html>
