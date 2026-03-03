@@ -17,7 +17,7 @@ class Recommendation
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'recommendations')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $user = null;
 
     #[ORM\ManyToOne]
@@ -79,12 +79,5 @@ class Recommendation
     public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
     }
 }

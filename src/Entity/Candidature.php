@@ -26,11 +26,11 @@ class Candidature
     private ?string $statut = 'En attente'; // En attente, Accepté, Refusé
 
     #[ORM\ManyToOne(inversedBy: 'candidatures')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Equipe $equipe = null;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'candidatures')]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?User $user = null;
 
     #[ORM\Column]
@@ -129,9 +129,9 @@ class Candidature
         return $this->dateCandidature;
     }
 
-    public function setDateCandidature(\DateTimeImmutable $dateCandidature): static
+    public function markSubmittedAt(?\DateTimeImmutable $dateCandidature = null): static
     {
-        $this->dateCandidature = $dateCandidature;
+        $this->dateCandidature = $dateCandidature ?? new \DateTimeImmutable();
 
         return $this;
     }

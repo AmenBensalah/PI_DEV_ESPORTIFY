@@ -42,8 +42,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 100)]
     private ?string $nom = null;
 
-    #[ORM\Column(enumType: Role::class)]
-    private Role $role;
+    #[ORM\Column(name: 'role', length: 100)]
+    private string $role = Role::JOUEUR->value;
 
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $pseudo = null;
@@ -170,7 +170,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getRoles(): array
     {
-        return [$this->role->value];
+        return [$this->role];
     }
 
     /**
@@ -178,8 +178,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function setRoles(array $roles): static
     {
-        // This method is required by UserInterface
-        // In our case, we use the 'role' enum field instead
+        $rawRole = (string) ($roles[0] ?? Role::JOUEUR->value);
+        $this->role = (Role::tryFrom($rawRole) ?? Role::JOUEUR)->value;
+
         return $this;
     }
 
@@ -218,13 +219,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getRole(): Role
     {
-    return $this->role;
+    return Role::tryFrom($this->role) ?? Role::JOUEUR;
     }
 
     public function setRole(Role $role): self
     {
-    $this->role = $role;
-    return $this;
+        $this->role = $role->value;
+        return $this;
     }
 
     public function getPseudo(): ?string

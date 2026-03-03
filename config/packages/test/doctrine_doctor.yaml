@@ -1,0 +1,5 @@
+doctrine_doctor:
+    enabled: true
+    profiler:
+        show_in_toolbar: false
+        show_debug_info: false

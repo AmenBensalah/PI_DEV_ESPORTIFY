@@ -66,7 +66,7 @@ class SecurityAuthenticator extends AbstractLoginFormAuthenticator
             $session->set('my_team_id', $membership->getEquipe()->getId());
         } else {
             // Check if they are a manager of a team
-            $managedTeam = $this->equipeRepository->findOneBy(['manager' => $user]);
+            $managedTeam = $this->equipeRepository->findOneBy(['managedBy' => $user]);
             if ($managedTeam) {
                 $session->set('my_team_id', $managedTeam->getId());
             }

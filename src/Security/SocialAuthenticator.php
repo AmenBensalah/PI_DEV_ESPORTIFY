@@ -108,7 +108,7 @@ class SocialAuthenticator extends OAuth2Authenticator
             if ($membership) {
                 $session->set('my_team_id', $membership->getEquipe()->getId());
             } else {
-                $managedTeam = $this->equipeRepository->findOneBy(['manager' => $user]);
+                $managedTeam = $this->equipeRepository->findOneBy(['managedBy' => $user]);
                 if ($managedTeam) {
                     $session->set('my_team_id', $managedTeam->getId());
                 }

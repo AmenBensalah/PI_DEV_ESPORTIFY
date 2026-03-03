@@ -107,7 +107,7 @@ class UserPerformanceAutoRetrainService
 
     private function phpBinary(): string
     {
-        if (defined('PHP_BINARY') && is_string(PHP_BINARY) && PHP_BINARY !== '') {
+        if (defined('PHP_BINARY') && PHP_BINARY !== '') {
             return PHP_BINARY;
         }
 

@@ -261,9 +261,9 @@ class FeedAiAnalysis
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
+    public function touchUpdatedAt(?\DateTimeImmutable $updatedAt = null): static
     {
-        $this->updatedAt = $updatedAt;
+        $this->updatedAt = $updatedAt ?? new \DateTimeImmutable();
 
         return $this;
     }

@@ -275,7 +275,7 @@ class FeedIntelligenceService
             ->setMediaRiskScore((int) ($analysis['media_risk_score'] ?? 0))
             ->setAutoAction((string) ($analysis['auto_action'] ?? 'allow'))
             ->setFlags(is_array($analysis['flags'] ?? null) ? $analysis['flags'] : [])
-            ->setUpdatedAt(new \DateTimeImmutable());
+            ->touchUpdatedAt();
 
         $this->entityManager->persist($record);
         if ($flush) {
@@ -628,7 +628,7 @@ class FeedIntelligenceService
             return $source;
         }
         $translations[$target] = $translated;
-        $analysis->setTranslations($translations)->setUpdatedAt(new \DateTimeImmutable());
+        $analysis->setTranslations($translations)->touchUpdatedAt();
         if (!$analysis->getSourceHash()) {
             $analysis->setSourceHash(hash('sha256', $this->normalizeText($source)));
         }
@@ -1023,7 +1023,7 @@ class FeedIntelligenceService
             }
         }
 
-        $managedTeams = $this->equipeRepository->findBy(['manager' => $user]);
+        $managedTeams = $this->equipeRepository->findBy(['managedBy' => $user]);
         foreach ($managedTeams as $team) {
             $tokens[] = mb_strtolower((string) $team->getNomEquipe());
             $tokens[] = mb_strtolower((string) $team->getTag());

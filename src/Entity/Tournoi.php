@@ -6,7 +6,7 @@ use App\Repository\TournoiRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use DateTime;
+use DateTimeImmutable;
 
 #[ORM\Entity(repositoryClass: TournoiRepository::class)]
 class Tournoi
@@ -32,11 +32,11 @@ class Tournoi
     #[ORM\Column(length: 255)]
     private ?string $game = null;
 
-    #[ORM\Column(type: 'datetime')]
-    private ?\DateTime $startDate = null;
+    #[ORM\Column(type: 'datetime_immutable')]
+    private ?\DateTimeImmutable $startDate = null;
 
-    #[ORM\Column(type: 'datetime')]
-    private ?\DateTime $endDate = null;
+    #[ORM\Column(type: 'datetime_immutable')]
+    private ?\DateTimeImmutable $endDate = null;
 
     #[ORM\Column(length: 50)]
     private ?string $status = null;
@@ -108,25 +108,21 @@ class Tournoi
         return $this;
     }
 
-    public function getStartDate(): ?\DateTime
+    public function getStartDate(): ?\DateTimeImmutable
     {
         return $this->startDate;
     }
 
-    public function setStartDate(\DateTime $startDate): static
-    {
-        $this->startDate = $startDate;
-        return $this;
-    }
-
-    public function getEndDate(): ?\DateTime
+    public function getEndDate(): ?\DateTimeImmutable
     {
         return $this->endDate;
     }
 
-    public function setEndDate(\DateTime $endDate): static
+    public function planSchedule(\DateTimeImmutable $startDate, \DateTimeImmutable $endDate): static
     {
+        $this->startDate = $startDate;
         $this->endDate = $endDate;
+
         return $this;
     }
 
@@ -176,7 +172,7 @@ class Tournoi
 
     public function getCurrentStatus(): string
     {
-        $now = new DateTime();
+        $now = new DateTimeImmutable();
         if ($this->startDate > $now) {
             return 'planned';
         }

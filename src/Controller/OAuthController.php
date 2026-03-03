@@ -19,7 +19,7 @@ class OAuthController extends AbstractController
 
         return $clientRegistry
             ->getClient('google')
-            ->redirect(['email', 'profile']);
+            ->redirect(['email', 'profile'], []);
     }
 
     #[Route('/connect/google/check', name: 'connect_google_check')]
@@ -38,7 +38,7 @@ class OAuthController extends AbstractController
 
         return $clientRegistry
             ->getClient('discord')
-            ->redirect(['identify', 'email']);
+            ->redirect(['identify', 'email'], []);
     }
 
     #[Route('/connect/discord/check', name: 'connect_discord_check')]

@@ -79,9 +79,9 @@ class ChatMessage
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeInterface $createdAt): static
+    public function touchCreatedAt(?\DateTimeInterface $createdAt = null): static
     {
-        $this->createdAt = $createdAt;
+        $this->createdAt = $createdAt ?? new \DateTime();
         return $this;
     }
 

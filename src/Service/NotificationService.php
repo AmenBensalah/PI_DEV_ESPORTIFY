@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Notification;
 use App\Entity\User;
+use App\Enum\NotificationType;
 use Doctrine\ORM\EntityManagerInterface;
 
 class NotificationService
@@ -19,14 +20,15 @@ class NotificationService
         ?string $link = null,
         string $type = 'general'
     ): void {
+        $notificationType = NotificationType::tryFrom($type) ?? NotificationType::GENERAL;
+
         $notification = (new Notification())
             ->setRecipient($recipient)
             ->setTitle($title)
             ->setMessage($message)
             ->setLink($link)
-            ->setType($type)
-            ->setIsRead(false)
-            ->setCreatedAt(new \DateTimeImmutable());
+            ->setType($notificationType)
+            ->setIsRead(false);
 
         $this->entityManager->persist($notification);
         $this->entityManager->flush();
@@ -54,14 +56,15 @@ class NotificationService
                 continue;
             }
 
+            $notificationType = NotificationType::tryFrom($type) ?? NotificationType::GENERAL;
+
             $notification = (new Notification())
                 ->setRecipient($recipient)
                 ->setTitle($title)
                 ->setMessage($message)
                 ->setLink($link)
-                ->setType($type)
-                ->setIsRead(false)
-                ->setCreatedAt(new \DateTimeImmutable());
+                ->setType($notificationType)
+                ->setIsRead(false);
 
             $this->entityManager->persist($notification);
             $hasAny = true;

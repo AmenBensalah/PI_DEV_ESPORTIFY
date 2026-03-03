@@ -95,9 +95,9 @@ class TournoiMatchParticipantResult
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    public function markCreatedAt(?\DateTimeImmutable $createdAt = null): static
     {
-        $this->createdAt = $createdAt;
+        $this->createdAt = $createdAt ?? new \DateTimeImmutable();
 
         return $this;
     }

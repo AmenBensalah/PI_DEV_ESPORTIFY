@@ -1,0 +1,1411 @@
+﻿vendor/bin/phpstan : Note: 
+Using configuration file C:\U
+sers\User\esportify\phpstan.n
+eon.
+Au caractère Ligne:1 : 1
++ vendor/bin/phpstan analyse 
+src/Controller src/Service 
+--level=5 --no- ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (Note: U  
+  sing con...y\phpstan.neo   
+ n.:String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+ ------ --------------------- 
+  Line   Controller\Admin\Ad  
+         minFeedIntelligence  
+         Controller.php       
+ ------ --------------------- 
+  :157   Call to function     
+         is_string() with     
+         non-falsy-string     
+         will always          
+         evaluate to true.    
+         ­ƒ¬¬                   
+         function.alreadyNar  
+         rowedType            
+  :157   Strict comparison    
+         using !== between    
+         non-falsy-string     
+         and '' will always   
+         evaluate to true.    
+         ­ƒ¬¬                   
+         notIdentical.always  
+         True                 
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Controller\Admin\Ad  
+         minPostController.p  
+         hp                   
+ ------ --------------------- 
+  :90    Parameter #1         
+         $author of method    
+         App\Entity\Post::se  
+         tAuthor() expects    
+         App\Entity\User|nul  
+         l,                   
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface|null    
+         given.               
+         ­ƒ¬¬  argument.type    
+  :97    Instanceof between   
+         Symfony\Component\H  
+         ttpFoundation\File\  
+         UploadedFile and     
+         Symfony\Component\H  
+         ttpFoundation\File\  
+         UploadedFile will    
+         always evaluate to   
+         true.                
+         ­ƒ¬¬                   
+         instanceof.alwaysTr  
+         ue                   
+         ­ƒÆí  Because the type  
+         is coming from a     
+         PHPDoc, you can      
+         turn off this check  
+         by setting treatPhp  
+         DocTypesAsCertain:   
+         false in your phpst  
+         an.neon.             
+  :153   Instanceof between   
+         Symfony\Component\H  
+         ttpFoundation\File\  
+         UploadedFile and     
+         Symfony\Component\H  
+         ttpFoundation\File\  
+         UploadedFile will    
+         always evaluate to   
+         true.                
+         ­ƒ¬¬                   
+         instanceof.alwaysTr  
+         ue                   
+         ­ƒÆí  Because the type  
+         is coming from a     
+         PHPDoc, you can      
+         turn off this check  
+         by setting treatPhp  
+         DocTypesAsCertain:   
+         false in your phpst  
+         an.neon.             
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Controller\Admin\Da  
+         shboardController.p  
+         hp                   
+ ------ --------------------- 
+  :231   Call to function     
+         is_string() with     
+         non-falsy-string     
+         will always          
+         evaluate to true.    
+         ­ƒ¬¬                   
+         function.alreadyNar  
+         rowedType            
+  :231   Strict comparison    
+         using !== between    
+         non-falsy-string     
+         and '' will always   
+         evaluate to true.    
+         ­ƒ¬¬                   
+         notIdentical.always  
+         True                 
+  :389   Parameter #1 $user   
+         of method            
+         Symfony\Component\P  
+         asswordHasher\Hashe  
+         r\UserPasswordHashe  
+         rInterface::hashPas  
+         sword() expects      
+         Symfony\Component\S  
+         ecurity\Core\User\P  
+         asswordAuthenticate  
+         dUserInterface,      
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface|null    
+         given.               
+         ­ƒ¬¬  argument.type    
+  :390   Call to an           
+         undefined method     
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface::setPa  
+         ssword().            
+         ­ƒ¬¬  method.notFound  
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Controller\Admin\To  
+         urnoiAdminControlle  
+         r.php                
+ ------ --------------------- 
+  :300   Parameter #1         
+         $creator of method   
+         App\Entity\Tournoi:  
+         :setCreator()        
+         expects              
+         App\Entity\User|nul  
+         l,                   
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface|null    
+         given.               
+         ­ƒ¬¬  argument.type    
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Controller\AuthCont  
+         roller.php           
+ ------ --------------------- 
+  :54    Call to an           
+         undefined method     
+         App\Entity\User::se  
+         tUsername().         
+         ­ƒ¬¬  method.notFound  
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Controller\Backoffi  
+         ce\ProductControlle  
+         r.php                
+ ------ --------------------- 
+  :69    Parameter #1         
+         $categorie of        
+         method               
+         App\Entity\Produit:  
+         :setCategorie()      
+         expects              
+         App\Entity\Categori  
+         e|null, string       
+         given.               
+         ­ƒ¬¬  argument.type    
+  :126   Parameter #1         
+         $categorie of        
+         method               
+         App\Entity\Produit:  
+         :setCategorie()      
+         expects              
+         App\Entity\Categori  
+         e|null, string       
+         given.               
+         ­ƒ¬¬  argument.type    
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Controller\ChatCont  
+         roller.php           
+ ------ --------------------- 
+  :108   Parameter #1 $user   
+         of method            
+         App\Entity\ChatMess  
+         age::setUser()       
+         expects              
+         App\Entity\User|nul  
+         l,                   
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface given.  
+         ­ƒ¬¬  argument.type    
+  :121   Call to an           
+         undefined method     
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface::getId  
+         ().                  
+         ­ƒ¬¬  method.notFound  
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Controller\EquipesC  
+         ontroller.php        
+ ------ --------------------- 
+  :155   Call to function     
+         is_array() with      
+         array will always    
+         evaluate to true.    
+         ­ƒ¬¬                   
+         function.alreadyNar  
+         rowedType            
+         ­ƒÆí  Because the type  
+         is coming from a     
+         PHPDoc, you can      
+         turn off this check  
+         by setting treatPhp  
+         DocTypesAsCertain:   
+         false in your phpst  
+         an.neon.             
+  :155   Strict comparison    
+         using === between    
+         mixed and null will  
+         always evaluate to   
+         false.               
+         ­ƒ¬¬                   
+         identical.alwaysFal  
+         se                   
+         ­ƒÆí  Type             
+         0|0.0|''|'0'|array{  
+         }|false|null has     
+         already been         
+         eliminated from      
+         mixed.               
+  :234   Parameter #1         
+         $manager of method   
+         App\Entity\Equipe::  
+         setManager()         
+         expects              
+         App\Entity\User|nul  
+         l,                   
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface|null    
+         given.               
+         ­ƒ¬¬  argument.type    
+  :243   Left side of && is   
+         always true.         
+         ­ƒ¬¬                   
+         booleanAnd.leftAlwa  
+         ysTrue               
+  :348   Parameter #1         
+         $manager of method   
+         App\Entity\Equipe::  
+         setManager()         
+         expects              
+         App\Entity\User|nul  
+         l,                   
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface|null    
+         given.               
+         ­ƒ¬¬  argument.type    
+  :403   Right side of && is  
+         always true.         
+         ­ƒ¬¬                   
+         booleanAnd.rightAlw  
+         aysTrue              
+  :482   Left side of && is   
+         always true.         
+         ­ƒ¬¬                   
+         booleanAnd.leftAlwa  
+         ysTrue               
+  :558   Parameter #1 $user   
+         of method            
+         App\Entity\Candidat  
+         ure::setUser()       
+         expects              
+         App\Entity\User|nul  
+         l,                   
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface|null    
+         given.               
+         ­ƒ¬¬  argument.type    
+  :672   Right side of && is  
+         always true.         
+         ­ƒ¬¬                   
+         booleanAnd.rightAlw  
+         aysTrue              
+  :685   Call to function     
+         is_array() with      
+         non-empty-array      
+         will always          
+         evaluate to true.    
+         ­ƒ¬¬                   
+         function.alreadyNar  
+         rowedType            
+         ­ƒÆí  Because the type  
+         is coming from a     
+         PHPDoc, you can      
+         turn off this check  
+         by setting treatPhp  
+         DocTypesAsCertain:   
+         false in your phpst  
+         an.neon.             
+  :753   Call to function     
+         is_array() with      
+         array will always    
+         evaluate to true.    
+         ­ƒ¬¬                   
+         function.alreadyNar  
+         rowedType            
+         ­ƒÆí  Because the type  
+         is coming from a     
+         PHPDoc, you can      
+         turn off this check  
+         by setting treatPhp  
+         DocTypesAsCertain:   
+         false in your phpst  
+         an.neon.             
+  :753   Strict comparison    
+         using === between    
+         mixed and null will  
+         always evaluate to   
+         false.               
+         ­ƒ¬¬                   
+         identical.alwaysFal  
+         se                   
+         ­ƒÆí  Type             
+         0|0.0|''|'0'|array{  
+         }|false|null has     
+         already been         
+         eliminated from      
+         mixed.               
+  :769   Call to function     
+         is_array() with      
+         array will always    
+         evaluate to true.    
+         ­ƒ¬¬                   
+         function.alreadyNar  
+         rowedType            
+         ­ƒÆí  Because the type  
+         is coming from a     
+         PHPDoc, you can      
+         turn off this check  
+         by setting treatPhp  
+         DocTypesAsCertain:   
+         false in your phpst  
+         an.neon.             
+  :814   Right side of && is  
+         always true.         
+         ­ƒ¬¬                   
+         booleanAnd.rightAlw  
+         aysTrue              
+  :823   Call to function     
+         method_exists()      
+         with                 
+         Symfony\Component\H  
+         ttpFoundation\Reque  
+         st and 'getPayload'  
+         will always          
+         evaluate to true.    
+         ­ƒ¬¬                   
+         function.alreadyNar  
+         rowedType            
+  :838   Left side of && is   
+         always true.         
+         ­ƒ¬¬                   
+         booleanAnd.leftAlwa  
+         ysTrue               
+  :864   Right side of && is  
+         always true.         
+         ­ƒ¬¬                   
+         booleanAnd.rightAlw  
+         aysTrue              
+  :925   Right side of && is  
+         always true.         
+         ­ƒ¬¬                   
+         booleanAnd.rightAlw  
+         aysTrue              
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Controller\Front\Ch  
+         atbotController.php  
+ ------ --------------------- 
+  :67    Call to an           
+         undefined method     
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface::getNo  
+         m().                 
+         ­ƒ¬¬  method.notFound  
+  :67    Call to an           
+         undefined method     
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface::getPs  
+         eudo().              
+         ­ƒ¬¬  method.notFound  
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Controller\Front\Or  
+         derActionController  
+         .php                 
+ ------ --------------------- 
+  :44    Offset 'score' on    
+         array{blocked:       
+         bool, score: float,  
+         block_until:         
+         string|null,         
+         message: string} on  
+         left side of ??      
+         always exists and    
+         is not nullable.     
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+  :46    Offset 'message' on  
+         array{blocked:       
+         bool, score: float,  
+         block_until:         
+         string|null,         
+         message: string} on  
+         left side of ??      
+         always exists and    
+         is not nullable.     
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+  :78    Offset 'score' on    
+         array{blocked:       
+         bool, score: float,  
+         block_until:         
+         string|null,         
+         message: string} on  
+         left side of ??      
+         always exists and    
+         is not nullable.     
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+  :80    Offset 'message' on  
+         array{blocked:       
+         bool, score: float,  
+         block_until:         
+         string|null,         
+         message: string} on  
+         left side of ??      
+         always exists and    
+         is not nullable.     
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+  :326   Offset 'score' on    
+         array{blocked:       
+         true, score: float,  
+         block_until:         
+         string|null,         
+         message: string} on  
+         left side of ??      
+         always exists and    
+         is not nullable.     
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+  :398   Offset 'score' on    
+         array{blocked:       
+         true, score: float,  
+         block_until:         
+         string|null,         
+         message: string} on  
+         left side of ??      
+         always exists and    
+         is not nullable.     
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Controller\HomeCont  
+         roller.php           
+ ------ --------------------- 
+  :227   Parameter #1         
+         $author of method    
+         App\Entity\Post::se  
+         tAuthor() expects    
+         App\Entity\User|nul  
+         l,                   
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface given.  
+         ­ƒ¬¬  argument.type    
+  :236   Call to function     
+         is_array() with      
+         array<int, Symfony\  
+         Component\HttpFound  
+         ation\File\Uploaded  
+         File> will always e  
+         valuate to true.     
+         ­ƒ¬¬                   
+         function.alreadyNar  
+         rowedType            
+         ­ƒÆí  Because the type  
+         is coming from a     
+         PHPDoc, you can      
+         turn off this check  
+         by setting treatPhp  
+         DocTypesAsCertain:   
+         false in your phpst  
+         an.neon.             
+  :241   Instanceof between   
+         Symfony\Component\H  
+         ttpFoundation\File\  
+         UploadedFile and     
+         Symfony\Component\H  
+         ttpFoundation\File\  
+         UploadedFile will    
+         always evaluate to   
+         true.                
+         ­ƒ¬¬                   
+         instanceof.alwaysTr  
+         ue                   
+         ­ƒÆí  Because the type  
+         is coming from a     
+         PHPDoc, you can      
+         turn off this check  
+         by setting treatPhp  
+         DocTypesAsCertain:   
+         false in your phpst  
+         an.neon.             
+  :417   Parameter #1 $user   
+         of method            
+         App\Entity\Like::se  
+         tUser() expects      
+         App\Entity\User|nul  
+         l,                   
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface given.  
+         ­ƒ¬¬  argument.type    
+  :424   Call to an           
+         undefined method     
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface::getId  
+         ().                  
+         ­ƒ¬¬  method.notFound  
+  :428   Call to an           
+         undefined method     
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface::getNo  
+         m().                 
+         ­ƒ¬¬  method.notFound  
+  :428   Call to an           
+         undefined method     
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface::getPs  
+         eudo().              
+         ­ƒ¬¬  method.notFound  
+  :447   Call to an           
+         undefined method     
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface::getId  
+         ().                  
+         ­ƒ¬¬  method.notFound  
+  :495   Call to an           
+         undefined method     
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface::getId  
+         ().                  
+         ­ƒ¬¬  method.notFound  
+  :640   Call to an           
+         undefined method     
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface::getId  
+         ().                  
+         ­ƒ¬¬  method.notFound  
+  :687   Call to an           
+         undefined method     
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface::getId  
+         ().                  
+         ­ƒ¬¬  method.notFound  
+  :731   Parameter #1 $user   
+         of method            
+         App\Entity\EventPar  
+         ticipant::setUser()  
+         expects              
+         App\Entity\User|nul  
+         l,                   
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface given.  
+         ­ƒ¬¬  argument.type    
+  :738   Call to an           
+         undefined method     
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface::getId  
+         ().                  
+         ­ƒ¬¬  method.notFound  
+  :742   Call to an           
+         undefined method     
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface::getNo  
+         m().                 
+         ­ƒ¬¬  method.notFound  
+  :742   Call to an           
+         undefined method     
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface::getPs  
+         eudo().              
+         ­ƒ¬¬  method.notFound  
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Controller\ManagerR  
+         equestController.ph  
+         p                    
+ ------ --------------------- 
+  :71    Parameter #1 $user   
+         of method            
+         App\Entity\ManagerR  
+         equest::setUser()    
+         expects              
+         App\Entity\User|nul  
+         l,                   
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface given.  
+         ­ƒ¬¬  argument.type    
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Controller\Messenge  
+         rController.php      
+ ------ --------------------- 
+  :103   Offset 'name' on     
+         array{userId: int,   
+         name: string,        
+         avatar:              
+         string|null,         
+         initial: string,     
+         lastMessage:         
+         string, lastType:    
+         string, lastAt:      
+         string, unread:      
+         int} on left side    
+         of ?? always exists  
+         and is not           
+         nullable.            
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Controller\OAuthCon  
+         troller.php          
+ ------ --------------------- 
+  :60    Expression on left   
+         side of ?? is not    
+         nullable.            
+         ­ƒ¬¬                   
+         nullCoalesce.expr    
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Controller\ProfileC  
+         ontroller.php        
+ ------ --------------------- 
+  :99    Call to an           
+         undefined method     
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface::setPa  
+         ssword().            
+         ­ƒ¬¬  method.notFound  
+  :99    Parameter #1 $user   
+         of method            
+         Symfony\Component\P  
+         asswordHasher\Hashe  
+         r\UserPasswordHashe  
+         rInterface::hashPas  
+         sword() expects      
+         Symfony\Component\S  
+         ecurity\Core\User\P  
+         asswordAuthenticate  
+         dUserInterface,      
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface|null    
+         given.               
+         ­ƒ¬¬  argument.type    
+  :116   Call to an           
+         undefined method     
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface::getAv  
+         atar().              
+         ­ƒ¬¬  method.notFound  
+  :117   Call to an           
+         undefined method     
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface::getAv  
+         atar().              
+         ­ƒ¬¬  method.notFound  
+  :123   Call to an           
+         undefined method     
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface::setAv  
+         atar().              
+         ­ƒ¬¬  method.notFound  
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Controller\Recrutem  
+         entsController.php   
+ ------ --------------------- 
+  :54    Right side of && is  
+         always true.         
+         ­ƒ¬¬                   
+         booleanAnd.rightAlw  
+         aysTrue              
+  :140   Strict comparison    
+         using !== between    
+         mixed and null will  
+         always evaluate to   
+         true.                
+         ­ƒ¬¬                   
+         notIdentical.always  
+         True                 
+         ­ƒÆí  Type null has    
+         already been         
+         eliminated from      
+         mixed.               
+  :141   Strict comparison    
+         using !== between    
+         mixed and null will  
+         always evaluate to   
+         true.                
+         ­ƒ¬¬                   
+         notIdentical.always  
+         True                 
+         ­ƒÆí  Type null has    
+         already been         
+         eliminated from      
+         mixed.               
+  :142   Strict comparison    
+         using !== between    
+         mixed and null will  
+         always evaluate to   
+         true.                
+         ­ƒ¬¬                   
+         notIdentical.always  
+         True                 
+         ­ƒÆí  Type null has    
+         already been         
+         eliminated from      
+         mixed.               
+  :169   Right side of && is  
+         always true.         
+         ­ƒ¬¬                   
+         booleanAnd.rightAlw  
+         aysTrue              
+  :189   Right side of && is  
+         always true.         
+         ­ƒ¬¬                   
+         booleanAnd.rightAlw  
+         aysTrue              
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Controller\Registra  
+         tionController.php   
+ ------ --------------------- 
+  :80    Negated boolean      
+         expression is        
+         always false.        
+         ­ƒ¬¬                   
+         booleanNot.alwaysFa  
+         lse                  
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Controller\TeamRepo  
+         rtController.php     
+ ------ --------------------- 
+  :30    Right side of && is  
+         always true.         
+         ­ƒ¬¬                   
+         booleanAnd.rightAlw  
+         aysTrue              
+  :53    Parameter #2         
+         $reporter of method  
+         App\Service\TeamRep  
+         ortService::canRepo  
+         rt() expects         
+         App\Entity\User,     
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface given.  
+         ­ƒ¬¬  argument.type    
+  :58    Parameter #2         
+         $reporter of method  
+         App\Service\TeamRep  
+         ortService::createR  
+         eport() expects      
+         App\Entity\User,     
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface given.  
+         ­ƒ¬¬  argument.type    
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Controller\TournoiC  
+         ontroller.php        
+ ------ --------------------- 
+  :324   Left side of && is   
+         always true.         
+         ­ƒ¬¬                   
+         booleanAnd.leftAlwa  
+         ysTrue               
+  :335   Parameter #1 $user   
+         of method            
+         App\Entity\Particip  
+         ationRequest::setUs  
+         er() expects         
+         App\Entity\User|nul  
+         l,                   
+         Symfony\Component\S  
+         ecurity\Core\User\U  
+         serInterface given.  
+         ­ƒ¬¬  argument.type    
+ ------ --------------------- 
+
+ ------- -------------------- 
+  Line    Service\FeedIntell  
+          igenceService.php   
+ ------- -------------------- 
+  :29     Property            
+          App\Service\FeedIn  
+          telligenceService:  
+          :$toxicKeywords is  
+          never read, only    
+          written.            
+          ­ƒ¬¬                  
+          property.onlyWritt  
+          en                  
+          ­ƒÆí  See:            
+          https://phpstan.or  
+          g/developing-exten  
+          sions/always-read-  
+          written-properties  
+  :38     Property            
+          App\Service\FeedIn  
+          telligenceService:  
+          :$hateKeywords is   
+          never read, only    
+          written.            
+          ­ƒ¬¬                  
+          property.onlyWritt  
+          en                  
+          ­ƒÆí  See:            
+          https://phpstan.or  
+          g/developing-exten  
+          sions/always-read-  
+          written-properties  
+  :47     Property            
+          App\Service\FeedIn  
+          telligenceService:  
+          :$spamKeywords is   
+          never read, only    
+          written.            
+          ­ƒ¬¬                  
+          property.onlyWritt  
+          en                  
+          ­ƒÆí  See:            
+          https://phpstan.or  
+          g/developing-exten  
+          sions/always-read-  
+          written-properties  
+  :92     Offset              
+          'auto_action' on    
+          non-empty-array<st  
+          ring, mixed> on le  
+          ft side of ??       
+          always exists and   
+          is not nullable.    
+          ­ƒ¬¬                  
+          nullCoalesce.offse  
+          t                   
+  :174    Offset              
+          'duplicate'|'hate'  
+          |'media'|'spam'|'t  
+          oxicity' on         
+          array{hate: int,    
+          toxicity: int,      
+          spam: int,          
+          duplicate: int,     
+          media: int} on      
+          left side of ??     
+          always exists and   
+          is not nullable.    
+          ­ƒ¬¬                  
+          nullCoalesce.offse  
+          t                   
+  :480    Instanceof between  
+          App\Entity\Post     
+          and                 
+          App\Entity\Post     
+          will always         
+          evaluate to true.   
+          ­ƒ¬¬                  
+          instanceof.alwaysT  
+          rue                 
+          ­ƒÆí  Because the     
+          type is coming      
+          from a PHPDoc, you  
+          can turn off this   
+          check by setting t  
+          reatPhpDocTypesAsC  
+          ertain: false in y  
+          our phpstan.neon.   
+  :669    Method              
+          App\Service\FeedIn  
+          telligenceService:  
+          :computeDuplicateS  
+          core() is unused.   
+          ­ƒ¬¬  method.unused   
+  :695    Method              
+          App\Service\FeedIn  
+          telligenceService:  
+          :computeMediaRisk(  
+          ) is unused.        
+          ­ƒ¬¬  method.unused   
+  :720    Method              
+          App\Service\FeedIn  
+          telligenceService:  
+          :scoreKeywords()    
+          is unused.          
+          ­ƒ¬¬  method.unused   
+  :734    Method              
+          App\Service\FeedIn  
+          telligenceService:  
+          :computeCapsRatio(  
+          ) is unused.        
+          ­ƒ¬¬  method.unused   
+  :750    Method              
+          App\Service\FeedIn  
+          telligenceService:  
+          :categorizeContent  
+          () is unused.       
+          ­ƒ¬¬  method.unused   
+  :770    Method              
+          App\Service\FeedIn  
+          telligenceService:  
+          :decideAutoAction(  
+          ) is unused.        
+          ­ƒ¬¬  method.unused   
+  :1048   Method              
+          App\Service\FeedIn  
+          telligenceService:  
+          :enrichAnalysisWit  
+          hAi() is unused.    
+          ­ƒ¬¬  method.unused   
+ ------- -------------------- 
+
+ ------ --------------------- 
+  Line   Service\Notificatio  
+         nService.php         
+ ------ --------------------- 
+  :52    Instanceof between   
+         App\Entity\User and  
+         App\Entity\User      
+         will always          
+         evaluate to true.    
+         ­ƒ¬¬                   
+         instanceof.alwaysTr  
+         ue                   
+         ­ƒÆí  Because the type  
+         is coming from a     
+         PHPDoc, you can      
+         turn off this check  
+         by setting treatPhp  
+         DocTypesAsCertain:   
+         false in your phpst  
+         an.neon.             
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Service\OpenAIChatS  
+         ervice.php           
+ ------ --------------------- 
+  :59    Call to function     
+         is_string() with     
+         string will always   
+         evaluate to true.    
+         ­ƒ¬¬                   
+         function.alreadyNar  
+         rowedType            
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Service\OrderServic  
+         e.php                
+ ------ --------------------- 
+  :59    Parameter #1 $prix   
+         of method            
+         App\Entity\LigneCom  
+         mande::setPrix()     
+         expects int,         
+         float|null given.    
+         ­ƒ¬¬  argument.type    
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Service\RecruiterAg  
+         entService.php       
+ ------ --------------------- 
+  :27    Instanceof between   
+         App\Entity\Candidat  
+         ure and              
+         App\Entity\Candidat  
+         ure will always      
+         evaluate to true.    
+         ­ƒ¬¬                   
+         instanceof.alwaysTr  
+         ue                   
+         ­ƒÆí  Because the type  
+         is coming from a     
+         PHPDoc, you can      
+         turn off this check  
+         by setting treatPhp  
+         DocTypesAsCertain:   
+         false in your phpst  
+         an.neon.             
+  :70    Offset 'weights' on  
+         array{weights:       
+         array<string, float  
+         >, means: array<str  
+         ing, float>, stds:   
+         array<string, float  
+         >, bias: float} on   
+         left side of ??      
+         always exists and    
+         is not nullable.     
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+  :71    Offset 'means' on    
+         array{weights:       
+         array<string, float  
+         >, means: array<str  
+         ing, float>, stds:   
+         array<string, float  
+         >, bias: float} on   
+         left side of ??      
+         always exists and    
+         is not nullable.     
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+  :72    Offset 'stds' on     
+         array{weights:       
+         array<string, float  
+         >, means: array<str  
+         ing, float>, stds:   
+         array<string, float  
+         >, bias: float} on   
+         left side of ??      
+         always exists and    
+         is not nullable.     
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+  :73    Offset 'bias' on     
+         array{weights:       
+         array<string, float  
+         >, means: array<str  
+         ing, float>, stds:   
+         array<string, float  
+         >, bias: float} on   
+         left side of ??      
+         always exists and    
+         is not nullable.     
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Service\RevenueFore  
+         castService.php      
+ ------ --------------------- 
+  :37    Offset 'amount' on   
+         array{amount:        
+         float, status:       
+         string, createdAt:   
+         DateTimeImmutable}   
+         on left side of ??   
+         always exists and    
+         is not nullable.     
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+  :38    Offset 'status' on   
+         array{amount:        
+         float, status:       
+         string, createdAt:   
+         DateTimeImmutable}   
+         on left side of ??   
+         always exists and    
+         is not nullable.     
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+  :111   Offset 'source' on   
+         array{forecast_reve  
+         nue_day: float,      
+         forecast_orders_day  
+         : int,               
+         forecast_failure_ra  
+         te_day: float,       
+         source: string} on   
+         left side of ??      
+         always exists and    
+         is not nullable.     
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+  :331   Method               
+         App\Service\Revenue  
+         ForecastService::bu  
+         ildDailySeries()     
+         should return list<  
+         array{label:         
+         string, revenue:     
+         float, orders: int,  
+         revenue_pct: float,  
+         orders_pct: float}>  
+         but returns list<ar  
+         ray{label:           
+         non-falsy-string,    
+         revenue: float,      
+         orders: int,         
+         revenue_pct:         
+         float}>.             
+         ­ƒ¬¬  return.type      
+         ­ƒÆí  Array does not   
+         have offset          
+         'orders_pct'.        
+  :365   Method               
+         App\Service\Revenue  
+         ForecastService::bu  
+         ildWeeklySeries()    
+         should return list<  
+         array{label:         
+         string, revenue:     
+         float, orders: int,  
+         revenue_pct: float,  
+         orders_pct: float}>  
+         but returns list<ar  
+         ray{label:           
+         non-falsy-string,    
+         revenue: float,      
+         orders: int,         
+         revenue_pct:         
+         float}>.             
+         ­ƒ¬¬  return.type      
+         ­ƒÆí  Array does not   
+         have offset          
+         'orders_pct'.        
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Service\SoloTournam  
+         entPredictionServic  
+         e.php                
+ ------ --------------------- 
+  :42    Instanceof between   
+         App\Entity\User and  
+         App\Entity\User      
+         will always          
+         evaluate to true.    
+         ­ƒ¬¬                   
+         instanceof.alwaysTr  
+         ue                   
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Service\TeamAnalyst  
+         Service.php          
+ ------ --------------------- 
+  :25    Call to an           
+         undefined method     
+         App\Service\TeamBal  
+         anceService::calcul  
+         ateBalance().        
+         ­ƒ¬¬  method.notFound  
+  :26    Call to an           
+         undefined method     
+         App\Service\TeamPer  
+         formanceService::ca  
+         lculatePerformance(  
+         ).                   
+         ­ƒ¬¬  method.notFound  
+  :27    Call to an           
+         undefined method     
+         App\Service\TeamLev  
+         elStatsService::cal  
+         culateLevelStats().  
+         ­ƒ¬¬  method.notFound  
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Service\UnpaidOrder  
+         AbuseDetectionServi  
+         ce.php               
+ ------ --------------------- 
+  :103   Offset 'score' on    
+         array{score: float,  
+         block_until:         
+         string, message:     
+         string} on left      
+         side of ?? always    
+         exists and is not    
+         nullable.            
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+  :104   Offset               
+         'block_until' on     
+         array{score: float,  
+         block_until:         
+         string, message:     
+         string} on left      
+         side of ?? always    
+         exists and is not    
+         nullable.            
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+  :105   Offset               
+         'block_until' on     
+         array{score: float,  
+         block_until:         
+         string, message:     
+         string} on left      
+         side of ?? always    
+         exists and is not    
+         nullable.            
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+  :105   Offset 'score' on    
+         array{score: float,  
+         block_until:         
+         string, message:     
+         string} on left      
+         side of ?? always    
+         exists and is not    
+         nullable.            
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+  :339   Offset 'risk_score'  
+         on                   
+         array{risk_score:    
+         float, source:       
+         string} in isset()   
+         always exists and    
+         is not nullable.     
+         ­ƒ¬¬  isset.offset     
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Service\UserPerform  
+         anceAIService.php    
+ ------ --------------------- 
+  :114   Comparison           
+         operation ">"        
+         between int<1, max>  
+         and 0 is always      
+         true.                
+         ­ƒ¬¬                   
+         greater.alwaysTrue   
+  :115   Comparison           
+         operation ">"        
+         between int<1, max>  
+         and 0 is always      
+         true.                
+         ­ƒ¬¬                   
+         greater.alwaysTrue   
+  :116   Comparison           
+         operation ">"        
+         between int<1, max>  
+         and 0 is always      
+         true.                
+         ­ƒ¬¬                   
+         greater.alwaysTrue   
+  :234   Offset 'timestamp'   
+         on array{tournoiId:  
+         int|null, tournoi:   
+         string, typeGame:    
+         string,              
+         typeTournoi:         
+         string, timestamp:   
+         int, date:           
+         non-falsy-string,    
+         result:              
+         string|null,         
+         points: int, ...}    
+         on left side of ??   
+         always exists and    
+         is not nullable.     
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+  :234   Offset 'timestamp'   
+         on array{tournoiId:  
+         int|null, tournoi:   
+         string, typeGame:    
+         string,              
+         typeTournoi:         
+         string, timestamp:   
+         int, date:           
+         non-falsy-string,    
+         result:              
+         string|null,         
+         points: int, ...}    
+         on left side of ??   
+         always exists and    
+         is not nullable.     
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+  :237   Offset 'timestamp'   
+         on array{tournoiId:  
+         int|null, tournoi:   
+         string, typeGame:    
+         string,              
+         typeTournoi:         
+         string, timestamp:   
+         int, date:           
+         non-falsy-string,    
+         result:              
+         string|null,         
+         points: int, ...}    
+         on left side of ??   
+         always exists and    
+         is not nullable.     
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+  :237   Offset 'timestamp'   
+         on array{tournoiId:  
+         int|null, tournoi:   
+         string, typeGame:    
+         string,              
+         typeTournoi:         
+         string, timestamp:   
+         int, date:           
+         non-falsy-string,    
+         result:              
+         string|null,         
+         points: int, ...}    
+         on left side of ??   
+         always exists and    
+         is not nullable.     
+         ­ƒ¬¬                   
+         nullCoalesce.offset  
+ ------ --------------------- 
+
+ ------ --------------------- 
+  Line   Service\UserPerform  
+         anceAutoRetrainServ  
+         ice.php              
+ ------ --------------------- 
+  :110   Strict comparison    
+         using !== between    
+         non-falsy-string     
+         and '' will always   
+         evaluate to true.    
+         ­ƒ¬¬                   
+         notIdentical.always  
+         True                 
+ ------ --------------------- 
+
+ [ERROR] Found 119 errors    
+

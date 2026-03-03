@@ -331,8 +331,8 @@
         <div class="social-login">
             <p>Ou continuer avec</p>
             <div class="social-icons">
-                <a href="{{ path('connect_google_start') }}" class="social-icon" title="Continuer avec Google"><i class="fab fa-google"></i></a>
-                <a href="{{ path('connect_discord_start') }}" class="social-icon" title="Continuer avec Discord"><i class="fab fa-discord"></i></a>
+                <a href="{{ url('connect_google_start') }}" data-oauth-url="{{ url('connect_google_start') }}" class="social-icon js-oauth-link" title="Continuer avec Google"><i class="fab fa-google"></i></a>
+                <a href="{{ url('connect_discord_start') }}" data-oauth-url="{{ url('connect_discord_start') }}" class="social-icon js-oauth-link" title="Continuer avec Discord"><i class="fab fa-discord"></i></a>
             </div>
         </div>
     </div>
@@ -490,6 +490,17 @@
             });
 
             window.addEventListener('beforeunload', stopCamera);
+
+            document.querySelectorAll('.js-oauth-link').forEach((link) => {
+                link.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    const targetUrl = link.getAttribute('data-oauth-url');
+                    if (!targetUrl) {
+                        return;
+                    }
+                    window.location.assign(targetUrl);
+                });
+            });
         })();
     </script>
 </body>

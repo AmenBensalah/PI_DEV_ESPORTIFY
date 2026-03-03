@@ -194,7 +194,7 @@ final class EquipesController extends AbstractController
             // Remplir l'entité
             $equipe->setNomEquipe($nomEquipe);
             $equipe->setDescription($description);
-            $equipe->setDateCreation(new \DateTime($dateCreation ?: 'now'));
+            $equipe->establishDateCreation(new \DateTimeImmutable($dateCreation ?: 'now'));
             $equipe->setClassement($classement);
             $equipe->setTag($tag);
             $equipe->setRegion($region ?: null);
@@ -324,7 +324,7 @@ final class EquipesController extends AbstractController
 
             $equipe->setNomEquipe($nomEquipe);
             $equipe->setDescription($description);
-            $equipe->setDateCreation(new \DateTime($dateCreation ?: 'now'));
+            $equipe->establishDateCreation(new \DateTimeImmutable($dateCreation ?: 'now'));
             $equipe->setClassement($classement);
             $equipe->setTag($tag);
             $equipe->setRegion($region ?: null);
@@ -744,7 +744,7 @@ final class EquipesController extends AbstractController
             }
             $equipe->setDiscordInviteUrl($discordInviteUrl);
             if (!empty($data['dateCreation'])) {
-                $equipe->setDateCreation(new \DateTime($data['dateCreation']));
+                $equipe->establishDateCreation(new \DateTimeImmutable($data['dateCreation']));
             }
             
             // Gérer le logo uploadé (supporte input name equipe[logo] ou logo)
@@ -907,7 +907,7 @@ final class EquipesController extends AbstractController
         }
         
         $candidature->setStatut('Accepté');
-        $candidature->setDateCandidature(new \DateTime());
+        $candidature->markSubmittedAt(new \DateTimeImmutable());
         
         $entityManager->persist($candidature);
         $entityManager->flush();

@@ -17,7 +17,7 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class AuthController extends AbstractController
 {
-    #[Route('/login', name: 'app_login')]
+    #[Route('/auth/login-legacy', name: 'app_login_legacy')]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
         if ($this->getUser()) {
@@ -33,13 +33,13 @@ class AuthController extends AbstractController
         ]);
     }
 
-    #[Route('/logout', name: 'app_logout')]
+    #[Route('/auth/logout-legacy', name: 'app_logout_legacy')]
     public function logout(): Response
     {
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
     }
 
-    #[Route('/register', name: 'app_register', methods: ['GET', 'POST'])]
+    #[Route('/auth/register-legacy', name: 'app_register_legacy', methods: ['GET', 'POST'])]
     public function register(Request $request, UserPasswordHasherInterface $hasher, EntityManagerInterface $em): Response
     {
         if ($this->getUser()) {
@@ -95,8 +95,8 @@ class AuthController extends AbstractController
                     $reset = new PasswordResetCode();
                     $reset->setEmail($email);
                     $reset->setCodeHash(password_hash($code, PASSWORD_DEFAULT));
-                    $reset->setCreatedAt(new \DateTimeImmutable());
-                    $reset->setExpiresAt((new \DateTimeImmutable())->modify('+10 minutes'));
+                    $reset->refreshCreatedAt(new \DateTimeImmutable());
+                    $reset->expireAt((new \DateTimeImmutable())->modify('+10 minutes'));
 
                     $em->persist($reset);
                     $em->flush();

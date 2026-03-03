@@ -23,12 +23,17 @@ class Recrutement
     #[ORM\Column(length: 50)]
     private ?string $status = null;
 
-    #[ORM\Column]
-    private ?\DateTime $datePublication = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    private ?\DateTimeImmutable $datePublication = null;
 
     #[ORM\ManyToOne(inversedBy: 'recrutements')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Equipe $equipe = null;
+
+    public function __construct()
+    {
+        $this->datePublication = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
@@ -71,14 +76,14 @@ class Recrutement
         return $this;
     }
 
-    public function getDatePublication(): ?\DateTime
+    public function getDatePublication(): ?\DateTimeImmutable
     {
         return $this->datePublication;
     }
 
-    public function setDatePublication(\DateTime $datePublication): static
+    public function publishOn(?\DateTimeImmutable $datePublication = null): static
     {
-        $this->datePublication = $datePublication;
+        $this->datePublication = $datePublication ?? new \DateTimeImmutable();
 
         return $this;
     }

@@ -143,6 +143,60 @@ class PostRepository extends ServiceEntityRepository
     }
 
     /**
+     * Returns a paginated feed page with post authors and media eagerly loaded.
+     * Comments and comment authors are hydrated in a second query to avoid N+1.
+     *
+     * @return Post[]
+     */
+    public function findPageWithAuthor(int $offset, int $limit): array
+    {
+        $posts = $this->createQueryBuilder('p')
+            ->distinct()
+            ->leftJoin('p.author', 'a')
+            ->addSelect('a')
+            ->leftJoin('p.medias', 'm')
+            ->addSelect('m')
+            ->orderBy('p.createdAt', 'DESC')
+            ->addOrderBy('p.id', 'DESC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, $limit))
+            ->getQuery()
+            ->getResult();
+
+        if ($posts === []) {
+            return [];
+        }
+
+        $postIds = array_values(array_filter(array_map(static fn (Post $post): ?int => $post->getId(), $posts)));
+        if ($postIds === []) {
+            return $posts;
+        }
+
+        $this->getEntityManager()
+            ->createQueryBuilder()
+            ->select('c', 'ca')
+            ->from(\App\Entity\Commentaire::class, 'c')
+            ->leftJoin('c.author', 'ca')
+            ->where('IDENTITY(c.post) IN (:ids)')
+            ->setParameter('ids', $postIds)
+            ->orderBy('c.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return $posts;
+    }
+
+    /**
+     * Returns the most recent posts with relations for analytics widgets.
+     *
+     * @return Post[]
+     */
+    public function findRecentWithAuthor(int $limit = 150): array
+    {
+        return $this->findPageWithAuthor(0, $limit);
+    }
+
+    /**
      * @return Post[]
      */
     public function findRecentByAuthorWithMedias(User $author, int $limit = 20): array
