@@ -61,8 +61,7 @@ class FeedDailyDigestCommand extends Command
                     ->setTitle('Top 5 posts du jour')
                     ->setTag('highlight')
                     ->setContent(implode("\n", $lines))
-                    ->setMediaType('text')
-                    ->setCreatedAt(new \DateTimeImmutable());
+                    ->setMediaType('text');
 
                 $this->entityManager->persist($announcement);
                 $io->success('Daily highlights announcement prepared.');
@@ -81,8 +80,7 @@ class FeedDailyDigestCommand extends Command
                     ->setTitle('Alertes tendances')
                     ->setTag('trend')
                     ->setContent(implode("\n", $lines))
-                    ->setMediaType('text')
-                    ->setCreatedAt(new \DateTimeImmutable());
+                    ->setMediaType('text');
 
                 $this->entityManager->persist($announcement);
                 $io->success('Trend alert announcement prepared.');

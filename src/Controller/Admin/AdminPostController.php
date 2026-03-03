@@ -84,7 +84,7 @@ class AdminPostController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             if (!$post->getCreatedAt()) {
-                $post->setCreatedAt(new \DateTimeImmutable());
+                $post->publishAt(new \DateTimeImmutable());
             }
             if (!$post->getAuthor()) {
                 $post->setAuthor($this->getUser());

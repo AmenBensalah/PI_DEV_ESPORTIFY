@@ -246,7 +246,7 @@ class Commande
         return $this->aiBlockedAt;
     }
 
-    public function setAiBlockedAt(?\DateTimeImmutable $aiBlockedAt): static
+    public function markAiBlockedAt(?\DateTimeImmutable $aiBlockedAt = null): static
     {
         $this->aiBlockedAt = $aiBlockedAt;
 
@@ -258,7 +258,7 @@ class Commande
         return $this->aiBlockUntil;
     }
 
-    public function setAiBlockUntil(?\DateTimeImmutable $aiBlockUntil): static
+    public function defineAiBlockUntil(?\DateTimeImmutable $aiBlockUntil): static
     {
         $this->aiBlockUntil = $aiBlockUntil;
 

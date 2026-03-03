@@ -115,7 +115,10 @@ class GeminiService
                 }
             }
 
-            $err = $bestError ?? $lastError ?? 'Aucun modele Gemini compatible trouve.';
+            $err = trim((string) ($bestError ?? $lastError));
+            if ($err === '') {
+                $err = 'Aucun modele Gemini compatible trouve.';
+            }
             return 'ERREUR_GEMINI : Desole, Nexus_AI est temporairement hors ligne. (' . $err . ')';
         } catch (\Throwable $e) {
             return 'ERREUR_GEMINI : Desole, Nexus_AI est temporairement hors ligne. (' . $e->getMessage() . ')';

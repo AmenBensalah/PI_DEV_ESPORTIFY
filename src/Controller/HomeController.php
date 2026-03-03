@@ -44,6 +44,7 @@ class HomeController extends AbstractController
         $savedIds = [];
         $likedIds = [];
         $user = $this->getUser();
+        $authenticatedUser = $user instanceof \App\Entity\User ? $user : null;
         if ($user instanceof \App\Entity\User) {
             $savedIds = $user->getSavedPosts()->map(fn ($post) => $post->getId())->toArray();
             $likedIds = $user->getLikes()->map(fn ($like) => $like->getPost()?->getId())->filter(fn ($id) => $id !== null)->toArray();
@@ -51,33 +52,45 @@ class HomeController extends AbstractController
 
         $page = max(1, (int) $request->query->get('page', 1));
         $perPage = max(5, min(30, (int) $request->query->get('per_page', 10)));
-
-        $allPosts = $postRepository->findAllWithAuthor();
-        $allPosts = $feedIntelligenceService->sortPostsForUser(
-            $allPosts,
-            $user instanceof \App\Entity\User ? $user : null,
-            []
-        );
-        $totalPosts = count($allPosts);
-        $totalPages = max(1, (int) ceil($totalPosts / $perPage));
-        if ($page > $totalPages) {
-            $page = $totalPages;
-        }
         $offset = ($page - 1) * $perPage;
-        $posts = array_slice($allPosts, $offset, $perPage);
+        $allPosts = [];
+
+        if ($authenticatedUser instanceof \App\Entity\User) {
+            $allPosts = $postRepository->findAllWithAuthor();
+            $allPosts = $feedIntelligenceService->sortPostsForUser($allPosts, $authenticatedUser, []);
+            $totalPosts = count($allPosts);
+            $totalPages = max(1, (int) ceil($totalPosts / $perPage));
+            if ($page > $totalPages) {
+                $page = $totalPages;
+            }
+            $offset = ($page - 1) * $perPage;
+            $posts = array_slice($allPosts, $offset, $perPage);
+            $insightSourcePosts = array_slice($allPosts, 0, 150);
+        } else {
+            // Anonymous users do not need full in-memory sorting.
+            $totalPosts = $postRepository->count([]);
+            $totalPages = max(1, (int) ceil($totalPosts / $perPage));
+            if ($page > $totalPages) {
+                $page = $totalPages;
+            }
+            $offset = ($page - 1) * $perPage;
+            $posts = $postRepository->findPageWithAuthor($offset, $perPage);
+            $insightSourcePosts = $postRepository->findRecentWithAuthor(150);
+        }
+
         $analysisByPost = $feedIntelligenceService->ensurePostAnalyses($posts, 30);
 
         $yesterday = (new \DateTimeImmutable('now'))->modify('-1 day');
-        $postsLastDay = array_values(array_filter($allPosts, static function (Post $post) use ($yesterday): bool {
+        $postsLastDay = array_values(array_filter($insightSourcePosts, static function (Post $post) use ($yesterday): bool {
             return $post->getCreatedAt() !== null && $post->getCreatedAt() >= $yesterday;
         }));
         if ($postsLastDay === []) {
-            $postsLastDay = array_slice($allPosts, 0, 30);
+            $postsLastDay = array_slice($insightSourcePosts, 0, 30);
         }
 
         $bestTime = $feedIntelligenceService->suggestBestTimeToPost(
-            $user instanceof \App\Entity\User ? $user : null,
-            array_slice($allPosts, 0, 150)
+            $authenticatedUser,
+            $insightSourcePosts
         );
         $dailyHighlights = $feedIntelligenceService->buildDailyHighlights($postsLastDay, 5);
         $trendingTopics = $feedIntelligenceService->detectTrendingTopics($postsLastDay, 5);
@@ -210,11 +223,11 @@ class HomeController extends AbstractController
         $post->setContent($content !== '' ? $content : null);
         $post->setVideoUrl($videoUrl !== '' ? $videoUrl : null);
         $post->setImagePath($imagePath !== '' ? $imagePath : null);
-        $post->setCreatedAt(new \DateTimeImmutable());
+        $post->publishAt(new \DateTimeImmutable());
         $post->setAuthor($this->getUser());
         $post->setIsEvent($isEvent);
         $post->setEventTitle($eventTitle !== '' ? $eventTitle : null);
-        $post->setEventDate($eventDate);
+        $post->scheduleEventAt($eventDate);
         $post->setEventLocation($eventLocation !== '' ? $eventLocation : null);
         $post->setMaxParticipants($maxParticipants);
 
@@ -402,7 +415,6 @@ class HomeController extends AbstractController
             $like = new Like();
             $like->setPost($post);
             $like->setUser($user);
-            $like->setCreatedAt(new \DateTimeImmutable());
             $entityManager->persist($like);
             $createdLike = true;
         }
@@ -575,7 +587,6 @@ class HomeController extends AbstractController
         $comment->setPost($post);
         $comment->setAuthor($user);
         $comment->setContent($content);
-        $comment->setCreatedAt(new \DateTimeImmutable());
         $entityManager->persist($comment);
         $entityManager->flush();
         $analysisRecord = $feedIntelligenceService->analyzeAndPersistComment($comment, $recentComments, true);
@@ -718,7 +729,6 @@ class HomeController extends AbstractController
             $participant = new EventParticipant();
             $participant->setPost($post);
             $participant->setUser($user);
-            $participant->setCreatedAt(new \DateTimeImmutable());
             $entityManager->persist($participant);
             $joined = true;
         }

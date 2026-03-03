@@ -85,6 +85,7 @@ class Post
 
     public function __construct()
     {
+        $this->createdAt = new \DateTimeImmutable();
         $this->commentaires = new ArrayCollection();
         $this->likes = new ArrayCollection();
         $this->eventParticipants = new ArrayCollection();
@@ -138,9 +139,9 @@ class Post
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    public function publishAt(?\DateTimeImmutable $createdAt = null): static
     {
-        $this->createdAt = $createdAt;
+        $this->createdAt = $createdAt ?? new \DateTimeImmutable();
 
         return $this;
     }
@@ -186,7 +187,7 @@ class Post
         return $this->eventDate;
     }
 
-    public function setEventDate(?\DateTimeImmutable $eventDate): static
+    public function scheduleEventAt(?\DateTimeImmutable $eventDate): static
     {
         $this->eventDate = $eventDate;
 

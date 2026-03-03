@@ -34,8 +34,7 @@ class TeamReportService
         $report = (new TeamReport())
             ->setEquipe($equipe)
             ->setReporter($reporter)
-            ->setReason($reason)
-            ->setCreatedAt(new \DateTimeImmutable());
+            ->setReason($reason);
 
         $this->entityManager->persist($report);
 

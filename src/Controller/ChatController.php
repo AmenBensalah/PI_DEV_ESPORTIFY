@@ -108,7 +108,7 @@ class ChatController extends AbstractController
             $chatMessage->setUser($user);
             $chatMessage->setEquipe($equipe);
             $chatMessage->setMessage($messageText);
-            $chatMessage->setCreatedAt(new \DateTime());
+            $chatMessage->touchCreatedAt(new \DateTime());
 
             $entityManager->persist($chatMessage);
             $entityManager->flush();
@@ -164,7 +164,7 @@ class ChatController extends AbstractController
             $chatMessage->setUser(null); // System/AI message
             $chatMessage->setEquipe($equipe);
             $chatMessage->setMessage($aiResponse);
-            $chatMessage->setCreatedAt(new \DateTime());
+            $chatMessage->touchCreatedAt(new \DateTime());
 
             $entityManager->persist($chatMessage);
             $entityManager->flush();

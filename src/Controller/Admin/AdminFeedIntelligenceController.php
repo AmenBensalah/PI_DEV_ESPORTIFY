@@ -169,7 +169,7 @@ class AdminFeedIntelligenceController extends AbstractController
         $process->run();
 
         $combinedOutput = trim($process->getOutput() . "\n" . $process->getErrorOutput());
-        $combinedOutput = preg_replace('/\s+/', ' ', $combinedOutput ?? '') ?? '';
+        $combinedOutput = preg_replace('/\s+/', ' ', $combinedOutput) ?? '';
         if (strlen($combinedOutput) > 260) {
             $combinedOutput = substr($combinedOutput, 0, 260) . '...';
         }
@@ -225,8 +225,7 @@ class AdminFeedIntelligenceController extends AbstractController
             ->setTitle('Top 5 posts du jour')
             ->setTag('highlight')
             ->setContent(implode("\n", $lines))
-            ->setMediaType('text')
-            ->setCreatedAt(new \DateTimeImmutable());
+            ->setMediaType('text');
 
         $entityManager->persist($announcement);
         $entityManager->flush();
@@ -267,8 +266,7 @@ class AdminFeedIntelligenceController extends AbstractController
             ->setTitle('Alertes tendances')
             ->setTag('trend')
             ->setContent(implode("\n", $lines))
-            ->setMediaType('text')
-            ->setCreatedAt(new \DateTimeImmutable());
+            ->setMediaType('text');
 
         $entityManager->persist($announcement);
         $entityManager->flush();

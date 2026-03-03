@@ -25,8 +25,8 @@ class Equipe
     #[ORM\Column(type: Types::TEXT)]
     private ?string $description = null;
 
-    #[ORM\Column]
-    private ?\DateTime $dateCreation = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    private ?\DateTimeImmutable $dateCreation = null;
 
     #[ORM\Column(length: 50)]
     private ?string $classement = null;
@@ -59,8 +59,8 @@ class Equipe
     private ?string $discordInviteUrl = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?User $manager = null;
+    #[ORM\JoinColumn(name: 'manager_id', nullable: true)]
+    private ?User $managedBy = null;
 
     /**
      * @var Collection<int, Recrutement>
@@ -76,6 +76,7 @@ class Equipe
 
     public function __construct()
     {
+        $this->dateCreation = new \DateTimeImmutable();
         $this->recrutements = new ArrayCollection();
         $this->candidatures = new ArrayCollection();
     }
@@ -121,14 +122,14 @@ class Equipe
         return $this;
     }
 
-    public function getDateCreation(): ?\DateTime
+    public function getDateCreation(): ?\DateTimeImmutable
     {
         return $this->dateCreation;
     }
 
-    public function setDateCreation(\DateTime $dateCreation): static
+    public function establishDateCreation(?\DateTimeImmutable $dateCreation = null): static
     {
-        $this->dateCreation = $dateCreation;
+        $this->dateCreation = $dateCreation ?? new \DateTimeImmutable();
 
         return $this;
     }
@@ -253,12 +254,12 @@ class Equipe
 
     public function getManager(): ?User
     {
-        return $this->manager;
+        return $this->managedBy;
     }
 
     public function setManager(?User $manager): static
     {
-        $this->manager = $manager;
+        $this->managedBy = $manager;
 
         return $this;
     }
@@ -290,7 +291,7 @@ class Equipe
         return $this->suspendedUntil;
     }
 
-    public function setSuspendedUntil(?\DateTimeImmutable $suspendedUntil): static
+    public function suspendUntil(?\DateTimeImmutable $suspendedUntil): static
     {
         $this->suspendedUntil = $suspendedUntil;
         return $this;
@@ -326,8 +327,8 @@ class Equipe
         $membres = new ArrayCollection();
         
         // Add Manager/Creator if not already in candidatures (usually they are not)
-        if ($this->manager) {
-            $membres->add($this->manager);
+        if ($this->managedBy) {
+            $membres->add($this->managedBy);
         }
 
         foreach ($this->candidatures as $candidature) {

@@ -293,7 +293,7 @@ class UserPerformanceAIService
     {
         $aliases = [];
 
-        $managedTeam = $this->equipeRepository->findOneBy(['manager' => $user]);
+        $managedTeam = $this->equipeRepository->findOneBy(['managedBy' => $user]);
         if ($managedTeam && $managedTeam->getNomEquipe()) {
             $this->registerAlias($aliases, (string) $managedTeam->getNomEquipe());
         }

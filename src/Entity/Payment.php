@@ -13,8 +13,8 @@ class Payment
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?float $amount = null;
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    private ?string $amount = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
@@ -23,7 +23,7 @@ class Payment
     private ?string $status = null;
 
     #[ORM\ManyToOne(inversedBy: 'payments')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Commande $commande = null;
 
     public function __construct()
@@ -38,12 +38,12 @@ class Payment
 
     public function getAmount(): ?float
     {
-        return $this->amount;
+        return $this->amount !== null ? (float) $this->amount : null;
     }
 
     public function setAmount(float $amount): static
     {
-        $this->amount = $amount;
+        $this->amount = number_format($amount, 2, '.', '');
 
         return $this;
     }
@@ -53,9 +53,9 @@ class Payment
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    public function registerCreatedAt(?\DateTimeImmutable $createdAt = null): static
     {
-        $this->createdAt = $createdAt;
+        $this->createdAt = $createdAt ?? new \DateTimeImmutable();
 
         return $this;
     }

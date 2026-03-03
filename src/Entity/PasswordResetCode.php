@@ -27,6 +27,11 @@ class PasswordResetCode
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -59,7 +64,7 @@ class PasswordResetCode
         return $this->expiresAt;
     }
 
-    public function setExpiresAt(\DateTimeImmutable $expiresAt): static
+    public function expireAt(\DateTimeImmutable $expiresAt): static
     {
         $this->expiresAt = $expiresAt;
         return $this;
@@ -70,9 +75,9 @@ class PasswordResetCode
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    public function refreshCreatedAt(?\DateTimeImmutable $createdAt = null): static
     {
-        $this->createdAt = $createdAt;
+        $this->createdAt = $createdAt ?? new \DateTimeImmutable();
         return $this;
     }
 }

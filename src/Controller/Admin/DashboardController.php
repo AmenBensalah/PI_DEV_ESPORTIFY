@@ -240,7 +240,7 @@ class DashboardController extends AbstractController
         $process->run();
 
         $combinedOutput = trim($process->getOutput() . "\n" . $process->getErrorOutput());
-        $combinedOutput = preg_replace('/\s+/', ' ', $combinedOutput ?? '') ?? '';
+        $combinedOutput = preg_replace('/\s+/', ' ', $combinedOutput) ?? '';
         if (strlen($combinedOutput) > 220) {
             $combinedOutput = substr($combinedOutput, 0, 220) . '...';
         }

@@ -107,7 +107,7 @@ class AdminEquipeController extends AbstractController
             $equipe->setIsActive(false);
             $equipe->setSuspensionReason($reason);
             $equipe->setSuspensionDurationDays($durationDays);
-            $equipe->setSuspendedUntil($suspendedUntil);
+            $equipe->suspendUntil($suspendedUntil);
             $entityManager->flush();
 
             $sentCount = 0;
@@ -153,13 +153,13 @@ class AdminEquipeController extends AbstractController
         $equipe->setIsActive(!$equipe->isActive());
         if ($equipe->isActive()) {
             $equipe->setSuspensionReason(null);
-            $equipe->setSuspendedUntil(null);
+            $equipe->suspendUntil(null);
             $equipe->setSuspensionDurationDays(null);
             $this->addFlash('success', 'Equipe reactivee.');
         } else {
             $equipe->setSuspensionReason("equipe suspendue par l'admin");
             $equipe->setSuspensionDurationDays(7);
-            $equipe->setSuspendedUntil((new \DateTimeImmutable('now'))->modify('+7 days'));
+            $equipe->suspendUntil((new \DateTimeImmutable('now'))->modify('+7 days'));
             $this->addFlash('success', 'Equipe suspendue (mode rapide).');
         }
 
@@ -201,7 +201,7 @@ class AdminEquipeController extends AbstractController
             if ($until !== null && $until <= $now) {
                 $team->setIsActive(true);
                 $team->setSuspensionReason(null);
-                $team->setSuspendedUntil(null);
+                $team->suspendUntil(null);
                 $team->setSuspensionDurationDays(null);
                 $changed = true;
             }

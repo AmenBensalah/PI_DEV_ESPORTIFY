@@ -42,7 +42,7 @@ class ProfileController extends AbstractController
         if ($team) {
             $teamRole = 'member';
         } else {
-            $managedTeam = $equipeRepository->findOneBy(['manager' => $user]);
+            $managedTeam = $equipeRepository->findOneBy(['managedBy' => $user]);
             if ($managedTeam) {
                 $team = $managedTeam;
                 $teamRole = 'manager';

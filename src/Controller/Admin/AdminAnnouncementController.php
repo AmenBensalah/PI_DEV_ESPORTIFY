@@ -77,10 +77,6 @@ class AdminAnnouncementController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            if (!$announcement->getCreatedAt()) {
-                $announcement->setCreatedAt(new \DateTimeImmutable());
-            }
-
             if (!$announcement->getMediaType()) {
                 $announcement->setMediaType('text');
             }

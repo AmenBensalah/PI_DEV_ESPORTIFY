@@ -52,8 +52,8 @@ class OrderAiSyncCommand extends Command
                     $commande->setAiBlocked(false);
                     $commande->setAiRiskScore(null);
                     $commande->setAiBlockReason(null);
-                    $commande->setAiBlockedAt(null);
-                    $commande->setAiBlockUntil(null);
+                    $commande->markAiBlockedAt(null);
+                    $commande->defineAiBlockUntil(null);
                     $clearedCount++;
                 } else {
                     $skippedCount++;
@@ -72,17 +72,17 @@ class OrderAiSyncCommand extends Command
                 $commande->setAiBlocked(true);
                 $commande->setAiRiskScore(isset($decision['score']) ? (float) $decision['score'] : null);
                 $commande->setAiBlockReason(isset($decision['message']) ? (string) $decision['message'] : null);
-                $commande->setAiBlockedAt(new \DateTimeImmutable());
+                $commande->markAiBlockedAt(new \DateTimeImmutable());
 
                 $blockUntilRaw = isset($decision['block_until']) ? (string) $decision['block_until'] : '';
                 if ($blockUntilRaw !== '') {
                     try {
-                        $commande->setAiBlockUntil(new \DateTimeImmutable($blockUntilRaw));
+                        $commande->defineAiBlockUntil(new \DateTimeImmutable($blockUntilRaw));
                     } catch (\Throwable) {
-                        $commande->setAiBlockUntil(null);
+                        $commande->defineAiBlockUntil(null);
                     }
                 } else {
-                    $commande->setAiBlockUntil(null);
+                    $commande->defineAiBlockUntil(null);
                 }
 
                 $blockedCount++;
@@ -91,8 +91,8 @@ class OrderAiSyncCommand extends Command
                     $commande->setAiBlocked(false);
                     $commande->setAiRiskScore(null);
                     $commande->setAiBlockReason(null);
-                    $commande->setAiBlockedAt(null);
-                    $commande->setAiBlockUntil(null);
+                    $commande->markAiBlockedAt(null);
+                    $commande->defineAiBlockUntil(null);
                     $clearedCount++;
                 }
             }

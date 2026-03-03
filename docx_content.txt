@@ -1,0 +1,31 @@
+Rapport de Performance & Optimisation
+Nom de groupe : _____________________________________________
+Comparez votre code avec et sans:
+PHPStan
+Tests unitaires
+Optimisation Doctrine Doctor
+Complétez le rapport suivant: 
+PHPStan
+Avant Optimisation (avec preuves : des captures)
+Test1
+Test2
+...
+Après Optimisation (avec preuves : des captures)
+Test 1
+Test 2
+...
+Tests Unitaires
+Test 1
+Test 2
+...
+Problèmes détectés (DoctrineDoctor) 
+Complétez le tableau suivant
+--- TABLE ---
+Indicateur de performance | Avant optimisation (par défaut) | Après optimisation | Preuves (des captures)
+Nombre de problèmes N+1 détectés (DoctrineDoctor) |  |  | 
+Les problèmes |  |  | 
+--- TABLE ---
+Indicateur de performance | Avant optimisation (par défaut) | Après optimisation | Preuves (des captures)
+Temps moyen de réponse de la page d’accueil (ms) |  |  | 
+Temps d’exécution d’une fonctionnalité principale (au choix) |  |  | 
+Utilisation mémoire |  |  | 

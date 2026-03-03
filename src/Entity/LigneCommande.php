@@ -20,7 +20,7 @@ class LigneCommande
     private ?int $prix = null;
 
     #[ORM\ManyToOne(inversedBy: 'lignesCommande')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Commande $commande = null;
 
     #[ORM\ManyToOne]

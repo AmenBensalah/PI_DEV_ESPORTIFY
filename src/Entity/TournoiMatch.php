@@ -21,7 +21,7 @@ class TournoiMatch
     private ?Tournoi $tournoi = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(name: 'player_a_id', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'player_a_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     private ?User $playerA = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
@@ -34,8 +34,8 @@ class TournoiMatch
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $awayName = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?\DateTime $scheduledAt = null;
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $scheduledAt = null;
 
     #[ORM\Column(length: 30)]
     private string $status = 'planned';
@@ -102,12 +102,12 @@ class TournoiMatch
         return $this;
     }
 
-    public function getScheduledAt(): ?\DateTime
+    public function getScheduledAt(): ?\DateTimeImmutable
     {
         return $this->scheduledAt;
     }
 
-    public function setScheduledAt(?\DateTime $scheduledAt): static
+    public function scheduleAt(?\DateTimeImmutable $scheduledAt): static
     {
         $this->scheduledAt = $scheduledAt;
 
@@ -177,13 +177,6 @@ class TournoiMatch
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
     }
 
     /**

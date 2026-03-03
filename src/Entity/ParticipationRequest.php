@@ -39,12 +39,12 @@ class ParticipationRequest
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $applicantEmail = null;
 
-    #[ORM\Column(type: 'datetime')]
-    private ?\DateTime $createdAt = null;
+    #[ORM\Column(type: 'datetime_immutable')]
+    private ?\DateTimeImmutable $createdAt = null;
 
     public function __construct()
     {
-        $this->createdAt = new \DateTime();
+        $this->createdAt = new \DateTimeImmutable();
         $this->status = 'pending';
     }
 
@@ -141,7 +141,7 @@ class ParticipationRequest
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTime
+    public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
     }

@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\NotificationType;
 use App\Repository\NotificationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -22,7 +23,7 @@ class Notification
     private ?User $recipient = null;
 
     #[ORM\Column(length: 80)]
-    private string $type = 'general';
+    private string $type = NotificationType::GENERAL->value;
 
     #[ORM\Column(length: 180)]
     private string $title = '';
@@ -38,6 +39,11 @@ class Notification
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $createdAt = null;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
@@ -61,9 +67,14 @@ class Notification
         return $this->type;
     }
 
-    public function setType(string $type): static
+    public function getTypeValue(): string
     {
-        $this->type = $type;
+        return $this->type;
+    }
+
+    public function setType(string|NotificationType $type): static
+    {
+        $this->type = $type instanceof NotificationType ? $type->value : $type;
 
         return $this;
     }
@@ -119,13 +130,6 @@ class Notification
     public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
     }
 }
 

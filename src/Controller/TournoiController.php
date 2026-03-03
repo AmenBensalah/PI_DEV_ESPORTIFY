@@ -70,7 +70,7 @@ class TournoiController extends AbstractController
         $userHasTeam = false;
 
         if ($user) {
-            $isManager = null !== $equipeRepository->findOneBy(['manager' => $user]);
+            $isManager = null !== $equipeRepository->findOneBy(['managedBy' => $user]);
             $acceptedMembership = $candidatureRepository->createQueryBuilder('c')
                 ->select('c.id')
                 ->andWhere('c.user = :user')
@@ -250,7 +250,7 @@ class TournoiController extends AbstractController
                 return $this->redirectToRoute('tournoi_show', ['id' => $tournoi->getIdTournoi()]);
             }
 
-            $isManager = null !== $equipeRepository->findOneBy(['manager' => $user]);
+            $isManager = null !== $equipeRepository->findOneBy(['managedBy' => $user]);
             $acceptedMembership = $candidatureRepository->createQueryBuilder('c')
                 ->select('c.id')
                 ->andWhere('c.user = :user')
@@ -473,7 +473,7 @@ class TournoiController extends AbstractController
             }
 
             $teamName = '-';
-            $managerTeam = $equipeRepository->findOneBy(['manager' => $participant]);
+            $managerTeam = $equipeRepository->findOneBy(['managedBy' => $participant]);
             if ($managerTeam && $managerTeam->getNomEquipe()) {
                 $teamName = (string) $managerTeam->getNomEquipe();
             } else {

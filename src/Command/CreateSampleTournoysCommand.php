@@ -137,8 +137,7 @@ class CreateSampleTournoysCommand extends Command
         $tournoi->setStatus($data['status']);
         $tournoi->setPrizeWon((float) $data['prize']);
         $tournoi->setMaxPlaces($data['max_places']);
-        $tournoi->setStartDate(new \DateTime($data['start_offset']));
-        $tournoi->setEndDate(new \DateTime($data['end_offset']));
+        $tournoi->planSchedule(new \DateTimeImmutable($data['start_offset']), new \DateTimeImmutable($data['end_offset']));
         $tournoi->setCreator($admin);
 
         return $tournoi;
@@ -302,7 +301,7 @@ class CreateSampleTournoysCommand extends Command
         $match->setPlayerB($test2);
         $match->setHomeName($this->displayName($test1));
         $match->setAwayName($this->displayName($test2));
-        $match->setScheduledAt(new \DateTime($scheduledOffset));
+        $match->scheduleAt(new \DateTimeImmutable($scheduledOffset));
         $this->em->persist($match);
 
         return $match;

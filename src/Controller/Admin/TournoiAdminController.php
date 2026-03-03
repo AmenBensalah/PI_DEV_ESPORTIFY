@@ -288,8 +288,7 @@ class TournoiAdminController extends AbstractController
             $tournoi->setTypeTournoi($data['type_tournoi']);
             $tournoi->setTypeGame($data['type_game']);
             $tournoi->setGame($data['game']);
-            $tournoi->setStartDate(new \DateTime($data['startDate']));
-            $tournoi->setEndDate(new \DateTime($data['endDate']));
+            $tournoi->planSchedule(new \DateTimeImmutable($data['startDate']), new \DateTimeImmutable($data['endDate']));
             $tournoi->setStatus('planned');
             $tournoi->setPrizeWon((float)$data['prize_won']);
             $tournoi->setMaxPlaces(!empty($data['max_places']) ? (int)$data['max_places'] : null);
@@ -424,8 +423,7 @@ class TournoiAdminController extends AbstractController
             $tournoi->setTypeTournoi($data['type_tournoi']);
             $tournoi->setTypeGame($data['type_game']);
             $tournoi->setGame($data['game']);
-            $tournoi->setStartDate(new \DateTime($data['startDate']));
-            $tournoi->setEndDate(new \DateTime($data['endDate']));
+            $tournoi->planSchedule(new \DateTimeImmutable($data['startDate']), new \DateTimeImmutable($data['endDate']));
             $tournoi->setPrizeWon((float)$data['prize_won']);
             $tournoi->setMaxPlaces(!empty($data['max_places']) ? (int)$data['max_places'] : null);
 
@@ -917,8 +915,8 @@ class TournoiAdminController extends AbstractController
             $errors[] = 'La date du match est obligatoire.';
         } else {
             try {
-                $scheduledAt = new \DateTime($scheduledAtRaw);
-                $match->setScheduledAt($scheduledAt);
+                $scheduledAt = new \DateTimeImmutable($scheduledAtRaw);
+                $match->scheduleAt($scheduledAt);
 
                 if ($tournoi && $tournoi->getStartDate() && $tournoi->getEndDate()) {
                     $startDate = $tournoi->getStartDate();
@@ -1101,7 +1099,7 @@ class TournoiAdminController extends AbstractController
             }
 
             $teamName = '-';
-            $managerTeam = $equipeRepository->findOneBy(['manager' => $participant]);
+            $managerTeam = $equipeRepository->findOneBy(['managedBy' => $participant]);
             if ($managerTeam && $managerTeam->getNomEquipe()) {
                 $teamName = (string) $managerTeam->getNomEquipe();
             } else {
