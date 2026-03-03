@@ -2,7 +2,7 @@
   <img src="./public/images/banner.png" alt="Esportify Banner" width="800">
 </p>
 
-# 🎮 Esportify - Professional E-Sports Management Ecosystem
+# 🎮 Esportify - Plateforme de Gestion E-Sport
 
 <p align="center">
   <img src="https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP Version">
@@ -17,129 +17,132 @@
 
 ## 🌟 Overview
 
-**Esportify** is a comprehensive, state-of-the-art platform designed for the competitive gaming industry. It bridges the gap between players, teams, and tournament organizers by providing a unified ecosystem for tournament management, team recruitment, social engagement, and e-commerce—all wrapped in a premium, modern "Cyberpunk" aesthetic.
+Ce projet a été développé dans le cadre du programme PIDEV – 3ème année du cycle ingénieur à **École Supérieure Privée d’Ingénierie et de Technologies (ESPRIT)** (Année Universitaire 2025–2026).
 
-Built with **Symfony 6.4**, Esportify leverages modern web technologies to deliver a fast, responsive, and data-driven experience for the global e-sports community.
+**Esportify** est une plateforme web complète et moderne conçue pour l'industrie de l'e-sport compétitif. Elle fait le lien entre les joueurs, les équipes et les organisateurs de tournois en offrant un écosystème unifié pour la gestion des compétitions, le recrutement d'équipes, l'engagement social et le commerce électronique, le tout avec une esthétique **"Cyberpunk"** de haute qualité. Le système intègre des connexions sociales avancées (Google/Discord), de la modération par IA, et des paiements gérés par Stripe.
 
-## 🚀 Key Modules & Features
+---
 
-### 🏆 Tournament Arena
-- **Comprehensive Lifecycle**: Manage tournaments from planning to completion.
-- **Dynamic Categories**: specialized tracks for **FPS, Sports, Battle Royale, and Mind Games**.
-- **Mode Support**: Flexible systems for both **Solo** and **Squad** competitions.
-- **Prize Pool Tracking**: Automated prize management and winner rankings.
+## 🚀 Features
 
-### 👥 Team & Player Ecosystem
-- **Team Management**: Create, customize, and lead elite e-sports organizations.
-- **Recruitment Hub**: Advanced recruitment system with candidatures and vacancy listings.
-- **Manager Requests**: Formalized workflow for team management transitions.
-
-### 🛒 E-Sport Boutique (Shop)
-- **Professional Storefront**: Browse and purchase e-sports gear and digital assets.
-- **Secure Payments**: Integrated with **Stripe** for seamless and secure transactions.
-- **Order Management**: Full tracking from purchase to fulfillment.
-
-### 💬 Communication Hub
-- **Real-Time Chat**: Direct messaging and team chat capabilities.
-- **Notifications**: Instant alerts for match updates, recruitment news, and platform activity.
-- **Social Feed**: Community posts, likes, comments, and media sharing.
-
-### 🤖 AI Strategy Insights
-- **Feed Analysis**: AI-powered insights into community trends and feed activity.
-- **Team Performance Reports**: Automated AI generation of team performance summaries.
-- **Recommendations**: Personalized content and team suggestions based on playstyle.
-
-### 📊 Interactive Dashboards
-- **Player Stats**: Visualized performance metrics using **Chart.js**.
-- **Admin Command Center**: A powerful, no-auth `/admin` dashboard for rapid tournament orchestration.
+- **🏆 Gestion des Tournois** : Gestion complète du cycle de vie des tournois (FPS, Sports, Battle Royale). Prise en charge des modes Solo et Squad, suivi automatique des cagnottes (Prize Pool), classements des gagnants, et intégration des détails des jeux via **RAWG API**.
+- **👥 Écosystème Joueurs & Équipes** : Création et gestion d'équipes e-sport, système de recrutement avancé (candidatures et offres de postes). Prise en charge d'authentification sociale sécurisée.
+- **🛒 Boutique E-Sport** : Vitrine professionnelle pour l'achat d'équipements e-sport et d'articles numériques, intégrant des paiements sécurisés via **Stripe** et le suivi complet des commandes. Facturation PDF générée automatiquement.
+- **💬 Hub de Communication** : Messagerie directe en temps réel, fil d'actualité communautaire et notifications par e-mail fiables via **Brevo API**.
+- **🤖 Intelligence Artificielle et Sécurité** : Analyse des tendances du fil d'actualité, rapports e-sport autogénérés par l'IA, sécurisation des formulaires via **Google reCAPTCHA** contre les bots.
+- **📊 Tableaux de Bord & Outils** : Visualisation des performances avec **Chart.js** et exportation intuitive de rapports au format PDF dynamique.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Backend**: PHP 8.2+ | Symfony 6.4 (LTS)
-- **Database**: MySQL | Doctrine ORM
-- **Frontend**: Twig | Vanilla JS | Stimulus | Turbo (Symfony UX)
-- **Styling**: Modern CSS with "Orbitron" & "Rajdhani" typography
-- **Payments**: Stripe API
-- **AI Integration**: Custom AI analysis modules for feeds and reports
-- **Utilities**: VichUploader (Files), KnpSnappy (PDFs), LiipImagine (Images)
+### 🎨 Frontend
+- **Twig** (Moteur de templates ultra-rapide)
+- **Vanilla JS**, **jQuery**, **Stimulus** & **Turbo** (Symfony UX fluide)
+- **CSS Moderne** (Polices cyberpunk "Orbitron" & "Rajdhani" & thèmes de néons)
+- **Chart.js** pour la visualisation des données et statistiques
+
+### ⚙️ Backend
+- **PHP 8.2+** 
+- **Symfony 6.4 (LTS)**
+- **MySQL** & **Doctrine ORM**
+- **Utilitaires** : VichUploader (Gestion des fichiers), KnpSnappy / wkhtmltopdf (Impressions PDF personnalisées), LiipImagine (Optimisation et filtres conditionnels d'images).
+
+### 🔗 APIs Intégrées / Services
+- **Brevo API (Sendinblue)** : Notifications système et campagnes transactionnelles / par email.
+- **OAuth2 Google Client** : Inscription et authentification rapide avec Google.
+- **OAuth2 Discord Client** : Inscription et reconnexion au hub avec Discord.
+- **Stripe API** : Gateway e-commerce (Achat hautement sécurisé sur la boutique).
+- **Google reCAPTCHA v2 / v3** : Prévention active contre le spam ou le brute-forcing.
+- **RAWG API** : Base de données riche pour obtenir toutes les informations et les trailers des jeux e-sports instantanément.
+
+---
+
+## 🏗 Architecture
+
+Le projet repose sur l'architecture robuste **MVC** (Modèle-Vue-Contrôleur) de Symfony :
+
+```text
+src/
+├── Controller/    # Logique métier, requêtes (Tournois, Équipes, Boutique, Utilisateurs)
+├── Entity/        # Modèles de données ORM
+├── Repository/    # Méthodes personnalisées de requêtes SQL interactives 
+├── Form/          # Génération robuste et configuration prédictive de formulaires sécurisés
+├── templates/     # Vues Twig modulaires structurées par domaine fonctionnel 
+└── public/        # Ressources clientes accessibles (Images, CSS, scripts JS Vanilla/jQuery)
+```
+
+---
+
+## 👥 Contributors
+
+Groupe **Esportify** :
+* Amen Bensalah
+* Mohamed Bouzid
+* Ilyes Zid
+* Aysser Dhifallah
+* Mohamed Ghaieth Bouamor
+* Youssef Mejri
+
+---
+
+## 🎓 Academic Context
+
+Developed at **École Supérieure Privée d’Ingénierie et de Technologies (ESPRIT) – Tunisia**  
+PIDEV – 3A | 2025 – 2026
 
 ---
 
 ## 📦 Getting Started
 
-### Prerequisites
-- PHP 8.2 or higher
+### ✅ Prérequis
+- PHP 8.2 ou supérieur
 - Composer
 - MySQL 8.0+
-- Symfony CLI (Optional but recommended)
+- Installation locale de `wkhtmltopdf` configurée
+- Symfony CLI (fortement recommandé)
 
-### Installation Steps
+### 💽 Étapes d'installation
 
-1. **Clone the repository**
+1. **Cloner le dépôt**
    ```bash
    git clone https://github.com/AmenBensalah/PI_DEV_ESPORTIFY.git
    cd esportify
    ```
 
-2. **Install dependencies**
+2. **Installer les dépendances**
    ```bash
    composer install
    ```
 
-3. **Configure Environment**
-   Edit the `.env` file and set your database credentials:
+3. **Configurer l'environnement**
+   Copiez `.env` vers `.env.local` et configurez vos accès aux bases de données et API intégrées :
    ```env
-   DATABASE_URL="mysql://db_user:db_password@127.0.0.1:3306/esportify_db?serverVersion=8.0"
-   STRIPE_PUBLIC_KEY=your_key
-   STRIPE_SECRET_KEY=your_secret
+   DATABASE_URL="mysql://root:@127.0.0.1:3306/esportify_db?serverVersion=8.0"
+   BREVO_API_KEY="votre_clé_brevo"
+   OAUTH_GOOGLE_CLIENT_ID="votre_client_google"
+   OAUTH_DISCORD_CLIENT_ID="votre_client_discord"
+   RECAPTCHA_SITE_KEY="votre_clé_site_recaptcha"
+   RAWG_API_KEY="votre_clé_rawg"
+   WKHTMLTOPDF_PATH="C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
    ```
 
-4. **Initialize Database**
+4. **Initialiser la base de données**
    ```bash
    php bin/console doctrine:database:create
    php bin/console doctrine:migrations:migrate
    ```
 
-5. **Seed Sample Data (Optional)**
-   ```bash
-   php bin/console app:create-test-users
-   php bin/console app:create-sample-tournoys
-   ```
-
-6. **Start the server**
+5. **Lancer le serveur local**
    ```bash
    symfony serve
    ```
-   *Your app will be live at `http://127.0.0.1:8000`*
+   *L'application sera en ligne via l'URL locale `http://127.0.0.1:8000`*
 
 ---
 
-## 🛡️ Admin Dashboard
+## 🙏 Acknowledgments
 
-The primary administration interface is accessible at:
-👉 **[http://127.0.0.1:8000/admin](http://127.0.0.1:8000/admin)**
+Nous tenons à exprimer nos plus vifs remerciements à notre encadrante et tuteur, Madame **Ayari Asma**, pour son encadrement précieux, ses conseils avisés et son soutien constant tout au long du développement de ce projet. 
 
-*Note: In the current development version, admin routes are globally accessible for testing purposes. For production, ensure ROLE_ADMIN is enforced in `security.yaml`.*
-
----
-
-## 🎨 Branding & UI/UX
-
-Esportify features a **High-Octane E-Sport Design System**:
-- **Palette**: Deep Purples (`#9d4edd`), Vibrant Pinks (`#f72585`), and Electric Cyans.
-- **Vibe**: Dark mode by default, glassmorphism, and neon glowing effects.
-- **UX**: Smooth transitions powered by Symfony Turbo.
-
----
-
-## 📄 License
-
-Distributed under the **Proprietary License**. See `LICENSE` for more information.
-
----
-
-<p align="center">
-  Developed with ❤️ for the E-Sports Community by <b>Amen Bensalah & The Esportify Team</b>
-</p>
+Un grand merci également à notre prestigieuse faculté, **École Supérieure Privée d’Ingénierie et de Technologies (ESPRIT)**, pour nous avoir offert un environnement d'apprentissage exceptionnel, des ressources de qualité, et pour nous préparer au mieux aux défis du monde de l'ingénierie et de la technologie.
